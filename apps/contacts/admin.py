@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Contact, ContactActivity, ContactNote
+from .models import Contact, ContactActivity, ContactNote, SmartList
 
 
 @admin.register(Contact)
@@ -24,4 +24,12 @@ class ContactActivityAdmin(admin.ModelAdmin):
     list_display = ('contact', 'activity_type', 'created_at')
     list_filter = ('activity_type', 'created_at')
     search_fields = ('description',)
+    readonly_fields = ('created_at',)
+
+
+@admin.register(SmartList)
+class SmartListAdmin(admin.ModelAdmin):
+    list_display = ('name', 'team', 'created_at')
+    list_filter = ('team',)
+    search_fields = ('name',)
     readonly_fields = ('created_at',)

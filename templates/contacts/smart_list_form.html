@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }} - Smart Lists{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">{{ form_title }}</h1>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="rounded-md bg-red-50 p-4">
+                <div class="text-sm text-red-700">
+                    <ul class="list-disc pl-5 space-y-1">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                            <li>{{ field|title }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Name -->
+            <div>
+                <label for="id_name" class="block text-sm font-medium text-gray-700">List Name</label>
+                {{ form.name }}
+            </div>
+
+            <hr class="border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Filter Criteria</h3>
+            <p class="text-sm text-gray-500">Only fill in the filters you want to apply. Empty filters are ignored.</p>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                    <label for="id_source" class="block text-sm font-medium text-gray-700">Source</label>
+                    {{ form.source }}
+                </div>
+
+                <div>
+                    <label for="id_assigned_to" class="block text-sm font-medium text-gray-700">Assigned To</label>
+                    {{ form.assigned_to }}
+                </div>
+            </div>
+
+            <div>
+                <label for="id_tags_contain" class="block text-sm font-medium text-gray-700">Tags Contain</label>
+                {{ form.tags_contain }}
+                <p class="mt-1 text-xs text-gray-500">Filter contacts whose tags contain this value.</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                    <label for="id_last_contacted_days_ago_gt" class="block text-sm font-medium text-gray-700">Not Contacted In (days)</label>
+                    {{ form.last_contacted_days_ago_gt }}
+                    <p class="mt-1 text-xs text-gray-500">Contacts not reached out to in this many days.</p>
+                </div>
+
+                <div>
+                    <label for="id_created_days_ago_lt" class="block text-sm font-medium text-gray-700">Created Within (days)</label>
+                    {{ form.created_days_ago_lt }}
+                    <p class="mt-1 text-xs text-gray-500">Contacts created within this many days.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                    <label for="id_has_deal_in_stage" class="block text-sm font-medium text-gray-700">Has Deal In Stage</label>
+                    {{ form.has_deal_in_stage }}
+                </div>
+
+                <div class="flex items-center pt-6">
+                    {{ form.no_deal }}
+                    <label for="id_no_deal" class="ml-2 block text-sm font-medium text-gray-700">Has No Deal</label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <a href="{% url 'contacts:smart_list_list' %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Save Smart List
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

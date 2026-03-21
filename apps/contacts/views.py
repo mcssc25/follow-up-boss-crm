@@ -4,11 +4,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from apps.accounts.models import User
-from apps.contacts.forms import ContactForm, ContactNoteForm, LogActivityForm
-from apps.contacts.models import Contact, ContactActivity, ContactNote
+from apps.contacts.forms import ContactForm, ContactNoteForm, LogActivityForm, SmartListForm
+from apps.contacts.models import Contact, ContactActivity, ContactNote, SmartList
 
 
 class ContactListView(LoginRequiredMixin, ListView):
@@ -214,3 +215,95 @@ def bulk_action(request):
         messages.error(request, 'Unknown action.')
 
     return redirect('contacts:list')
+
+
+# ---------------------------------------------------------------------------
+# Smart List Views
+# ---------------------------------------------------------------------------
+
+
+class SmartListListView(LoginRequiredMixin, ListView):
+    model = SmartList
+    template_name = 'contacts/smart_list_list.html'
+    context_object_name = 'smart_lists'
+
+    def get_queryset(self):
+        return SmartList.objects.filter(team=self.request.user.team)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        for sl in ctx['smart_lists']:
+            sl.contact_count = sl.get_contacts().count()
+        return ctx
+
+
+class SmartListCreateView(LoginRequiredMixin, CreateView):
+    model = SmartList
+    form_class = SmartListForm
+    template_name = 'contacts/smart_list_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['team'] = self.request.user.team
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.team = self.request.user.team
+        form.instance.filters = form.build_filters()
+        messages.success(self.request, 'Smart list created.')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['form_title'] = 'Create Smart List'
+        return ctx
+
+
+class SmartListDetailView(LoginRequiredMixin, DetailView):
+    model = SmartList
+    template_name = 'contacts/smart_list_results.html'
+    context_object_name = 'smart_list'
+
+    def get_queryset(self):
+        return SmartList.objects.filter(team=self.request.user.team)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['contacts'] = self.object.get_contacts().select_related('assigned_to')
+        return ctx
+
+
+class SmartListUpdateView(LoginRequiredMixin, UpdateView):
+    model = SmartList
+    form_class = SmartListForm
+    template_name = 'contacts/smart_list_form.html'
+
+    def get_queryset(self):
+        return SmartList.objects.filter(team=self.request.user.team)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['team'] = self.request.user.team
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.filters = form.build_filters()
+        messages.success(self.request, 'Smart list updated.')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['form_title'] = 'Edit Smart List'
+        return ctx
+
+
+class SmartListDeleteView(LoginRequiredMixin, DeleteView):
+    model = SmartList
+    success_url = reverse_lazy('contacts:smart_list_list')
+
+    def get_queryset(self):
+        return SmartList.objects.filter(team=self.request.user.team)
+
+    def post(self, request, *args, **kwargs):
+        messages.success(request, 'Smart list deleted.')
+        return super().post(request, *args, **kwargs)
