@@ -16,4 +16,7 @@ urlpatterns = [
     path('step/<int:pk>/delete/', views.delete_step, name='delete_step'),
     path('enroll/', views.enroll_contact, name='enroll'),
     path('enrollment/<int:pk>/unenroll/', views.unenroll_contact, name='unenroll'),
+    # Public video views (no login required)
+    path('video/<int:step_id>/<int:contact_id>/', views.video_player, name='video_player'),
+    path('video/<int:step_id>/<int:contact_id>/track/', views.video_track, name='video_track'),
 ]

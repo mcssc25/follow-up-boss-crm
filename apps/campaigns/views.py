@@ -1,15 +1,19 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
-from django.http import HttpResponseNotAllowed
+from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.campaigns.forms import CampaignForm, CampaignStepForm
 from apps.campaigns.models import Campaign, CampaignEnrollment, CampaignStep
-from apps.contacts.models import Contact
+from apps.contacts.models import Contact, ContactActivity
 
 
 class CampaignListView(LoginRequiredMixin, ListView):
@@ -251,3 +255,59 @@ def unenroll_contact(request, pk):
     if next_url:
         return redirect(next_url)
     return redirect('campaigns:detail', pk=enrollment.campaign.pk)
+
+
+# ---------------------------------------------------------------------------
+# Public video views (no login required — contacts click links in emails)
+# ---------------------------------------------------------------------------
+
+def video_player(request, step_id, contact_id):
+    """Public page that plays a campaign video and tracks the view."""
+    step = get_object_or_404(CampaignStep, id=step_id)
+    contact = get_object_or_404(Contact, id=contact_id)
+
+    # Log video view activity
+    ContactActivity.objects.create(
+        contact=contact,
+        activity_type='video_viewed',
+        description=f"Watched video: {step.subject}",
+        metadata={'step_id': step.id, 'campaign_id': step.campaign.id},
+    )
+
+    return render(request, 'campaigns/video_player.html', {
+        'step': step,
+        'contact': contact,
+    })
+
+
+@csrf_exempt
+@require_POST
+def video_track(request, step_id, contact_id):
+    """Track video watch duration via JS beacon."""
+    step = get_object_or_404(CampaignStep, id=step_id)
+    contact = get_object_or_404(Contact, id=contact_id)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        data = {}
+
+    duration = data.get('duration', 0)
+    percent = data.get('percent', 0)
+
+    # Update the most recent video_viewed activity for this step/contact
+    activity = (
+        ContactActivity.objects.filter(
+            contact=contact,
+            activity_type='video_viewed',
+            metadata__step_id=step.id,
+        )
+        .order_by('-id')
+        .first()
+    )
+    if activity:
+        activity.metadata['watch_duration'] = duration
+        activity.metadata['watch_percent'] = percent
+        activity.save(update_fields=['metadata'])
+
+    return JsonResponse({'ok': True})

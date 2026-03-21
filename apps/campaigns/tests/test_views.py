@@ -1,9 +1,10 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Team, User
 from apps.campaigns.models import Campaign, CampaignEnrollment, CampaignStep
-from apps.contacts.models import Contact
+from apps.contacts.models import Contact, ContactActivity
 
 
 class CampaignViewTests(TestCase):
@@ -231,3 +232,120 @@ class CampaignViewTests(TestCase):
             reverse('campaigns:detail', kwargs={'pk': other_campaign.pk})
         )
         self.assertEqual(response.status_code, 404)
+
+
+class VideoPlayerViewTests(TestCase):
+    def setUp(self):
+        self.team = Team.objects.create(name="Test Realty")
+        self.user = User.objects.create_user(
+            username="agent1",
+            password="testpass123",
+            team=self.team,
+        )
+        self.campaign = Campaign.objects.create(
+            name="Video Campaign",
+            description="Campaign with video steps",
+            team=self.team,
+            created_by=self.user,
+        )
+        # Create a step with a video file
+        fake_video = SimpleUploadedFile(
+            "test_video.mp4",
+            b"fake-video-content",
+            content_type="video/mp4",
+        )
+        self.step = CampaignStep.objects.create(
+            campaign=self.campaign,
+            order=1,
+            delay_days=0,
+            delay_hours=0,
+            subject="Watch this property tour",
+            body="<p>Check out the video.</p>",
+            video_file=fake_video,
+        )
+        self.contact = Contact.objects.create(
+            first_name="Jane",
+            last_name="Doe",
+            email="jane@example.com",
+            team=self.team,
+        )
+
+    def test_video_page_loads(self):
+        """Video player page should load without authentication."""
+        self.client.logout()
+        url = reverse(
+            'campaigns:video_player',
+            kwargs={'step_id': self.step.pk, 'contact_id': self.contact.pk},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Watch this property tour')
+        self.assertContains(response, '<video')
+
+    def test_video_logs_activity(self):
+        """Visiting the video page should create a video_viewed activity."""
+        self.client.logout()
+        url = reverse(
+            'campaigns:video_player',
+            kwargs={'step_id': self.step.pk, 'contact_id': self.contact.pk},
+        )
+        self.client.get(url)
+        activity = ContactActivity.objects.filter(
+            contact=self.contact,
+            activity_type='video_viewed',
+        )
+        self.assertEqual(activity.count(), 1)
+        self.assertIn('Watch this property tour', activity.first().description)
+        self.assertEqual(activity.first().metadata['step_id'], self.step.id)
+        self.assertEqual(
+            activity.first().metadata['campaign_id'], self.campaign.id,
+        )
+
+    def test_video_page_404_invalid_ids(self):
+        """Invalid step or contact IDs should return 404."""
+        url = reverse(
+            'campaigns:video_player',
+            kwargs={'step_id': 99999, 'contact_id': self.contact.pk},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_video_track_endpoint(self):
+        """Video tracking endpoint should accept POST with duration data."""
+        self.client.logout()
+        # First visit the page to create an activity
+        player_url = reverse(
+            'campaigns:video_player',
+            kwargs={'step_id': self.step.pk, 'contact_id': self.contact.pk},
+        )
+        self.client.get(player_url)
+
+        # Send tracking data
+        track_url = reverse(
+            'campaigns:video_track',
+            kwargs={'step_id': self.step.pk, 'contact_id': self.contact.pk},
+        )
+        response = self.client.post(
+            track_url,
+            data='{"duration": 45, "percent": 75}',
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'ok': True})
+
+        # Check that the activity was updated
+        activity = ContactActivity.objects.filter(
+            contact=self.contact,
+            activity_type='video_viewed',
+        ).first()
+        self.assertEqual(activity.metadata['watch_duration'], 45)
+        self.assertEqual(activity.metadata['watch_percent'], 75)
+
+    def test_video_track_rejects_get(self):
+        """Video tracking endpoint should reject GET requests."""
+        url = reverse(
+            'campaigns:video_track',
+            kwargs={'step_id': self.step.pk, 'contact_id': self.contact.pk},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 405)

@@ -1,7 +1,9 @@
 from celery import shared_task
 from django.utils import timezone
 
-from .email_renderer import render_campaign_email
+from django.conf import settings
+
+from .email_renderer import get_video_html, render_campaign_email
 from .models import CampaignEnrollment
 from apps.accounts.gmail import GmailService
 from apps.contacts.models import ContactActivity
@@ -42,6 +44,11 @@ def send_campaign_email(enrollment_id):
     # Render email with merge fields
     rendered_body = render_campaign_email(step.body, contact, agent)
     rendered_subject = render_campaign_email(step.subject, contact, agent)
+
+    # Append video thumbnail/play button if step has a video
+    if step.video_file:
+        base_url = getattr(settings, 'BASE_URL', 'https://crm.yourdomain.com').rstrip('/')
+        rendered_body += get_video_html(step, contact, base_url)
 
     # Send via Gmail
     gmail = GmailService(
