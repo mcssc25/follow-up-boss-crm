@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Contacts - CRM{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Contacts</h1>
+    <a href="{% url 'contacts:create' %}"
+       class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Contact
+    </a>
+</div>
+
+<!-- Search & Filters -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <form method="get" class="flex flex-wrap items-end gap-4">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+            <input type="text" name="q" value="{{ search_query }}"
+                   placeholder="Name, email, or phone..."
+                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Source</label>
+            <select name="source"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <option value="">All Sources</option>
+                {% for value, label in source_choices %}
+                <option value="{{ value }}" {% if selected_source == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Agent</label>
+            <select name="agent"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <option value="">All Agents</option>
+                {% for agent in agents %}
+                <option value="{{ agent.pk }}" {% if selected_agent == agent.pk|stringformat:"d" %}selected{% endif %}>{{ agent }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Tag</label>
+            <input type="text" name="tag" value="{{ selected_tag }}"
+                   placeholder="Filter by tag"
+                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+        </div>
+        <div>
+            <button type="submit"
+                    class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-md hover:bg-gray-700">
+                Filter
+            </button>
+            <a href="{% url 'contacts:list' %}" class="ml-2 text-sm text-gray-500 hover:text-gray-700">Clear</a>
+        </div>
+    </form>
+</div>
+
+<!-- Bulk Actions & Table -->
+<form method="post" action="{% url 'contacts:bulk_action' %}" id="bulk-form">
+    {% csrf_token %}
+
+    <!-- Bulk action bar -->
+    <div class="bg-white rounded-t-lg border border-b-0 border-gray-200 px-4 py-3 flex items-center gap-4">
+        <select name="action" class="rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <option value="">-- Bulk Action --</option>
+            <option value="assign">Assign to Agent</option>
+            <option value="tag">Add Tag</option>
+            <option value="delete">Delete</option>
+        </select>
+        <select name="assign_to" class="rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <option value="">-- Select Agent --</option>
+            {% for agent in agents %}
+            <option value="{{ agent.pk }}">{{ agent }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="tag" placeholder="Tag name"
+               class="rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500 w-36">
+        <button type="submit"
+                class="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700"
+                onclick="return confirm('Are you sure you want to perform this action?');">
+            Apply
+        </button>
+    </div>
+
+    <!-- Contact table -->
+    <div class="bg-white shadow-sm border border-gray-200 rounded-b-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 w-8">
+                        <input type="checkbox" id="select-all"
+                               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                               onclick="document.querySelectorAll('input[name=contact_ids]').forEach(c => c.checked = this.checked);">
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for contact in contacts %}
+                <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-indigo-50">
+                    <td class="px-4 py-3">
+                        <input type="checkbox" name="contact_ids" value="{{ contact.pk }}"
+                               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <a href="{% url 'contacts:detail' contact.pk %}" class="font-medium text-indigo-600 hover:text-indigo-800">
+                            {{ contact.first_name }} {{ contact.last_name }}
+                        </a>
+                        {% for tag in contact.tags %}
+                        <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">{{ tag }}</span>
+                        {% endfor %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ contact.email }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ contact.phone }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ contact.get_source_display }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ contact.assigned_to|default:"Unassigned" }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ contact.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">
+                        No contacts found. <a href="{% url 'contacts:create' %}" class="text-indigo-600 hover:underline">Add your first contact</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav class="mt-6 flex items-center justify-between">
+    <p class="text-sm text-gray-700">
+        Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} contacts
+    </p>
+    <div class="flex space-x-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&source={{ selected_source }}&agent={{ selected_agent }}&tag={{ selected_tag }}"
+           class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&source={{ selected_source }}&agent={{ selected_agent }}&tag={{ selected_tag }}"
+           class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">Next</a>
+        {% endif %}
+    </div>
+</nav>
+{% endif %}
+{% endblock %}
