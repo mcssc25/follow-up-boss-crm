@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% if user.is_admin %}
+        <a href="{% url 'accounts:settings_team' %}" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200">
+            <div class="flex items-center mb-3">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Team</h3>
+            <p class="text-sm text-gray-500 mt-1">Manage team members, invite users, and assign roles.</p>
+        </a>
+        {% endif %}
+
+        {% if user.is_admin %}
+        <a href="{% url 'accounts:settings_pipelines' %}" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200">
+            <div class="flex items-center mb-3">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Pipelines</h3>
+            <p class="text-sm text-gray-500 mt-1">Create and manage pipelines and stages.</p>
+        </a>
+        {% endif %}
+
+        <a href="{% url 'accounts:settings_gmail' %}" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200">
+            <div class="flex items-center mb-3">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Gmail</h3>
+            <p class="text-sm text-gray-500 mt-1">Connect or disconnect your Gmail account.</p>
+        </a>
+
+        {% if user.is_admin %}
+        <a href="{% url 'accounts:settings_api_keys' %}" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200">
+            <div class="flex items-center mb-3">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">API Keys</h3>
+            <p class="text-sm text-gray-500 mt-1">Generate and manage API keys for integrations.</p>
+        </a>
+        {% endif %}
+
+        {% if user.is_admin %}
+        <a href="{% url 'accounts:settings_lead_routing' %}" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200">
+            <div class="flex items-center mb-3">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Lead Routing</h3>
+            <p class="text-sm text-gray-500 mt-1">Configure how new leads are assigned to agents.</p>
+        </a>
+        {% endif %}
+
+        <a href="{% url 'accounts:settings_integration' %}" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200">
+            <div class="flex items-center mb-3">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Integration Guide</h3>
+            <p class="text-sm text-gray-500 mt-1">Learn how to connect your landing page to the CRM.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

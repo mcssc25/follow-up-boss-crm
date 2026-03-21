@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from urllib.parse import urlparse
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -265,6 +266,14 @@ CELERY_BEAT_SCHEDULE = {
     'process-due-campaign-emails': {
         'task': 'apps.campaigns.tasks.process_due_emails',
         'schedule': 300.0,  # Every 5 minutes
+    },
+    'send-task-reminders': {
+        'task': 'apps.tasks.tasks.send_due_reminders',
+        'schedule': 3600.0,  # Every hour
+    },
+    'send-overdue-digest': {
+        'task': 'apps.tasks.tasks.send_overdue_digest',
+        'schedule': crontab(hour=8, minute=0),  # Daily at 8 AM
     },
 }
 

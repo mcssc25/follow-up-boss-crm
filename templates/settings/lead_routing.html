@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Lead Routing Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'accounts:settings_index' %}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Back to Settings</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">Lead Routing</h1>
+        <p class="text-sm text-gray-500 mt-1">Configure how new leads from your landing page are assigned to agents.</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="space-y-4">
+                <div>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="radio" name="method" value="round_robin"
+                               {% if config.method == 'round_robin' or not config.method %}checked{% endif %}
+                               class="mt-1"
+                               onchange="document.getElementById('agent-select').classList.add('hidden')">
+                        <div>
+                            <span class="text-sm font-medium text-gray-900">Round Robin</span>
+                            <p class="text-sm text-gray-500">Automatically assign leads to the agent with the fewest contacts. Distributes workload evenly.</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="radio" name="method" value="manual"
+                               {% if config.method == 'manual' %}checked{% endif %}
+                               class="mt-1"
+                               onchange="document.getElementById('agent-select').classList.remove('hidden')">
+                        <div>
+                            <span class="text-sm font-medium text-gray-900">Manual Assignment</span>
+                            <p class="text-sm text-gray-500">Always assign new leads to a specific agent.</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="agent-select" class="ml-8 {% if config.method != 'manual' %}hidden{% endif %}">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Agent</label>
+                    <select name="agent_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">-- Select Agent --</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.pk }}" {% if config.agent_id == agent.pk %}selected{% endif %}>
+                            {{ agent.get_full_name|default:agent.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium">
+                    Save Configuration
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -4,6 +4,7 @@ from django.db import models
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
+    lead_routing_config = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

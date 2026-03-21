@@ -8,6 +8,8 @@ from django.views.decorators.http import require_POST
 from apps.campaigns.models import Campaign, CampaignEnrollment
 from apps.contacts.models import Contact, ContactActivity
 
+from apps.accounts.notifications import notify_new_lead
+
 from .lead_routing import round_robin_assign
 from .models import APIKey
 
@@ -46,6 +48,9 @@ def capture_lead(request):
         activity_type='campaign_enrolled',
         description=f"New lead captured from {contact.source}",
     )
+
+    # Notify assigned agent
+    notify_new_lead(contact)
 
     # Auto-enroll in campaign if specified
     campaign_id = data.get('campaign_id')
