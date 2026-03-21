@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - CRM{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center space-x-3">
+    <a href="{% url 'campaigns:detail' campaign.pk %}" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900">{{ form_title }}</h1>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Form -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label for="{{ form.order.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Step Order <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.order }}
+                        {% if form.order.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.order.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.delay_days.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Delay (days)
+                        </label>
+                        {{ form.delay_days }}
+                        {% if form.delay_days.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.delay_days.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.delay_hours.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Delay (hours)
+                        </label>
+                        {{ form.delay_hours }}
+                        {% if form.delay_hours.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.delay_hours.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Subject <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.subject }}
+                    {% if form.subject.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.subject.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.body.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Email Body <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.body }}
+                    {% if form.body.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.body.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.video_file.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Video Attachment
+                    </label>
+                    {{ form.video_file }}
+                    {% if form.video_file.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.video_file.errors.0 }}</p>
+                    {% endif %}
+                    {% if step.video_file %}
+                    <p class="mt-1 text-xs text-gray-500">Current: {{ step.video_file.name }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                    <a href="{% url 'campaigns:detail' campaign.pk %}" class="text-sm text-gray-500 hover:text-gray-700">Cancel</a>
+                    <button type="submit"
+                            class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                        {% if step %}Update{% else %}Add{% endif %} Step
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Merge Fields Reference -->
+    <div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Available Merge Fields</h3>
+            <p class="text-xs text-gray-500 mb-3">Use these in the subject or body to personalize emails.</p>
+            <ul class="space-y-2 text-xs">
+                <li class="flex items-center justify-between">
+                    <code class="bg-gray-100 px-2 py-1 rounded text-indigo-700">&#123;&#123;first_name&#125;&#125;</code>
+                    <span class="text-gray-400">Contact first name</span>
+                </li>
+                <li class="flex items-center justify-between">
+                    <code class="bg-gray-100 px-2 py-1 rounded text-indigo-700">&#123;&#123;last_name&#125;&#125;</code>
+                    <span class="text-gray-400">Contact last name</span>
+                </li>
+                <li class="flex items-center justify-between">
+                    <code class="bg-gray-100 px-2 py-1 rounded text-indigo-700">&#123;&#123;agent_name&#125;&#125;</code>
+                    <span class="text-gray-400">Agent full name</span>
+                </li>
+                <li class="flex items-center justify-between">
+                    <code class="bg-gray-100 px-2 py-1 rounded text-indigo-700">&#123;&#123;agent_phone&#125;&#125;</code>
+                    <span class="text-gray-400">Agent phone</span>
+                </li>
+                <li class="flex items-center justify-between">
+                    <code class="bg-gray-100 px-2 py-1 rounded text-indigo-700">&#123;&#123;agent_email&#125;&#125;</code>
+                    <span class="text-gray-400">Agent email</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- TinyMCE Rich Text Editor -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js"></script>
+<script>
+    tinymce.init({
+        selector: '#step-body',
+        height: 350,
+        menubar: false,
+        plugins: 'lists link code',
+        toolbar: 'undo redo | formatselect | bold italic underline | bullist numlist | link | code',
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
+    });
+</script>
+{% endblock %}

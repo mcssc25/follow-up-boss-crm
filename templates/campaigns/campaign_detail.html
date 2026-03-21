@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}{{ campaign.name }} - CRM{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-6 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+        <a href="{% url 'campaigns:list' %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900">{{ campaign.name }}</h1>
+        {% if campaign.is_active %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+        {% else %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
+        {% endif %}
+    </div>
+    <div class="flex items-center space-x-3">
+        <form method="post" action="{% url 'campaigns:toggle' campaign.pk %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+                    class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                {% if campaign.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+        </form>
+        <a href="{% url 'campaigns:edit' campaign.pk %}"
+           class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Edit
+        </a>
+        <form method="post" action="{% url 'campaigns:duplicate' campaign.pk %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+                    class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Duplicate
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if campaign.description %}
+<p class="text-sm text-gray-600 mb-6">{{ campaign.description }}</p>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Steps -->
+    <div class="lg:col-span-2 space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900">Steps</h2>
+            <a href="{% url 'campaigns:add_step' campaign.pk %}"
+               class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Add Step
+            </a>
+        </div>
+
+        {% for step in steps %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold">
+                            {{ step.order }}
+                        </span>
+                        <span class="text-xs font-medium text-gray-500">
+                            {% if step.delay_days == 0 and step.delay_hours == 0 %}
+                                Immediately
+                            {% elif step.delay_days == 0 %}
+                                {{ step.delay_hours }} hour{{ step.delay_hours|pluralize }} later
+                            {% elif step.delay_hours == 0 %}
+                                {{ step.delay_days }} day{{ step.delay_days|pluralize }} later
+                            {% else %}
+                                {{ step.delay_days }} day{{ step.delay_days|pluralize }}, {{ step.delay_hours }} hour{{ step.delay_hours|pluralize }} later
+                            {% endif %}
+                        </span>
+                        {% if step.video_file %}
+                        <span class="inline-flex items-center text-xs text-blue-600" title="Has video">
+                            <svg class="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            Video
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-1">{{ step.subject }}</h3>
+                    <p class="text-xs text-gray-500">{{ step.body|striptags|truncatechars:100 }}</p>
+                </div>
+                <div class="flex items-center space-x-2 ml-4">
+                    <a href="{% url 'campaigns:edit_step' step.pk %}"
+                       class="text-xs text-indigo-600 hover:text-indigo-800">Edit</a>
+                    <form method="post" action="{% url 'campaigns:delete_step' step.pk %}" class="inline"
+                          onsubmit="return confirm('Delete step {{ step.order }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs text-red-500 hover:text-red-700">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+            <p class="text-sm text-gray-500">No steps yet.</p>
+            <a href="{% url 'campaigns:add_step' campaign.pk %}" class="mt-2 inline-block text-sm text-indigo-600 hover:underline">Add your first step</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sidebar: Enrollment Stats -->
+    <div class="space-y-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Enrollment Stats</h3>
+            <dl class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <dt class="text-sm text-gray-500">Active</dt>
+                    <dd class="text-sm font-semibold text-green-600">{{ active_count }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-sm text-gray-500">Paused</dt>
+                    <dd class="text-sm font-semibold text-yellow-600">{{ paused_count }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-sm text-gray-500">Completed</dt>
+                    <dd class="text-sm font-semibold text-gray-600">{{ completed_count }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Enrolled Contacts -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Enrolled Contacts</h3>
+
+            <!-- Enroll form -->
+            <form method="post" action="{% url 'campaigns:enroll' %}" class="mb-4">
+                {% csrf_token %}
+                <input type="hidden" name="campaign_id" value="{{ campaign.pk }}">
+                <div class="flex space-x-2">
+                    <input type="number" name="contact_id" placeholder="Contact ID"
+                           class="flex-1 rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           required>
+                    <button type="submit"
+                            class="px-3 py-2 bg-indigo-600 text-white text-xs font-medium rounded-md hover:bg-indigo-700">
+                        Enroll
+                    </button>
+                </div>
+            </form>
+
+            {% if enrollments %}
+            <ul class="divide-y divide-gray-100">
+                {% for enrollment in enrollments %}
+                <li class="py-2 flex items-center justify-between">
+                    <div>
+                        <a href="{% url 'contacts:detail' enrollment.contact.pk %}" class="text-sm text-indigo-600 hover:underline">
+                            {{ enrollment.contact }}
+                        </a>
+                        <p class="text-xs text-gray-400">
+                            {% if enrollment.completed_at %}Completed
+                            {% elif enrollment.is_active %}Active - Step {{ enrollment.current_step.order|default:"?" }}
+                            {% else %}Paused{% if enrollment.paused_reason %} ({{ enrollment.paused_reason }}){% endif %}
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if enrollment.is_active and not enrollment.completed_at %}
+                    <form method="post" action="{% url 'campaigns:unenroll' enrollment.pk %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs text-red-500 hover:text-red-700">Unenroll</button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-sm text-gray-400">No enrollments yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
