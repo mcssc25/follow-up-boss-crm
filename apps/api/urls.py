@@ -1,5 +1,9 @@
-from django.urls import path  # noqa: F401
+from django.urls import path
+
+from . import views
 
 app_name = 'api'
 
-urlpatterns = []
+urlpatterns = [
+    path('leads/', views.capture_lead, name='capture_lead'),
+]
