@@ -16,14 +16,14 @@ urlpatterns = [
     # Django allauth
     path('accounts/', include('allauth.urls')),
 
-    # Project apps — uncomment as apps are created in Task 2+
-    # path('', include('apps.accounts.urls')),
-    # path('contacts/', include('apps.contacts.urls')),
-    # path('pipeline/', include('apps.pipeline.urls')),
-    # path('campaigns/', include('apps.campaigns.urls')),
-    # path('tasks/', include('apps.tasks.urls')),
-    # path('reports/', include('apps.reports.urls')),
-    # path('api/', include('apps.api.urls')),
+    # Project apps
+    path('', include('apps.accounts.urls')),
+    path('contacts/', include('apps.contacts.urls')),
+    path('pipeline/', include('apps.pipeline.urls')),
+    path('campaigns/', include('apps.campaigns.urls')),
+    path('tasks/', include('apps.tasks.urls')),
+    path('reports/', include('apps.reports.urls')),
+    path('api/', include('apps.api.urls')),
 ]
 
 if settings.DEBUG:

@@ -59,14 +59,13 @@ THIRD_PARTY_APPS = [
 ]
 
 PROJECT_APPS = [
-    # Uncomment as apps are created (Task 2+)
-    # 'apps.accounts',
-    # 'apps.contacts',
-    # 'apps.pipeline',
-    # 'apps.campaigns',
-    # 'apps.tasks',
-    # 'apps.reports',
-    # 'apps.api',
+    'apps.accounts',
+    'apps.contacts',
+    'apps.pipeline',
+    'apps.campaigns',
+    'apps.tasks',
+    'apps.reports',
+    'apps.api',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
