@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ pipeline.name }} - Pipeline{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <a href="{% url 'pipeline:list' %}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; All Pipelines</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ pipeline.name }}</h1>
+    </div>
+    <a href="{% url 'pipeline:deal_create' %}?pipeline={{ pipeline.pk }}"
+       class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        + Add Deal
+    </a>
+</div>
+
+<!-- Kanban Board -->
+<div class="flex space-x-4 overflow-x-auto pb-4" style="min-height: 60vh;">
+    {% for stage in stages %}
+    <div class="flex-shrink-0 w-72">
+        <!-- Stage Header -->
+        <div class="flex items-center justify-between mb-3 px-1">
+            <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full inline-block" style="background-color: {{ stage.color }};"></span>
+                <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">{{ stage.name }}</h3>
+            </div>
+            <span class="text-xs text-gray-400 font-medium bg-gray-100 px-2 py-0.5 rounded-full">
+                {{ stage.deals.count }}
+            </span>
+        </div>
+
+        <!-- Deals Column -->
+        <div class="bg-gray-50 rounded-lg p-2 min-h-[200px] space-y-2 kanban-column"
+             data-stage-id="{{ stage.pk }}">
+            {% for deal in stage.deals.all %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 cursor-grab hover:shadow-md transition-shadow deal-card"
+                 data-deal-id="{{ deal.pk }}">
+                <div class="flex items-start justify-between mb-1">
+                    <a href="{% url 'contacts:detail' deal.contact.pk %}"
+                       class="text-sm font-medium text-indigo-600 hover:text-indigo-800 truncate">
+                        {{ deal.contact }}
+                    </a>
+                    <a href="{% url 'pipeline:deal_edit' deal.pk %}"
+                       class="text-gray-400 hover:text-gray-600 ml-1 flex-shrink-0"
+                       title="Edit deal">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </a>
+                </div>
+                {% if deal.title %}
+                <p class="text-xs text-gray-500 mb-1 truncate">{{ deal.title }}</p>
+                {% endif %}
+                <div class="flex items-center justify-between text-xs text-gray-400 mt-2">
+                    {% if deal.value %}
+                    <span class="font-semibold text-green-600">${{ deal.value|floatformat:0 }}</span>
+                    {% else %}
+                    <span>--</span>
+                    {% endif %}
+                    <span>{{ deal.created_at|timesince }} ago</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-4 text-xs text-gray-400 empty-placeholder">
+                No deals
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Add Deal to Stage -->
+        <a href="{% url 'pipeline:deal_create' %}?pipeline={{ pipeline.pk }}&stage={{ stage.pk }}"
+           class="mt-2 block text-center text-xs text-gray-400 hover:text-indigo-600 py-1 rounded hover:bg-gray-100 transition-colors">
+            + Add Deal
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- SortableJS for drag-and-drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const columns = document.querySelectorAll('.kanban-column');
+    const csrfToken = document.querySelector('[hx-headers]')?.getAttribute('hx-headers');
+    let csrf = '';
+    if (csrfToken) {
+        try {
+            csrf = JSON.parse(csrfToken)['X-CSRFToken'];
+        } catch(e) {}
+    }
+
+    columns.forEach(function(column) {
+        new Sortable(column, {
+            group: 'kanban',
+            animation: 150,
+            ghostClass: 'opacity-50',
+            dragClass: 'shadow-lg',
+            handle: '.deal-card',
+            draggable: '.deal-card',
+            onEnd: function(evt) {
+                const dealCard = evt.item;
+                const dealId = dealCard.dataset.dealId;
+                const newStageId = evt.to.dataset.stageId;
+
+                // Remove empty placeholder if present
+                const placeholder = evt.to.querySelector('.empty-placeholder');
+                if (placeholder) placeholder.remove();
+
+                // Show placeholder on source column if empty
+                if (evt.from.querySelectorAll('.deal-card').length === 0) {
+                    const ph = document.createElement('div');
+                    ph.className = 'text-center py-4 text-xs text-gray-400 empty-placeholder';
+                    ph.textContent = 'No deals';
+                    evt.from.appendChild(ph);
+                }
+
+                // Update deal counts
+                updateColumnCounts();
+
+                // Send AJAX request to move deal
+                fetch('/pipeline/deal/' + dealId + '/move/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrf,
+                    },
+                    body: JSON.stringify({ stage_id: parseInt(newStageId) }),
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (!data.success) {
+                        console.error('Failed to move deal:', data);
+                        location.reload();
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Error moving deal:', err);
+                    location.reload();
+                });
+            }
+        });
+    });
+
+    function updateColumnCounts() {
+        columns.forEach(function(column) {
+            const count = column.querySelectorAll('.deal-card').length;
+            const header = column.closest('.flex-shrink-0').querySelector('.rounded-full');
+            if (header) header.textContent = count;
+        });
+    }
+});
+</script>
+{% endblock %}
