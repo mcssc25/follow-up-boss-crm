@@ -5,22 +5,242 @@
 {% block content %}
 <h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-500">Total Contacts</p>
-        <p class="text-3xl font-bold text-gray-900 mt-2">0</p>
+<!-- Stat Cards Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <!-- Total Contacts -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-blue-100 rounded-lg">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Total Contacts</p>
+                <p class="text-2xl font-bold text-gray-900">{{ total_contacts }}</p>
+            </div>
+        </div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-500">Active Deals</p>
-        <p class="text-3xl font-bold text-gray-900 mt-2">0</p>
+
+    <!-- Active Deals -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-green-100 rounded-lg">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Active Deals</p>
+                <p class="text-2xl font-bold text-gray-900">{{ active_deals }}</p>
+                <p class="text-xs text-gray-400">${{ total_deal_value|floatformat:0 }} total</p>
+            </div>
+        </div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-500">Tasks Due Today</p>
-        <p class="text-3xl font-bold text-gray-900 mt-2">0</p>
+
+    <!-- Tasks Due Today -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-yellow-100 rounded-lg">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Tasks Due Today</p>
+                <p class="text-2xl font-bold text-gray-900">{{ tasks_today|length }}</p>
+            </div>
+        </div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-500">Active Campaigns</p>
-        <p class="text-3xl font-bold text-gray-900 mt-2">0</p>
+
+    <!-- Overdue Tasks -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-red-100 rounded-lg">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Overdue Tasks</p>
+                <p class="text-2xl font-bold text-{% if overdue_tasks > 0 %}red-600{% else %}gray-900{% endif %}">{{ overdue_tasks }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Campaigns -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-purple-100 rounded-lg">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Active Campaigns</p>
+                <p class="text-2xl font-bold text-gray-900">{{ active_campaigns }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column (2/3) -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Today's Tasks -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Today's Tasks</h2>
+            </div>
+            <div class="divide-y divide-gray-100">
+                {% for task in tasks_today %}
+                <div class="px-6 py-3 flex items-center justify-between hover:bg-gray-50">
+                    <div class="flex items-center space-x-3">
+                        <span class="inline-block w-2 h-2 rounded-full {% if task.priority == 'high' %}bg-red-500{% elif task.priority == 'medium' %}bg-yellow-500{% else %}bg-green-500{% endif %}"></span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ task.title }}</p>
+                            {% if task.contact %}
+                            <p class="text-xs text-gray-500">{{ task.contact }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <form method="post" action="/tasks/{{ task.pk }}/complete/">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full hover:bg-green-100 border border-green-200">
+                            Complete
+                        </button>
+                    </form>
+                </div>
+                {% empty %}
+                <div class="px-6 py-8 text-center text-sm text-gray-400">
+                    No tasks due today. You're all caught up!
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Leads -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Leads</h2>
+                <a href="/contacts/" class="text-sm text-indigo-600 hover:text-indigo-800">View all</a>
+            </div>
+            <div class="divide-y divide-gray-100">
+                {% for contact in recent_leads %}
+                <a href="{{ contact.get_absolute_url }}" class="px-6 py-3 flex items-center justify-between hover:bg-gray-50 block">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-medium text-indigo-700">
+                            {{ contact.first_name|first }}{{ contact.last_name|first }}
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ contact.first_name }} {{ contact.last_name }}</p>
+                            <p class="text-xs text-gray-500">{{ contact.email }}</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                        {% if contact.source == 'zillow' %}bg-blue-100 text-blue-800
+                        {% elif contact.source == 'realtor' %}bg-orange-100 text-orange-800
+                        {% elif contact.source == 'referral' %}bg-green-100 text-green-800
+                        {% elif contact.source == 'landing_page' %}bg-purple-100 text-purple-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ contact.get_source_display }}
+                    </span>
+                </a>
+                {% empty %}
+                <div class="px-6 py-8 text-center text-sm text-gray-400">
+                    No contacts yet. <a href="/contacts/create/" class="text-indigo-600 hover:underline">Add your first contact</a>.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Pipeline Summary -->
+        {% if pipeline_summary %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Pipeline: {{ default_pipeline.name }}</h2>
+                <a href="{{ default_pipeline.get_absolute_url }}" class="text-sm text-indigo-600 hover:text-indigo-800">View board</a>
+            </div>
+            <div class="p-6">
+                <div class="space-y-3">
+                    {% for stage in pipeline_summary %}
+                    <div class="flex items-center">
+                        <div class="w-28 text-sm text-gray-600 flex-shrink-0">{{ stage.name }}</div>
+                        <div class="flex-1 mx-3">
+                            <div class="w-full bg-gray-100 rounded-full h-5">
+                                <div class="h-5 rounded-full flex items-center justify-end pr-2" style="background-color: {{ stage.color }}; width: {% widthratio stage.count active_deals 100 %}%; min-width: {% if stage.count > 0 %}2rem{% else %}0{% endif %};">
+                                    {% if stage.count > 0 %}
+                                    <span class="text-xs font-medium text-white">{{ stage.count }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-8 text-sm font-medium text-gray-700 text-right">{{ stage.count }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column (1/3) - Activity Feed -->
+    <div class="space-y-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+            </div>
+            <div class="divide-y divide-gray-100 max-h-[600px] overflow-y-auto">
+                {% for activity in recent_activity %}
+                <div class="px-6 py-3">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 mt-0.5">
+                            {% if activity.activity_type == 'email_sent' %}
+                            <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </div>
+                            {% elif activity.activity_type == 'email_opened' %}
+                            <div class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5"/></svg>
+                            </div>
+                            {% elif activity.activity_type == 'call_logged' %}
+                            <div class="w-7 h-7 rounded-full bg-yellow-100 flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            </div>
+                            {% elif activity.activity_type == 'note_added' %}
+                            <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </div>
+                            {% elif activity.activity_type == 'video_viewed' %}
+                            <div class="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            {% else %}
+                            <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm text-gray-900">
+                                <a href="{{ activity.contact.get_absolute_url }}" class="font-medium hover:text-indigo-600">{{ activity.contact }}</a>
+                            </p>
+                            <p class="text-xs text-gray-500">{{ activity.get_activity_type_display }}</p>
+                            {% if activity.description %}
+                            <p class="text-xs text-gray-400 truncate">{{ activity.description }}</p>
+                            {% endif %}
+                            <p class="text-xs text-gray-400 mt-1">{{ activity.created_at|timesince }} ago</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="px-6 py-8 text-center text-sm text-gray-400">
+                    No recent activity.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
