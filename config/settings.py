@@ -261,6 +261,12 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BEAT_SCHEDULE = {
+    'process-due-campaign-emails': {
+        'task': 'apps.campaigns.tasks.process_due_emails',
+        'schedule': 300.0,  # Every 5 minutes
+    },
+}
 
 # ---------------------------------------------------------------------------
 # Security (production hardening — active when DEBUG is False)
