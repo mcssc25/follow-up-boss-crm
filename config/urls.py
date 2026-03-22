@@ -13,11 +13,11 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # Django allauth
-    path('accounts/', include('allauth.urls')),
-
-    # Project apps
+    # Project apps (our custom views first, so they take priority over allauth)
     path('', include('apps.accounts.urls')),
+
+    # Django allauth (for Google OAuth social login only)
+    path('accounts/', include('allauth.urls')),
     path('contacts/', include('apps.contacts.urls')),
     path('pipeline/', include('apps.pipeline.urls')),
     path('campaigns/', include('apps.campaigns.urls')),
