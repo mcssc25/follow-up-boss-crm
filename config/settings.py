@@ -32,6 +32,10 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
+# Google OAuth (for Gmail API integration)
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
+
 # ---------------------------------------------------------------------------
 # Application Definition
 # ---------------------------------------------------------------------------
