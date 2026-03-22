@@ -1,10 +1,11 @@
+import base64
 import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
-from django.http import HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +13,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.campaigns.forms import CampaignForm, CampaignStepForm
-from apps.campaigns.models import Campaign, CampaignEnrollment, CampaignStep
+from apps.campaigns.models import Campaign, CampaignEnrollment, CampaignStep, EmailLog
 from apps.contacts.models import Contact, ContactActivity
 
 
@@ -56,6 +57,18 @@ class CampaignDetailView(LoginRequiredMixin, DetailView):
             completed_at__isnull=False
         ).count()
         ctx['enrollments'] = enrollments.select_related('contact')[:50]
+
+        # Email stats
+        email_logs = EmailLog.objects.filter(enrollment__campaign=campaign)
+        ctx['emails_sent'] = email_logs.count()
+        ctx['emails_opened'] = email_logs.filter(opened_at__isnull=False).count()
+        ctx['emails_clicked'] = email_logs.filter(clicked_at__isnull=False).count()
+        if ctx['emails_sent'] > 0:
+            ctx['open_rate'] = round(ctx['emails_opened'] / ctx['emails_sent'] * 100, 1)
+            ctx['click_rate'] = round(ctx['emails_clicked'] / ctx['emails_sent'] * 100, 1)
+        else:
+            ctx['open_rate'] = 0
+            ctx['click_rate'] = 0
         return ctx
 
 
@@ -63,6 +76,14 @@ class CampaignCreateView(LoginRequiredMixin, CreateView):
     model = Campaign
     form_class = CampaignForm
     template_name = 'campaigns/campaign_form.html'
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Allow selecting next_campaign from team's campaigns
+        form.fields['next_campaign'].queryset = Campaign.objects.filter(
+            team=self.request.user.team,
+        )
+        return form
 
     def form_valid(self, form):
         form.instance.team = self.request.user.team
@@ -311,3 +332,56 @@ def video_track(request, step_id, contact_id):
         activity.save(update_fields=['metadata'])
 
     return JsonResponse({'ok': True})
+
+
+# ---------------------------------------------------------------------------
+# Email tracking views (no login required — triggered by email clients)
+# ---------------------------------------------------------------------------
+
+# 1x1 transparent GIF pixel
+TRANSPARENT_GIF = base64.b64decode(
+    'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+)
+
+
+def track_email_open(request, tracking_id):
+    """Record an email open via tracking pixel (1x1 transparent GIF)."""
+    try:
+        email_log = EmailLog.objects.get(tracking_id=tracking_id)
+        if email_log.opened_at is None:
+            email_log.opened_at = timezone.now()
+            email_log.save(update_fields=['opened_at'])
+            # Also log activity
+            ContactActivity.objects.create(
+                contact=email_log.enrollment.contact,
+                activity_type='email_opened',
+                description=f"Opened campaign email: Step {email_log.step.order}",
+                metadata={
+                    'campaign_id': email_log.enrollment.campaign_id,
+                    'step_order': email_log.step.order,
+                    'tracking_id': str(tracking_id),
+                },
+            )
+    except EmailLog.DoesNotExist:
+        pass
+
+    return HttpResponse(TRANSPARENT_GIF, content_type='image/gif')
+
+
+def track_email_click(request, tracking_id):
+    """Record an email link click and redirect to the original URL."""
+    destination = request.GET.get('url', '/')
+
+    try:
+        email_log = EmailLog.objects.get(tracking_id=tracking_id)
+        if email_log.clicked_at is None:
+            email_log.clicked_at = timezone.now()
+            email_log.save(update_fields=['clicked_at'])
+        # Also mark as opened if not already
+        if email_log.opened_at is None:
+            email_log.opened_at = timezone.now()
+            email_log.save(update_fields=['opened_at'])
+    except EmailLog.DoesNotExist:
+        pass
+
+    return HttpResponseRedirect(destination)

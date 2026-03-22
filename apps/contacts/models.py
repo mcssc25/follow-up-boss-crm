@@ -7,6 +7,28 @@ from django.urls import reverse
 from django.utils import timezone
 
 
+class Tag(models.Model):
+    """Reusable tag that can be applied to contacts."""
+    name = models.CharField(max_length=100)
+    color = models.CharField(
+        max_length=7,
+        default='#6366f1',
+        help_text='Hex color code, e.g. #6366f1',
+    )
+    team = models.ForeignKey(
+        'accounts.Team',
+        on_delete=models.CASCADE,
+        related_name='tags',
+    )
+
+    class Meta:
+        ordering = ['name']
+        unique_together = ['name', 'team']
+
+    def __str__(self):
+        return self.name
+
+
 class Contact(models.Model):
     SOURCE_CHOICES = [
         ('landing_page', 'Landing Page'),
@@ -37,6 +59,11 @@ class Contact(models.Model):
         related_name='contacts',
     )
     tags = models.JSONField(default=list, blank=True)
+    tag_objects = models.ManyToManyField(
+        Tag,
+        blank=True,
+        related_name='contacts',
+    )
     custom_fields = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

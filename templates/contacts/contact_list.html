@@ -113,8 +113,13 @@
                         <a href="{% url 'contacts:detail' contact.pk %}" class="font-medium text-indigo-600 hover:text-indigo-800">
                             {{ contact.first_name }} {{ contact.last_name }}
                         </a>
+                        {% for tag in contact.tag_objects.all %}
+                        <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                        {% endfor %}
                         {% for tag in contact.tags %}
+                        {% if not contact.tag_objects.all %}
                         <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">{{ tag }}</span>
+                        {% endif %}
                         {% endfor %}
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-600">{{ contact.email }}</td>

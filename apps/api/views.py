@@ -3,15 +3,20 @@ import json
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 
 from apps.campaigns.models import Campaign, CampaignEnrollment
-from apps.contacts.models import Contact, ContactActivity
+from apps.contacts.models import Contact, ContactActivity, Tag
 
 from apps.accounts.notifications import notify_new_lead
 
 from .lead_routing import round_robin_assign
 from .models import APIKey
+
+
+def _cors_response(response):
+    """Add CORS headers to a response."""
+    response['Access-Control-Allow-Origin'] = '*'
+    return response
 
 
 @csrf_exempt
@@ -35,32 +40,101 @@ def capture_lead(request):
             key=api_key, is_active=True
         )
     except APIKey.DoesNotExist:
-        return JsonResponse({'error': 'Invalid API key'}, status=401)
+        return _cors_response(JsonResponse({'error': 'Invalid API key'}, status=401))
 
     team = key_obj.team
     data = json.loads(request.body)
 
-    # Create contact
-    contact = Contact.objects.create(
-        first_name=data.get('first_name', ''),
-        last_name=data.get('last_name', ''),
-        email=data.get('email', ''),
-        phone=data.get('phone', ''),
-        source=data.get('source', 'landing_page'),
-        source_detail=data.get('utm_source', ''),
-        team=team,
-        assigned_to=round_robin_assign(team),
-    )
+    # Build source_detail from UTM parameters
+    source_detail = data.get('source_detail', '')
+    utm_source = data.get('utm_source', '')
+    utm_medium = data.get('utm_medium', '')
+    utm_campaign = data.get('utm_campaign', '')
+    utm_content = data.get('utm_content', '')
+    utm_parts = []
+    if utm_source:
+        utm_parts.append(f"utm_source={utm_source}")
+    if utm_medium:
+        utm_parts.append(f"utm_medium={utm_medium}")
+    if utm_campaign:
+        utm_parts.append(f"utm_campaign={utm_campaign}")
+    if utm_content:
+        utm_parts.append(f"utm_content={utm_content}")
+    if utm_parts:
+        utm_string = ' | '.join(utm_parts)
+        source_detail = f"{source_detail} | {utm_string}" if source_detail else utm_string
 
-    # Log activity
-    ContactActivity.objects.create(
-        contact=contact,
-        activity_type='campaign_enrolled',
-        description=f"New lead captured from {contact.source}",
-    )
+    # --- Feature 3: Duplicate Lead Detection ---
+    email = data.get('email', '').strip()
+    existing_contact = None
+    if email:
+        existing_contact = Contact.objects.filter(email__iexact=email, team=team).first()
 
-    # Notify assigned agent
-    notify_new_lead(contact)
+    if existing_contact:
+        # Update existing contact's info
+        contact = existing_contact
+        if data.get('first_name'):
+            contact.first_name = data['first_name']
+        if data.get('last_name'):
+            contact.last_name = data['last_name']
+        if data.get('phone'):
+            contact.phone = data['phone']
+        if source_detail:
+            contact.source_detail = source_detail
+        contact.save()
+
+        # Log activity for the update
+        ContactActivity.objects.create(
+            contact=contact,
+            activity_type='campaign_enrolled',
+            description=f"Returning lead updated from {data.get('source', 'landing_page')}",
+        )
+        status_label = 'updated'
+    else:
+        # Create new contact
+        contact = Contact.objects.create(
+            first_name=data.get('first_name', ''),
+            last_name=data.get('last_name', ''),
+            email=email,
+            phone=data.get('phone', ''),
+            source=data.get('source', 'landing_page'),
+            source_detail=source_detail,
+            team=team,
+            assigned_to=round_robin_assign(team),
+        )
+
+        # Log activity
+        ContactActivity.objects.create(
+            contact=contact,
+            activity_type='campaign_enrolled',
+            description=f"New lead captured from {contact.source}",
+        )
+
+        # Notify assigned agent
+        notify_new_lead(contact)
+        status_label = 'created'
+
+    # --- Feature 1: Tag handling ---
+    tag_names = data.get('tags', [])
+    # Also add utm_source as a tag if present
+    if utm_source and utm_source not in tag_names:
+        tag_names.append(utm_source)
+
+    for tag_name in tag_names:
+        tag_name = tag_name.strip()
+        if not tag_name:
+            continue
+        tag_obj, _ = Tag.objects.get_or_create(
+            name__iexact=tag_name,
+            team=team,
+            defaults={'name': tag_name},
+        )
+        contact.tag_objects.add(tag_obj)
+        # Also keep the JSON tags field in sync
+        if tag_name not in contact.tags:
+            contact.tags.append(tag_name)
+    if tag_names:
+        contact.save(update_fields=['tags'])
 
     # Auto-enroll in campaign if specified
     campaign_id = data.get('campaign_id')
@@ -69,24 +143,32 @@ def capture_lead(request):
             campaign = Campaign.objects.get(
                 id=campaign_id, team=team, is_active=True
             )
-            first_step = campaign.steps.first()
-            if first_step:
-                CampaignEnrollment.objects.create(
-                    contact=contact,
-                    campaign=campaign,
-                    current_step=first_step,
-                    next_send_at=timezone.now(),
-                )
+            # Check not already actively enrolled
+            already_enrolled = CampaignEnrollment.objects.filter(
+                contact=contact,
+                campaign=campaign,
+                is_active=True,
+                completed_at__isnull=True,
+            ).exists()
+            if not already_enrolled:
+                first_step = campaign.steps.first()
+                if first_step:
+                    CampaignEnrollment.objects.create(
+                        contact=contact,
+                        campaign=campaign,
+                        current_step=first_step,
+                        next_send_at=timezone.now(),
+                    )
         except Campaign.DoesNotExist:
             pass
 
     response = JsonResponse(
         {
-            'status': 'created',
+            'status': status_label,
             'contact_id': contact.id,
             'assigned_to': str(contact.assigned_to) if contact.assigned_to else None,
         },
-        status=201,
+        status=201 if status_label == 'created' else 200,
     )
     response['Access-Control-Allow-Origin'] = '*'
     return response

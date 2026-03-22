@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 
 from django.conf import settings
@@ -20,6 +21,14 @@ class Campaign(models.Model):
         null=True,
     )
     is_active = models.BooleanField(default=True)
+    next_campaign = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='previous_campaigns',
+        help_text='Campaign to auto-enroll contacts in after this one completes.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -127,3 +136,38 @@ class CampaignEnrollment(models.Model):
             self.is_active = False
             self.completed_at = timezone.now()
             self.save()
+            # Auto-enroll in next campaign if configured
+            if self.campaign.next_campaign and self.campaign.next_campaign.is_active:
+                next_camp = self.campaign.next_campaign
+                first_step = next_camp.steps.first()
+                if first_step:
+                    CampaignEnrollment.objects.create(
+                        contact=self.contact,
+                        campaign=next_camp,
+                        current_step=first_step,
+                        next_send_at=timezone.now(),
+                    )
+
+
+class EmailLog(models.Model):
+    """Tracks individual email sends with open/click tracking."""
+    enrollment = models.ForeignKey(
+        CampaignEnrollment,
+        on_delete=models.CASCADE,
+        related_name='email_logs',
+    )
+    step = models.ForeignKey(
+        CampaignStep,
+        on_delete=models.CASCADE,
+        related_name='email_logs',
+    )
+    tracking_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    opened_at = models.DateTimeField(null=True, blank=True)
+    clicked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-sent_at']
+
+    def __str__(self):
+        return f"Email {self.tracking_id} - Step {self.step.order}"

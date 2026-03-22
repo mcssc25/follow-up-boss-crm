@@ -1,10 +1,13 @@
+import re
+from urllib.parse import quote
+
 from celery import shared_task
 from django.utils import timezone
 
 from django.conf import settings
 
 from .email_renderer import get_video_html, render_campaign_email
-from .models import CampaignEnrollment
+from .models import CampaignEnrollment, EmailLog
 from apps.accounts.gmail import GmailService
 from apps.contacts.models import ContactActivity
 
@@ -22,6 +25,31 @@ def process_due_emails():
     )
     for enrollment in due_enrollments:
         send_campaign_email.delay(enrollment.id)
+
+
+def _inject_tracking(html_body, tracking_id, base_url):
+    """Inject a tracking pixel and wrap links for click tracking."""
+    # Tracking pixel (1x1 transparent gif)
+    pixel_url = f"{base_url}/campaigns/track/{tracking_id}/open/"
+    pixel_tag = f'<img src="{pixel_url}" width="1" height="1" style="display:none" alt="" />'
+    # Append pixel before closing </body> or at end
+    if '</body>' in html_body:
+        html_body = html_body.replace('</body>', f'{pixel_tag}</body>')
+    else:
+        html_body += pixel_tag
+
+    # Wrap all href links for click tracking
+    def replace_link(match):
+        original_url = match.group(1)
+        # Don't wrap tracking pixel URL or mailto links
+        if 'track/' in original_url or original_url.startswith('mailto:'):
+            return match.group(0)
+        redirect_url = f"{base_url}/campaigns/track/{tracking_id}/click/?url={quote(original_url, safe='')}"
+        return f'href="{redirect_url}"'
+
+    html_body = re.sub(r'href="([^"]+)"', replace_link, html_body)
+
+    return html_body
 
 
 @shared_task
@@ -50,6 +78,16 @@ def send_campaign_email(enrollment_id):
         base_url = getattr(settings, 'BASE_URL', 'https://crm.yourdomain.com').rstrip('/')
         rendered_body += get_video_html(step, contact, base_url)
 
+    # Create EmailLog entry for tracking
+    email_log = EmailLog.objects.create(
+        enrollment=enrollment,
+        step=step,
+    )
+
+    # Inject tracking pixel and wrap links
+    base_url = getattr(settings, 'BASE_URL', 'https://crm.yourdomain.com').rstrip('/')
+    rendered_body = _inject_tracking(rendered_body, email_log.tracking_id, base_url)
+
     # Send via Gmail
     gmail = GmailService(
         access_token=agent.gmail_access_token,
@@ -71,6 +109,7 @@ def send_campaign_email(enrollment_id):
             metadata={
                 'campaign_id': enrollment.campaign.id,
                 'step_order': step.order,
+                'tracking_id': str(email_log.tracking_id),
             },
         )
         # Update last contacted

@@ -75,7 +75,13 @@
         <!-- Tags -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-sm font-semibold text-gray-900 mb-3">Tags</h3>
-            {% if contact.tags %}
+            {% if contact.tag_objects.all %}
+            <div class="flex flex-wrap gap-2">
+                {% for tag in contact.tag_objects.all %}
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+            {% elif contact.tags %}
             <div class="flex flex-wrap gap-2">
                 {% for tag in contact.tags %}
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">{{ tag }}</span>

@@ -122,6 +122,35 @@
             </dl>
         </div>
 
+        <!-- Email Performance Stats -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Email Performance</h3>
+            <dl class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <dt class="text-sm text-gray-500">Emails Sent</dt>
+                    <dd class="text-sm font-semibold text-gray-900">{{ emails_sent }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-sm text-gray-500">Opened</dt>
+                    <dd class="text-sm font-semibold text-blue-600">{{ emails_opened }} ({{ open_rate }}%)</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-sm text-gray-500">Clicked</dt>
+                    <dd class="text-sm font-semibold text-indigo-600">{{ emails_clicked }} ({{ click_rate }}%)</dd>
+                </div>
+            </dl>
+        </div>
+
+        {% if campaign.next_campaign %}
+        <!-- Next Campaign -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Next Campaign</h3>
+            <a href="{% url 'campaigns:detail' campaign.next_campaign.pk %}"
+               class="text-sm text-indigo-600 hover:underline">{{ campaign.next_campaign.name }}</a>
+            <p class="text-xs text-gray-400 mt-1">Contacts auto-enroll after completing this campaign.</p>
+        </div>
+        {% endif %}
+
         <!-- Enrolled Contacts -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-sm font-semibold text-gray-900 mb-4">Enrolled Contacts</h3>

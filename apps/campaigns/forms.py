@@ -11,7 +11,7 @@ INPUT_CSS = (
 class CampaignForm(forms.ModelForm):
     class Meta:
         model = Campaign
-        fields = ['name', 'description']
+        fields = ['name', 'description', 'next_campaign']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': INPUT_CSS,
@@ -22,7 +22,24 @@ class CampaignForm(forms.ModelForm):
                 'class': INPUT_CSS,
                 'placeholder': 'Describe the purpose of this campaign...',
             }),
+            'next_campaign': forms.Select(attrs={
+                'class': INPUT_CSS,
+            }),
         }
+        labels = {
+            'next_campaign': 'Next Campaign (auto-enroll on completion)',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only show campaigns from the same team; exclude self to prevent loops
+        if self.instance and self.instance.pk:
+            self.fields['next_campaign'].queryset = Campaign.objects.filter(
+                team=self.instance.team,
+            ).exclude(pk=self.instance.pk)
+        else:
+            # For new campaigns, we'll filter after team is set
+            self.fields['next_campaign'].queryset = Campaign.objects.none()
 
 
 class CampaignStepForm(forms.ModelForm):

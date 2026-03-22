@@ -19,4 +19,7 @@ urlpatterns = [
     # Public video views (no login required)
     path('video/<int:step_id>/<int:contact_id>/', views.video_player, name='video_player'),
     path('video/<int:step_id>/<int:contact_id>/track/', views.video_track, name='video_track'),
+    # Email tracking views (no login required)
+    path('track/<uuid:tracking_id>/open/', views.track_email_open, name='track_email_open'),
+    path('track/<uuid:tracking_id>/click/', views.track_email_click, name='track_email_click'),
 ]
