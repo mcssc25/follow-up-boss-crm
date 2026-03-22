@@ -1,7 +1,12 @@
+import os
+
 from django.conf import settings
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from google_auth_oauthlib.flow import Flow
+
+# Allow OAuth over HTTP (before SSL is set up)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' if not settings.SECURE_SSL_REDIRECT else '0'
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
