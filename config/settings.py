@@ -288,12 +288,14 @@ CELERY_BEAT_SCHEDULE = {
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # SSL settings — enable these after setting up HTTPS with Certbot
+    SESSION_COOKIE_SECURE = os.getenv('USE_SSL', 'False').lower() in ('true', '1', 'yes')
+    CSRF_COOKIE_SECURE = os.getenv('USE_SSL', 'False').lower() in ('true', '1', 'yes')
+    SECURE_SSL_REDIRECT = os.getenv('USE_SSL', 'False').lower() in ('true', '1', 'yes')
+    if SECURE_SSL_REDIRECT:
+        SECURE_HSTS_SECONDS = 31536000
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = True
     X_FRAME_OPTIONS = 'DENY'
 
 # ---------------------------------------------------------------------------
