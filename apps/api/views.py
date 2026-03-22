@@ -15,9 +15,19 @@ from .models import APIKey
 
 
 @csrf_exempt
-@require_POST
 def capture_lead(request):
     """Public API endpoint for lead capture from landing pages."""
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = JsonResponse({}, status=200)
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, X-Api-Key'
+        return response
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
     # Auth via X-Api-Key header
     api_key = request.headers.get('X-Api-Key')
     try:
@@ -70,7 +80,7 @@ def capture_lead(request):
         except Campaign.DoesNotExist:
             pass
 
-    return JsonResponse(
+    response = JsonResponse(
         {
             'status': 'created',
             'contact_id': contact.id,
@@ -78,3 +88,5 @@ def capture_lead(request):
         },
         status=201,
     )
+    response['Access-Control-Allow-Origin'] = '*'
+    return response
