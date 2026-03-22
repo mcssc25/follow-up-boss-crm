@@ -22,9 +22,12 @@
             </div>
             <div>
                 {% if request.user.gmail_connected %}
-                <a href="{% url 'accounts:gmail_disconnect' %}" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium">
-                    Disconnect
-                </a>
+                <form method="post" action="{% url 'accounts:gmail_disconnect' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium">
+                        Disconnect
+                    </button>
+                </form>
                 {% else %}
                 <a href="{% url 'accounts:gmail_connect' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium">
                     Connect Gmail
