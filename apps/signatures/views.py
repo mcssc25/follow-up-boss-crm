@@ -1,10 +1,11 @@
+import hashlib
 import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -12,7 +13,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, DetailView
 
-from apps.signatures.models import Document, DocumentSigner, DocumentField, AuditEvent, SignerFieldValue
+from apps.signatures.models import (
+    Document, DocumentSigner, DocumentField, AuditEvent, SignerFieldValue,
+    DocumentTemplate, TemplateField,
+)
 from apps.signatures.forms import DocumentCreateForm
 from apps.signatures.email import send_signing_request
 
@@ -297,3 +301,37 @@ def decline_signing(request, token):
         user_agent=request.META.get('HTTP_USER_AGENT', ''),
     )
     return JsonResponse({'status': 'ok'})
+
+
+# ---------------------------------------------------------------------------
+# Download & Verify
+# ---------------------------------------------------------------------------
+
+@login_required
+def download_signed(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='completed')
+    if not doc.signed_pdf:
+        messages.error(request, 'Signed PDF not yet available.')
+        return redirect('signatures:detail', pk=pk)
+    AuditEvent.objects.create(
+        document=doc, event_type='downloaded',
+        ip_address=request.META.get('REMOTE_ADDR'),
+        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+    )
+    response = FileResponse(doc.signed_pdf.open('rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{doc.title} - Signed.pdf"'
+    return response
+
+
+def verify_document(request):
+    """Public endpoint to verify a signed PDF hasn't been tampered with."""
+    result = None
+    if request.method == 'POST' and request.FILES.get('pdf_file'):
+        uploaded = request.FILES['pdf_file'].read()
+        file_hash = hashlib.sha256(uploaded).hexdigest()
+        doc = Document.objects.filter(pdf_hash=file_hash).first()
+        if doc:
+            result = {'verified': True, 'document': doc}
+        else:
+            result = {'verified': False}
+    return render(request, 'signatures/verify.html', {'result': result})

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Document - Signatures - CRM{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Verify Signed Document</h1>
+    <p class="text-sm text-gray-600 mb-6">Upload a signed PDF to verify it hasn't been tampered with since signing.</p>
+
+    <form method="post" enctype="multipart/form-data" class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Upload PDF</label>
+            <input type="file" name="pdf_file" accept=".pdf" required
+                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+        </div>
+        <button type="submit"
+                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+            Verify
+        </button>
+    </form>
+
+    {% if result %}
+    <div class="mt-6 p-6 rounded-lg border {% if result.verified %}bg-green-50 border-green-200{% else %}bg-red-50 border-red-200{% endif %}">
+        {% if result.verified %}
+        <div class="flex items-center mb-3">
+            <svg class="w-6 h-6 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            <h3 class="text-lg font-semibold text-green-800">Document Verified</h3>
+        </div>
+        <p class="text-sm text-green-700">This document matches <strong>{{ result.document.title }}</strong> and has not been altered since signing.</p>
+        <p class="text-xs text-green-600 mt-2">Completed: {{ result.document.completed_at|date:"M d, Y g:i A" }}</p>
+        {% else %}
+        <div class="flex items-center mb-3">
+            <svg class="w-6 h-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <h3 class="text-lg font-semibold text-red-800">Verification Failed</h3>
+        </div>
+        <p class="text-sm text-red-700">This document does not match any signed document in our system. It may have been altered or was not signed through this platform.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
