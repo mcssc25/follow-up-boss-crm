@@ -335,3 +335,152 @@ def verify_document(request):
         else:
             result = {'verified': False}
     return render(request, 'signatures/verify.html', {'result': result})
+
+
+# ---------------------------------------------------------------------------
+# Templates
+# ---------------------------------------------------------------------------
+
+class TemplateListView(LoginRequiredMixin, ListView):
+    model = DocumentTemplate
+    template_name = 'signatures/template_list.html'
+    context_object_name = 'templates'
+    paginate_by = 25
+
+    def get_queryset(self):
+        return DocumentTemplate.objects.filter(team=self.request.user.team)
+
+
+class TemplateCreateView(LoginRequiredMixin, CreateView):
+    model = DocumentTemplate
+    template_name = 'signatures/template_create.html'
+    fields = ['title', 'pdf_file']
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['title'].widget.attrs.update({
+            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+            'placeholder': 'Template name',
+        })
+        form.fields['pdf_file'].widget.attrs.update({
+            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+            'accept': '.pdf',
+        })
+        return form
+
+    def form_valid(self, form):
+        form.instance.team = self.request.user.team
+        form.instance.created_by = self.request.user
+        response = super().form_valid(form)
+        messages.success(self.request, 'Template created.')
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy('signatures:template_prepare', kwargs={'pk': self.object.pk})
+
+
+class TemplatePrepareView(LoginRequiredMixin, DetailView):
+    model = DocumentTemplate
+    template_name = 'signatures/template_prepare.html'
+    context_object_name = 'template'
+
+    def get_queryset(self):
+        return DocumentTemplate.objects.filter(team=self.request.user.team)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['template_fields'] = self.object.fields.all()
+        ctx['signer_roles'] = self.object.signer_roles or []
+        return ctx
+
+
+@login_required
+@require_POST
+def template_save_roles(request, pk):
+    template = get_object_or_404(DocumentTemplate, pk=pk, team=request.user.team)
+    data = json.loads(request.body)
+    template.signer_roles = data.get('roles', [])
+    template.save()
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required
+@require_POST
+def template_save_fields(request, pk):
+    template = get_object_or_404(DocumentTemplate, pk=pk, team=request.user.team)
+    data = json.loads(request.body)
+    template.fields.all().delete()
+    for f in data.get('fields', []):
+        TemplateField.objects.create(
+            template=template,
+            field_type=f['type'],
+            label=f.get('label', ''),
+            signer_role=f['signer_role'],
+            page=f['page'],
+            x=f['x'], y=f['y'],
+            width=f['width'], height=f['height'],
+            required=f.get('required', True),
+        )
+    return JsonResponse({'status': 'ok', 'count': len(data.get('fields', []))})
+
+
+@login_required
+def use_template(request, pk):
+    template = get_object_or_404(DocumentTemplate, pk=pk, team=request.user.team)
+    if request.method == 'POST':
+        title = request.POST.get('title', template.title).strip()
+        # Create document from template
+        doc = Document.objects.create(
+            team=request.user.team,
+            created_by=request.user,
+            template=template,
+            title=title,
+            pdf_file=template.pdf_file,
+        )
+        # Create signers from role assignments
+        role_signers = {}
+        for role in template.signer_roles:
+            name = request.POST.get(f'signer_name_{role}', '').strip()
+            email = request.POST.get(f'signer_email_{role}', '').strip()
+            if name and email:
+                signer = DocumentSigner.objects.create(
+                    document=doc, name=name, email=email, role=role,
+                )
+                role_signers[role] = signer
+
+        # Copy template fields with actual signer assignments
+        for tf in template.fields.all():
+            signer = role_signers.get(tf.signer_role)
+            if signer:
+                DocumentField.objects.create(
+                    document=doc,
+                    assigned_to=signer,
+                    field_type=tf.field_type,
+                    label=tf.label,
+                    page=tf.page,
+                    x=tf.x, y=tf.y,
+                    width=tf.width, height=tf.height,
+                    required=tf.required,
+                )
+
+        AuditEvent.objects.create(
+            document=doc, event_type='created',
+            detail=f'Created from template: {template.title}',
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+        )
+        messages.success(request, 'Document created from template. Review fields and send.')
+        return redirect('signatures:prepare', pk=doc.pk)
+
+    return render(request, 'signatures/template_use.html', {
+        'template': template,
+    })
+
+
+@login_required
+@require_POST
+def delete_template(request, pk):
+    template = get_object_or_404(DocumentTemplate, pk=pk, team=request.user.team)
+    template.delete()
+    messages.success(request, 'Template deleted.')
+    return redirect('signatures:template_list')

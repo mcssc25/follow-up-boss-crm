@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Configure Template: {{ template.title }} - CRM{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex items-center justify-between">
+    <div>
+        <a href="{% url 'signatures:template_list' %}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Templates</a>
+        <h1 class="text-xl font-bold text-gray-900 mt-1">{{ template.title }}</h1>
+    </div>
+    <button id="save-btn" onclick="saveAll()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Save Template</button>
+</div>
+
+<div class="flex gap-4" style="height: calc(100vh - 180px);">
+    <!-- Left Sidebar -->
+    <div class="w-80 flex-shrink-0 space-y-4 overflow-y-auto">
+        <!-- Signer Roles -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Signer Roles</h3>
+            <div id="roles-list" class="space-y-2 mb-3">
+                {% for role in signer_roles %}
+                <div class="flex items-center justify-between role-item">
+                    <span class="text-sm text-gray-700">{{ role }}</span>
+                    <button onclick="removeRole(this)" class="text-red-400 hover:text-red-600 text-xs">Remove</button>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="new-role" placeholder="e.g. Buyer, Seller"
+                       class="flex-1 rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <button onclick="addRole()" class="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Add</button>
+            </div>
+        </div>
+
+        <!-- Field Toolbar -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Fields</h3>
+            <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Assign to role</label>
+                <select id="active-role" class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    {% for role in signer_roles %}
+                    <option value="{{ role }}">{{ role }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" data-field-type="signature" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">Signature</button>
+                <button type="button" data-field-type="initials" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">Initials</button>
+                <button type="button" data-field-type="text" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">Text</button>
+                <button type="button" data-field-type="date" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">Date</button>
+                <button type="button" data-field-type="checkbox" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer col-span-2">Checkbox</button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-sm font-semibold text-gray-900 mb-2">Placed Fields</h3>
+            <div id="fields-summary" class="text-xs text-gray-500"><p>No fields placed yet.</p></div>
+        </div>
+    </div>
+
+    <!-- PDF Viewer -->
+    <div class="flex-1 bg-gray-200 rounded-lg overflow-auto" id="pdf-container">
+        <div id="pdf-pages" class="flex flex-col items-center py-4 space-y-4"></div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<script>
+(function() {
+    const PDF_URL = '{{ template.pdf_file.url }}';
+    const CSRF = '{{ csrf_token }}';
+    const ROLES_URL = '{% url "signatures:template_save_roles" template.pk %}';
+    const FIELDS_URL = '{% url "signatures:template_save_fields" template.pk %}';
+    const ROLE_COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+    const FIELD_DEFAULTS = { signature: {w:20,h:5}, initials: {w:10,h:5}, text: {w:25,h:3}, date: {w:15,h:3}, checkbox: {w:3,h:3} };
+    const FIELD_LABELS = { signature:'Signature', initials:'Initials', text:'Text', date:'Date', checkbox:'Checkbox' };
+
+    let roles = [{% for role in signer_roles %}'{{ role|escapejs }}',{% endfor %}];
+    let placedFields = [];
+    let fieldCounter = 0;
+    let activeFieldType = null;
+
+    const existingFields = [
+        {% for field in template_fields %}
+        { type:'{{ field.field_type }}', signer_role:'{{ field.signer_role|escapejs }}', page:{{ field.page }}, x:{{ field.x }}, y:{{ field.y }}, width:{{ field.width }}, height:{{ field.height }}, required:{{ field.required|yesno:"true,false" }} },
+        {% endfor %}
+    ];
+
+    function getRoleColor(role) { return ROLE_COLORS[roles.indexOf(role) % ROLE_COLORS.length]; }
+
+    window.addRole = function() {
+        const input = document.getElementById('new-role');
+        const role = input.value.trim();
+        if (!role || roles.includes(role)) return;
+        roles.push(role);
+        input.value = '';
+        updateRolesUI();
+    };
+
+    window.removeRole = function(btn) {
+        const item = btn.closest('.role-item');
+        const role = item.querySelector('span').textContent;
+        roles = roles.filter(r => r !== role);
+        placedFields = placedFields.filter(f => { if (f.signer_role === role) { f.element.remove(); return false; } return true; });
+        updateRolesUI();
+        updateFieldsSummary();
+    };
+
+    function updateRolesUI() {
+        const list = document.getElementById('roles-list');
+        list.innerHTML = roles.map(r => `<div class="flex items-center justify-between role-item"><span class="text-sm text-gray-700">${r}</span><button onclick="removeRole(this)" class="text-red-400 hover:text-red-600 text-xs">Remove</button></div>`).join('');
+        const sel = document.getElementById('active-role');
+        sel.innerHTML = roles.map(r => `<option value="${r}">${r}</option>`).join('');
+    }
+
+    // PDF + field placement (same logic as document_prepare but with roles)
+    async function loadPDF() {
+        const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
+        const container = document.getElementById('pdf-pages');
+        container.innerHTML = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const vp = page.getViewport({ scale: 1.5 });
+            const wrap = document.createElement('div');
+            wrap.className = 'pdf-page-wrapper relative bg-white shadow-lg';
+            wrap.dataset.page = i;
+            wrap.style.width = vp.width + 'px';
+            wrap.style.height = vp.height + 'px';
+            const canvas = document.createElement('canvas');
+            canvas.width = vp.width; canvas.height = vp.height;
+            wrap.appendChild(canvas);
+            const overlay = document.createElement('div');
+            overlay.className = 'field-overlay absolute inset-0';
+            overlay.dataset.page = i;
+            overlay.style.cursor = 'crosshair';
+            wrap.appendChild(overlay);
+            container.appendChild(wrap);
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+            overlay.addEventListener('click', (e) => {
+                if (!activeFieldType || e.target !== overlay) return;
+                const sel = document.getElementById('active-role');
+                if (!sel.value) return;
+                const rect = overlay.getBoundingClientRect();
+                const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+                const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+                addField(i, xPct, yPct, activeFieldType, sel.value, overlay);
+            });
+            overlay.addEventListener('dragover', (e) => e.preventDefault());
+            overlay.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!activeFieldType) return;
+                const sel = document.getElementById('active-role');
+                if (!sel.value) return;
+                const rect = overlay.getBoundingClientRect();
+                addField(i, ((e.clientX-rect.left)/rect.width)*100, ((e.clientY-rect.top)/rect.height)*100, activeFieldType, sel.value, overlay);
+            });
+        }
+        existingFields.forEach(f => {
+            const overlay = document.querySelector(`.field-overlay[data-page="${f.page}"]`);
+            if (overlay) addField(f.page, f.x, f.y, f.type, f.signer_role, overlay, f.width, f.height);
+        });
+        updateFieldsSummary();
+    }
+
+    function addField(page, x, y, type, role, overlay, w, h) {
+        const defaults = FIELD_DEFAULTS[type];
+        w = w || defaults.w; h = h || defaults.h;
+        const color = getRoleColor(role);
+        const fid = 'tf-' + (++fieldCounter);
+        const el = document.createElement('div');
+        el.id = fid;
+        el.className = 'absolute cursor-move select-none';
+        el.style.cssText = `left:${x}%;top:${y}%;width:${w}%;height:${h}%;border:2px solid ${color};background:${color}20;border-radius:3px;z-index:10;display:flex;align-items:center;justify-content:center;font-size:10px;color:${color};font-weight:600;overflow:hidden;`;
+        el.innerHTML = `<span class="pointer-events-none">${FIELD_LABELS[type]}<br><span style="font-size:8px;opacity:0.7">${role}</span></span><button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs items-center justify-center hover:bg-red-700" style="font-size:8px;display:none;">X</button>`;
+        overlay.appendChild(el);
+        const fd = { id:fid, signer_role:role, type, page, x, y, width:w, height:h, required:true, element:el };
+        placedFields.push(fd);
+        el.addEventListener('mouseenter', () => el.querySelector('.field-delete').style.display='flex');
+        el.addEventListener('mouseleave', () => el.querySelector('.field-delete').style.display='none');
+        el.querySelector('.field-delete').addEventListener('click', (e) => { e.stopPropagation(); el.remove(); placedFields=placedFields.filter(f=>f.id!==fid); updateFieldsSummary(); });
+        // Drag
+        let dragging=false, sx, sy, sl, st;
+        el.addEventListener('mousedown', (e) => { if(e.target.classList.contains('field-delete'))return; dragging=true; sx=e.clientX; sy=e.clientY; sl=parseFloat(el.style.left); st=parseFloat(el.style.top); e.preventDefault(); });
+        document.addEventListener('mousemove', (e) => { if(!dragging)return; const r=overlay.getBoundingClientRect(); fd.x=Math.max(0,Math.min(100-fd.width,sl+((e.clientX-sx)/r.width)*100)); fd.y=Math.max(0,Math.min(100-fd.height,st+((e.clientY-sy)/r.height)*100)); el.style.left=fd.x+'%'; el.style.top=fd.y+'%'; });
+        document.addEventListener('mouseup', () => { dragging=false; });
+        updateFieldsSummary();
+    }
+
+    function updateFieldsSummary() {
+        const s = document.getElementById('fields-summary');
+        if (!placedFields.length) { s.innerHTML='<p>No fields placed yet.</p>'; return; }
+        s.innerHTML = `<p class="mb-1">${placedFields.length} field(s):</p><ul class="space-y-1">${placedFields.map(f=>`<li><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${getRoleColor(f.signer_role)}"></span>${FIELD_LABELS[f.type]} (p${f.page}) - ${f.signer_role}</li>`).join('')}</ul>`;
+    }
+
+    document.querySelectorAll('.field-tool').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (activeFieldType === btn.dataset.fieldType) { activeFieldType=null; document.querySelectorAll('.field-tool').forEach(b=>b.classList.remove('ring-2','ring-indigo-500')); }
+            else { activeFieldType=btn.dataset.fieldType; document.querySelectorAll('.field-tool').forEach(b=>b.classList.remove('ring-2','ring-indigo-500')); btn.classList.add('ring-2','ring-indigo-500'); }
+        });
+        btn.setAttribute('draggable','true');
+        btn.addEventListener('dragstart', (e) => { activeFieldType=btn.dataset.fieldType; e.dataTransfer.setData('text/plain',activeFieldType); });
+        btn.addEventListener('dragend', () => { activeFieldType=null; });
+    });
+
+    window.saveAll = async function() {
+        const btn = document.getElementById('save-btn');
+        btn.disabled=true; btn.textContent='Saving...';
+        await fetch(ROLES_URL, { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':CSRF}, body:JSON.stringify({roles}) });
+        await fetch(FIELDS_URL, { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':CSRF}, body:JSON.stringify({fields:placedFields.map(f=>({type:f.type,signer_role:f.signer_role,page:f.page,x:f.x,y:f.y,width:f.width,height:f.height,required:f.required}))}) });
+        btn.textContent='Saved!'; setTimeout(()=>{btn.textContent='Save Template';btn.disabled=false;},1500);
+    };
+
+    loadPDF();
+})();
+</script>
+{% endblock %}

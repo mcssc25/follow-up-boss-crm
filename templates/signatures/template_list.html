@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Templates - Signatures - CRM{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Document Templates</h1>
+    <div class="flex space-x-3">
+        <a href="{% url 'signatures:list' %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Back to Documents</a>
+        <a href="{% url 'signatures:template_create' %}"
+           class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New Template
+        </a>
+    </div>
+</div>
+
+<div class="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Template</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Roles</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fields</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for tmpl in templates %}
+            <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-indigo-50">
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ tmpl.title }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">
+                    {% for role in tmpl.signer_roles %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-1">{{ role }}</span>
+                    {% empty %}
+                    <span class="text-gray-400">No roles</span>
+                    {% endfor %}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ tmpl.fields.count }}</td>
+                <td class="px-4 py-3 text-sm text-gray-500">{{ tmpl.created_at|date:"M d, Y" }}</td>
+                <td class="px-4 py-3 text-sm space-x-2">
+                    <a href="{% url 'signatures:use_template' tmpl.pk %}" class="text-indigo-600 hover:text-indigo-800">Use</a>
+                    <a href="{% url 'signatures:template_prepare' tmpl.pk %}" class="text-gray-600 hover:text-gray-800">Edit</a>
+                    <form method="post" action="{% url 'signatures:template_delete' tmpl.pk %}" class="inline" onsubmit="return confirm('Delete this template?');">
+                        {% csrf_token %}
+                        <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500">No templates yet. <a href="{% url 'signatures:template_create' %}" class="text-indigo-600 hover:underline">Create your first template</a>.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
