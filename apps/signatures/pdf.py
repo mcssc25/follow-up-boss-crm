@@ -29,7 +29,8 @@ def generate_signed_pdf(document):
             pages_fields[page_num] = []
         pages_fields[page_num].append(fv)
 
-    for page_num, page in enumerate(reader.pages):
+    for page_idx, page in enumerate(reader.pages):
+        page_num = page_idx + 1  # fields use 1-indexed pages
         page_width = float(page.mediabox.width)
         page_height = float(page.mediabox.height)
 
