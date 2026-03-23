@@ -88,7 +88,10 @@ class DocumentPrepareView(LoginRequiredMixin, DetailView):
 @login_required
 @require_POST
 def add_signer(request, pk):
-    doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='draft')
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    if doc.status in ('completed', 'expired'):
+        messages.error(request, 'Cannot modify a completed or expired document.')
+        return redirect('signatures:list')
     name = request.POST.get('name', '').strip()
     email = request.POST.get('email', '').strip()
     role = request.POST.get('role', '').strip()
@@ -128,7 +131,9 @@ def delete_signer(request, pk, signer_pk):
 @login_required
 @require_POST
 def save_fields(request, pk):
-    doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='draft')
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    if doc.status in ('completed', 'expired'):
+        return JsonResponse({'error': 'Cannot modify a completed or expired document.'}, status=400)
     data = json.loads(request.body)
     doc.fields.all().delete()
     for f in data.get('fields', []):

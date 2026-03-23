@@ -105,6 +105,10 @@
                         <a href="{% url 'signatures:detail' doc.pk %}" class="text-gray-600 hover:text-gray-800">View</a>
                         {% endif %}
 
+                        {% if doc.status in 'sent,viewed,declined' %}
+                        <a href="{% url 'signatures:prepare' doc.pk %}" class="text-amber-600 hover:text-amber-800" title="Edit signers and fields">Edit</a>
+                        {% endif %}
+
                         {% if doc.status in 'sent,viewed' %}
                         <form method="post" action="{% url 'signatures:resend_all' doc.pk %}" class="inline">
                             {% csrf_token %}
