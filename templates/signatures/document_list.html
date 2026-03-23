@@ -96,13 +96,30 @@
                 <td class="px-4 py-3 text-sm text-gray-600">{{ doc.created_by|default:"—" }}</td>
                 <td class="px-4 py-3 text-sm text-gray-500">{{ doc.created_at|date:"M d, Y" }}</td>
                 <td class="px-4 py-3 text-sm">
-                    {% if doc.status == 'draft' %}
-                    <a href="{% url 'signatures:prepare' doc.pk %}" class="text-indigo-600 hover:text-indigo-800">Prepare</a>
-                    {% elif doc.status == 'completed' %}
-                    <a href="{% url 'signatures:download' doc.pk %}" class="text-indigo-600 hover:text-indigo-800">Download</a>
-                    {% else %}
-                    <a href="{% url 'signatures:detail' doc.pk %}" class="text-gray-600 hover:text-gray-800">View</a>
-                    {% endif %}
+                    <div class="flex items-center space-x-3">
+                        {% if doc.status == 'draft' %}
+                        <a href="{% url 'signatures:prepare' doc.pk %}" class="text-indigo-600 hover:text-indigo-800">Prepare</a>
+                        {% elif doc.status == 'completed' %}
+                        <a href="{% url 'signatures:download' doc.pk %}" class="text-indigo-600 hover:text-indigo-800">Download</a>
+                        {% else %}
+                        <a href="{% url 'signatures:detail' doc.pk %}" class="text-gray-600 hover:text-gray-800">View</a>
+                        {% endif %}
+
+                        {% if doc.status in 'sent,viewed' %}
+                        <form method="post" action="{% url 'signatures:resend_all' doc.pk %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-blue-600 hover:text-blue-800" title="Resend to pending signers">Resend</button>
+                        </form>
+                        {% endif %}
+
+                        {% if doc.status in 'draft,declined,expired' %}
+                        <form method="post" action="{% url 'signatures:delete' doc.pk %}"
+                              onsubmit="return confirm('Delete this document? This cannot be undone.')" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-600 hover:text-red-800" title="Delete document">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% empty %}

@@ -511,6 +511,26 @@ def delete_document(request, pk):
 
 @login_required
 @require_POST
+def resend_all_signers(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    pending = doc.signers.exclude(status__in=('completed', 'declined'))
+    email_errors = []
+    sent_count = 0
+    for signer in pending:
+        try:
+            send_signing_request(signer, sender=request.user)
+            sent_count += 1
+        except Exception as e:
+            email_errors.append(f'{signer.name}: {e}')
+    if email_errors:
+        messages.warning(request, f'Resent to {sent_count} signer(s), but failed for: {"; ".join(email_errors)}')
+    else:
+        messages.success(request, f'Signing email resent to {sent_count} signer(s).')
+    return redirect('signatures:list')
+
+
+@login_required
+@require_POST
 def resend_to_signer(request, pk, signer_pk):
     doc = get_object_or_404(Document, pk=pk, team=request.user.team)
     signer = get_object_or_404(DocumentSigner, pk=signer_pk, document=doc)
