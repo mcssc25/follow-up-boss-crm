@@ -17,6 +17,7 @@ urlpatterns = [
     path('<int:pk>/resend/', views.resend_all_signers, name='resend_all'),
     path('<int:pk>/signers/<int:signer_pk>/resend/', views.resend_to_signer, name='resend'),
     path('verify/', views.verify_document, name='verify'),
+    path('api/search-contacts/', views.search_contacts, name='search_contacts'),
     # Templates
     path('templates/', views.TemplateListView.as_view(), name='template_list'),
     path('templates/create/', views.TemplateCreateView.as_view(), name='template_create'),

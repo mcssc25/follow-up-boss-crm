@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, DetailView
 
+from apps.contacts.models import Contact
 from apps.signatures.models import (
     Document, DocumentSigner, DocumentField, AuditEvent, SignerFieldValue,
     DocumentTemplate, TemplateField,
@@ -540,3 +541,27 @@ def resend_to_signer(request, pk, signer_pk):
     send_signing_request(signer, sender=request.user)
     messages.success(request, f'Signing email resent to {signer.name}.')
     return redirect('signatures:detail', pk=pk)
+
+
+@login_required
+def search_contacts(request):
+    """AJAX endpoint to search CRM contacts for signer autocomplete."""
+    q = request.GET.get('q', '').strip()
+    if len(q) < 2:
+        return JsonResponse([], safe=False)
+    contacts = Contact.objects.filter(
+        team=request.user.team,
+    ).filter(
+        Q(first_name__icontains=q) |
+        Q(last_name__icontains=q) |
+        Q(email__icontains=q)
+    )[:10]
+    results = [
+        {
+            'name': f'{c.first_name} {c.last_name}'.strip(),
+            'email': c.email,
+            'phone': c.phone,
+        }
+        for c in contacts
+    ]
+    return JsonResponse(results, safe=False)
