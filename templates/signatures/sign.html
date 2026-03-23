@@ -2,11 +2,12 @@
 <html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign: {{ document.title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Great+Vibes&family=Caveat:wght@600&family=Satisfy&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         .pdf-page-wrapper {
             position: relative;
@@ -25,6 +26,31 @@
             width: 100%;
             height: 100%;
         }
+        /* Zoom container */
+        #pdf-scroll-area {
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #pdf-zoom-wrapper {
+            transform-origin: 0 0;
+            transition: transform 0.1s ease-out;
+        }
+        /* Signature font styles */
+        .sig-font-1 { font-family: 'Dancing Script', cursive; }
+        .sig-font-2 { font-family: 'Great Vibes', cursive; }
+        .sig-font-3 { font-family: 'Caveat', cursive; }
+        .sig-font-4 { font-family: 'Satisfy', cursive; }
+        .sig-font-5 { font-family: 'Pacifico', cursive; }
+        .sig-style-option {
+            cursor: pointer;
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .sig-style-option:hover { border-color: #a5b4fc; }
+        .sig-style-option.selected { border-color: #4f46e5; background-color: #eef2ff; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-full">
@@ -52,6 +78,19 @@
         </div>
     </header>
 
+    <!-- Zoom controls (mobile) -->
+    <div class="bg-white border-b border-gray-200 sm:hidden">
+        <div class="px-3 py-1.5 flex items-center justify-between">
+            <p class="text-xs text-gray-500">Pinch to zoom or use buttons</p>
+            <div class="flex items-center space-x-2">
+                <button onclick="zoomOut()" class="w-8 h-8 flex items-center justify-center rounded bg-gray-100 text-gray-700 text-lg font-bold">−</button>
+                <span id="zoom-level" class="text-xs text-gray-600 w-10 text-center">100%</span>
+                <button onclick="zoomIn()" class="w-8 h-8 flex items-center justify-center rounded bg-gray-100 text-gray-700 text-lg font-bold">+</button>
+                <button onclick="zoomReset()" class="text-xs text-indigo-600 ml-1">Reset</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Field Guide Banner (mobile) -->
     <div id="field-guide" class="bg-indigo-50 border-b border-indigo-200 sm:hidden">
         <div class="px-3 py-2 flex items-center justify-between">
@@ -62,16 +101,18 @@
         </div>
     </div>
 
-    <!-- PDF Viewer -->
-    <div class="max-w-3xl mx-auto py-4 px-2 sm:py-6 sm:px-4">
-        <div id="pdf-pages" class="flex flex-col items-center space-y-4 sm:space-y-6">
-            <!-- Pages rendered by PDF.js -->
+    <!-- PDF Viewer with zoom -->
+    <div id="pdf-scroll-area" class="max-w-3xl mx-auto py-4 px-2 sm:py-6 sm:px-4" style="height: calc(100vh - 110px); overflow: auto;">
+        <div id="pdf-zoom-wrapper">
+            <div id="pdf-pages" class="flex flex-col items-center space-y-4 sm:space-y-6">
+                <!-- Pages rendered by PDF.js -->
+            </div>
         </div>
     </div>
 
     <!-- Signature Modal -->
     <div id="sig-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center">
-        <div class="bg-white rounded-t-xl sm:rounded-lg shadow-xl w-full sm:max-w-lg p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
+        <div class="bg-white rounded-t-xl sm:rounded-lg shadow-xl w-full sm:max-w-lg p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-semibold text-gray-900 mb-4" id="sig-modal-title">Sign Here</h3>
 
             <!-- Tabs: Draw / Type -->
@@ -92,10 +133,25 @@
             <!-- Type -->
             <div id="sig-type" class="hidden">
                 <input type="text" id="sig-text-input" placeholder="Type your name"
-                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg"
-                       oninput="updateTypedPreview()">
-                <div id="sig-text-preview" class="mt-3 p-4 border border-gray-200 rounded-md text-center"
-                     style="font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: 32px; color: #1e3a5f;">
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg mb-4"
+                       oninput="updateTypedPreviews()">
+                <p class="text-xs text-gray-500 mb-2">Choose a style:</p>
+                <div id="sig-style-grid" class="grid grid-cols-1 gap-2">
+                    <div class="sig-style-option selected" data-font="1" onclick="selectSigStyle(this)">
+                        <span class="sig-font-1 text-2xl" style="color: #1e3a5f;" data-preview></span>
+                    </div>
+                    <div class="sig-style-option" data-font="2" onclick="selectSigStyle(this)">
+                        <span class="sig-font-2 text-2xl" style="color: #1e3a5f;" data-preview></span>
+                    </div>
+                    <div class="sig-style-option" data-font="3" onclick="selectSigStyle(this)">
+                        <span class="sig-font-3 text-2xl" style="color: #1e3a5f;" data-preview></span>
+                    </div>
+                    <div class="sig-style-option" data-font="4" onclick="selectSigStyle(this)">
+                        <span class="sig-font-4 text-2xl" style="color: #1e3a5f;" data-preview></span>
+                    </div>
+                    <div class="sig-style-option" data-font="5" onclick="selectSigStyle(this)">
+                        <span class="sig-font-5 text-2xl" style="color: #1e3a5f;" data-preview></span>
+                    </div>
                 </div>
             </div>
 
@@ -116,7 +172,7 @@
             <textarea id="decline-reason" rows="3" placeholder="Reason (optional)"
                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm mb-4"></textarea>
             <div class="flex justify-end space-x-3">
-                <button onclick="document.getElementById('decline-modal').classList.add('hidden')"
+                <button onclick="document.getElementById('decline-modal').classList.add('hidden'); document.body.style.overflow='';"
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
                 <button onclick="declineSigning()"
                         class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Decline</button>
@@ -129,7 +185,7 @@
         <div class="text-center">
             <svg class="mx-auto w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <h2 class="text-2xl font-bold text-gray-900 mb-2">Document Signed!</h2>
-            <p class="text-gray-600">Thank you, {{ signer.name }}. A confirmation email has been sent to {{ signer.email }}.</p>
+            <p class="text-gray-600">Thank you, {{ signer.name }}. A confirmation email will be sent to {{ signer.email }}.</p>
         </div>
     </div>
 
@@ -169,21 +225,81 @@
         let isDrawing = false;
         let hasDrawn = false;
         let sigMode = 'draw';
+        let selectedFont = 1;
 
-        // Render PDF — scale to fit container width
+        // Font mapping for canvas rendering
+        const SIG_FONTS = {
+            1: '"Dancing Script", cursive',
+            2: '"Great Vibes", cursive',
+            3: '"Caveat", cursive',
+            4: '"Satisfy", cursive',
+            5: '"Pacifico", cursive',
+        };
+
+        // ---- ZOOM ----
+        let currentZoom = 1;
+        const MIN_ZOOM = 1;
+        const MAX_ZOOM = 3;
+        const ZOOM_STEP = 0.25;
+
+        function applyZoom() {
+            const wrapper = document.getElementById('pdf-zoom-wrapper');
+            wrapper.style.transform = `scale(${currentZoom})`;
+            wrapper.style.width = (100 / currentZoom) + '%';
+            document.getElementById('zoom-level').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        window.zoomIn = function() {
+            currentZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
+            applyZoom();
+        };
+        window.zoomOut = function() {
+            currentZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
+            applyZoom();
+        };
+        window.zoomReset = function() {
+            currentZoom = 1;
+            applyZoom();
+        };
+
+        // Pinch-to-zoom
+        let pinchStartDist = 0;
+        let pinchStartZoom = 1;
+        const scrollArea = document.getElementById('pdf-scroll-area');
+
+        scrollArea.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 2) {
+                pinchStartDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                pinchStartZoom = currentZoom;
+            }
+        }, { passive: true });
+
+        scrollArea.addEventListener('touchmove', function(e) {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const ratio = dist / pinchStartDist;
+                currentZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartZoom * ratio));
+                applyZoom();
+            }
+        }, { passive: false });
+
+        // ---- PDF RENDERING ----
         async function loadPDF() {
             const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
             const container = document.getElementById('pdf-pages');
             container.innerHTML = '';
-
-            // Measure available width (container is max-w-3xl with padding)
             const containerWidth = container.clientWidth;
 
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                // Get the natural page dimensions at scale=1
                 const baseViewport = page.getViewport({ scale: 1 });
-                // Scale to fit the container width
                 const scale = containerWidth / baseViewport.width;
                 const viewport = page.getViewport({ scale });
 
@@ -196,8 +312,6 @@
                 canvas.height = viewport.height;
                 wrapper.appendChild(canvas);
 
-                // Use padding-top trick for correct aspect ratio when CSS scales the canvas
-                const aspectRatio = (viewport.height / viewport.width) * 100;
                 wrapper.style.position = 'relative';
 
                 const overlay = document.createElement('div');
@@ -208,7 +322,6 @@
                 container.appendChild(wrapper);
                 await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
 
-                // Place fields on this page
                 fields.filter(f => f.page === i).forEach(f => placeSigningField(overlay, f));
             }
 
@@ -230,8 +343,6 @@
             el.style.alignItems = 'center';
             el.style.justifyContent = 'center';
             el.style.zIndex = 10;
-            // Pulse animation to draw attention on mobile
-            el.style.animation = 'pulse-border 2s ease-in-out 3';
 
             if (field.type === 'checkbox') {
                 el.innerHTML = '<span class="text-gray-400 text-lg">&#9744;</span>';
@@ -275,7 +386,6 @@
                     }
                 });
             } else {
-                // signature or initials
                 el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS[field.type] + '</span>';
                 el.addEventListener('click', () => {
                     currentSigField = field;
@@ -295,10 +405,9 @@
             document.getElementById('finish-btn').disabled = filled.length < required.length;
         }
 
-        // Signature modal
+        // ---- SIGNATURE MODAL ----
         function openSigModal() {
             document.getElementById('sig-modal').classList.remove('hidden');
-            // Prevent body scroll while modal is open
             document.body.style.overflow = 'hidden';
             initCanvas();
         }
@@ -319,13 +428,11 @@
             sigCtx.lineJoin = 'round';
             hasDrawn = false;
 
-            // Mouse events
             sigCanvas.onmousedown = (e) => { isDrawing = true; sigCtx.beginPath(); sigCtx.moveTo(e.offsetX, e.offsetY); };
             sigCanvas.onmousemove = (e) => { if (isDrawing) { sigCtx.lineTo(e.offsetX, e.offsetY); sigCtx.stroke(); hasDrawn = true; } };
             sigCanvas.onmouseup = () => { isDrawing = false; };
             sigCanvas.onmouseleave = () => { isDrawing = false; };
 
-            // Touch events — scale coordinates to canvas internal size
             sigCanvas.ontouchstart = (e) => {
                 e.preventDefault();
                 const t = e.touches[0];
@@ -367,9 +474,17 @@
             document.getElementById('tab-type').classList.toggle('border-transparent', tab !== 'type');
         };
 
-        window.updateTypedPreview = function() {
-            const text = document.getElementById('sig-text-input').value;
-            document.getElementById('sig-text-preview').textContent = text;
+        window.updateTypedPreviews = function() {
+            const text = document.getElementById('sig-text-input').value || 'Your Name';
+            document.querySelectorAll('#sig-style-grid [data-preview]').forEach(el => {
+                el.textContent = text;
+            });
+        };
+
+        window.selectSigStyle = function(el) {
+            document.querySelectorAll('.sig-style-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedFont = parseInt(el.dataset.font);
         };
 
         window.applySig = function() {
@@ -384,7 +499,7 @@
                 const tc = document.createElement('canvas');
                 tc.width = 460; tc.height = 160;
                 const tctx = tc.getContext('2d');
-                tctx.font = '48px "Brush Script MT", "Segoe Script", cursive';
+                tctx.font = '48px ' + SIG_FONTS[selectedFont];
                 tctx.fillStyle = '#1e3a5f';
                 tctx.textAlign = 'center';
                 tctx.textBaseline = 'middle';
@@ -400,11 +515,11 @@
 
             closeSigModal();
             document.getElementById('sig-text-input').value = '';
-            document.getElementById('sig-text-preview').textContent = '';
+            updateTypedPreviews();
             updateProgress();
         };
 
-        // Submit
+        // ---- SUBMIT / DECLINE ----
         window.submitSigning = async function() {
             const btn = document.getElementById('finish-btn');
             btn.disabled = true;
@@ -436,7 +551,6 @@
             }
         };
 
-        // Decline
         window.showDeclineModal = function() {
             document.getElementById('decline-modal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -452,11 +566,14 @@
             document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen p-6"><div class="text-center"><h2 class="text-2xl font-bold text-gray-900 mb-2">Document Declined</h2><p class="text-gray-600">You have declined to sign this document.</p></div></div>';
         };
 
-        // Reload on orientation change to re-scale PDF
+        // Initialize default preview text
+        updateTypedPreviews();
+
+        // Re-render on orientation change
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => loadPDF(), 300);
+            resizeTimeout = setTimeout(() => { currentZoom = 1; applyZoom(); loadPDF(); }, 300);
         });
 
         loadPDF();
