@@ -142,7 +142,7 @@ def send_document(request, pk):
     email_errors = []
     for signer in doc.signers.all():
         try:
-            send_signing_request(signer)
+            send_signing_request(signer, sender=request.user)
         except Exception as e:
             email_errors.append(f'{signer.name}: {e}')
     AuditEvent.objects.create(
@@ -517,6 +517,6 @@ def resend_to_signer(request, pk, signer_pk):
     if signer.status in ('completed', 'declined'):
         messages.error(request, f'{signer.name} has already {signer.get_status_display().lower()}.')
         return redirect('signatures:detail', pk=pk)
-    send_signing_request(signer)
+    send_signing_request(signer, sender=request.user)
     messages.success(request, f'Signing email resent to {signer.name}.')
     return redirect('signatures:detail', pk=pk)
