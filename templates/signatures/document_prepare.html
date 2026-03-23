@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+
+{% block title %}Prepare: {{ document.title }} - CRM{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex items-center justify-between">
+    <div>
+        <a href="{% url 'signatures:list' %}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Signatures</a>
+        <h1 class="text-xl font-bold text-gray-900 mt-1">{{ document.title }}</h1>
+    </div>
+    <div class="flex space-x-3">
+        <button id="save-fields-btn" onclick="saveFields()"
+                class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700">
+            Save Fields
+        </button>
+        <form method="post" action="{% url 'signatures:send' document.pk %}" class="inline">
+            {% csrf_token %}
+            <button type="submit" id="send-btn"
+                    class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                Send for Signing
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="flex gap-4" style="height: calc(100vh - 180px);">
+    <!-- Left Sidebar -->
+    <div class="w-80 flex-shrink-0 space-y-4 overflow-y-auto">
+        <!-- Add Signer -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Signers</h3>
+            {% for signer in signers %}
+            <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: {{ signer_colors|default_if_none:"#3B82F6" }};"></span>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ signer.name }}</p>
+                        <p class="text-xs text-gray-500">{{ signer.email }}</p>
+                    </div>
+                </div>
+                <form method="post" action="{% url 'signatures:delete_signer' document.pk signer.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-red-400 hover:text-red-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+
+            <form method="post" action="{% url 'signatures:add_signer' document.pk %}" class="mt-3 space-y-2">
+                {% csrf_token %}
+                <input type="text" name="name" placeholder="Name" required
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                <input type="email" name="email" placeholder="Email" required
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                <input type="text" name="role" placeholder="Role (optional)"
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                <button type="submit"
+                        class="w-full px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                    Add Signer
+                </button>
+            </form>
+        </div>
+
+        <!-- Field Toolbar -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Fields</h3>
+            <p class="text-xs text-gray-500 mb-3">Drag fields onto the document. Select a signer first.</p>
+
+            {% if signers %}
+            <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Assign to</label>
+                <select id="active-signer"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                    {% for signer in signers %}
+                    <option value="{{ signer.pk }}" data-color="{{ signer_colors|default_if_none:'#3B82F6' }}">{{ signer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" draggable="true" data-field-type="signature"
+                        class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    Signature
+                </button>
+                <button type="button" draggable="true" data-field-type="initials"
+                        class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                    <span class="mr-1 font-bold">AB</span>
+                    Initials
+                </button>
+                <button type="button" draggable="true" data-field-type="text"
+                        class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/></svg>
+                    Text
+                </button>
+                <button type="button" draggable="true" data-field-type="date"
+                        class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Date
+                </button>
+                <button type="button" draggable="true" data-field-type="checkbox"
+                        class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab col-span-2">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Checkbox
+                </button>
+            </div>
+            {% else %}
+            <p class="text-xs text-gray-400 italic">Add at least one signer first.</p>
+            {% endif %}
+        </div>
+
+        <!-- Placed Fields Summary -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-sm font-semibold text-gray-900 mb-2">Placed Fields</h3>
+            <div id="fields-summary" class="text-xs text-gray-500">
+                <p>No fields placed yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Viewer -->
+    <div class="flex-1 bg-gray-200 rounded-lg overflow-auto" id="pdf-container">
+        <div id="pdf-pages" class="flex flex-col items-center py-4 space-y-4">
+            <!-- Pages rendered by PDF.js -->
+        </div>
+    </div>
+</div>
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+
+<!-- The main field-placer JS -->
+<script>
+(function() {
+    const PDF_URL = '{{ document.pdf_file.url }}';
+    const CSRF_TOKEN = '{{ csrf_token }}';
+    const SAVE_URL = '{% url "signatures:save_fields" document.pk %}';
+    const SIGNER_COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+
+    // Build signers array from Django context
+    const signers = [
+        {% for signer in signers %}
+        { id: {{ signer.pk }}, name: '{{ signer.name|escapejs }}', color: SIGNER_COLORS[{{ forloop.counter0 }} % SIGNER_COLORS.length] },
+        {% endfor %}
+    ];
+
+    // Existing fields from database
+    const existingFields = [
+        {% for field in fields %}
+        {
+            id: 'existing-{{ field.pk }}',
+            signer_id: {{ field.assigned_to_id }},
+            type: '{{ field.field_type }}',
+            label: '{{ field.label|escapejs }}',
+            page: {{ field.page }},
+            x: {{ field.x }},
+            y: {{ field.y }},
+            width: {{ field.width }},
+            height: {{ field.height }},
+            required: {{ field.required|yesno:"true,false" }},
+        },
+        {% endfor %}
+    ];
+
+    // Update signer select colors
+    const signerSelect = document.getElementById('active-signer');
+    if (signerSelect) {
+        signerSelect.addEventListener('change', updateSignerSelectColor);
+        updateSignerSelectColor();
+    }
+
+    function updateSignerSelectColor() {
+        if (!signerSelect) return;
+        const idx = signerSelect.selectedIndex;
+        signerSelect.style.borderColor = SIGNER_COLORS[idx % SIGNER_COLORS.length];
+    }
+
+    // Also update signer dots in sidebar
+    document.querySelectorAll('.w-3.h-3.rounded-full').forEach((dot, i) => {
+        dot.style.backgroundColor = SIGNER_COLORS[i % SIGNER_COLORS.length];
+    });
+
+    let placedFields = [];
+    let fieldCounter = 0;
+    let dragFieldType = null;
+    let selectedField = null;
+    let pageScales = {};
+
+    // Default field sizes (as percentage of page)
+    const FIELD_DEFAULTS = {
+        signature: { width: 20, height: 5 },
+        initials: { width: 10, height: 5 },
+        text: { width: 25, height: 3 },
+        date: { width: 15, height: 3 },
+        checkbox: { width: 3, height: 3 },
+    };
+
+    const FIELD_LABELS = {
+        signature: 'Signature',
+        initials: 'Initials',
+        text: 'Text',
+        date: 'Date',
+        checkbox: 'Checkbox',
+    };
+
+    // Load PDF
+    async function loadPDF() {
+        const loadingTask = pdfjsLib.getDocument(PDF_URL);
+        const pdf = await loadingTask.promise;
+        const container = document.getElementById('pdf-pages');
+        container.innerHTML = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const scale = 1.5;
+            const viewport = page.getViewport({ scale });
+
+            // Page wrapper
+            const pageWrapper = document.createElement('div');
+            pageWrapper.className = 'pdf-page-wrapper relative bg-white shadow-lg';
+            pageWrapper.dataset.page = i;
+            pageWrapper.style.width = viewport.width + 'px';
+            pageWrapper.style.height = viewport.height + 'px';
+
+            // Canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            pageWrapper.appendChild(canvas);
+
+            // Field overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'field-overlay absolute inset-0';
+            overlay.dataset.page = i;
+            pageWrapper.appendChild(overlay);
+
+            container.appendChild(pageWrapper);
+
+            // Render
+            const ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            pageScales[i] = { width: viewport.width, height: viewport.height };
+
+            // Setup drop zone
+            setupDropZone(overlay, i);
+        }
+
+        // Load existing fields
+        existingFields.forEach(f => {
+            addFieldToPage(f.page, f.x, f.y, f.type, f.signer_id, f.width, f.height);
+        });
+
+        updateFieldsSummary();
+    }
+
+    function setupDropZone(overlay, pageNum) {
+        overlay.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            overlay.style.outline = '2px dashed #6366f1';
+        });
+
+        overlay.addEventListener('dragleave', () => {
+            overlay.style.outline = '';
+        });
+
+        overlay.addEventListener('drop', (e) => {
+            e.preventDefault();
+            overlay.style.outline = '';
+
+            if (!dragFieldType) return;
+            if (!signerSelect || signers.length === 0) return;
+
+            const rect = overlay.getBoundingClientRect();
+            const xPx = e.clientX - rect.left;
+            const yPx = e.clientY - rect.top;
+            const xPct = (xPx / rect.width) * 100;
+            const yPct = (yPx / rect.height) * 100;
+
+            const signerId = parseInt(signerSelect.value);
+            addFieldToPage(pageNum, xPct, yPct, dragFieldType, signerId);
+            updateFieldsSummary();
+        });
+
+        // Also allow click-to-place
+        overlay.addEventListener('click', (e) => {
+            if (!dragFieldType || e.target !== overlay) return;
+            if (!signerSelect || signers.length === 0) return;
+
+            const rect = overlay.getBoundingClientRect();
+            const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+            const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+            const signerId = parseInt(signerSelect.value);
+            addFieldToPage(pageNum, xPct, yPct, dragFieldType, signerId);
+            updateFieldsSummary();
+        });
+    }
+
+    function addFieldToPage(pageNum, xPct, yPct, fieldType, signerId, widthPct, heightPct) {
+        const overlay = document.querySelector(`.field-overlay[data-page="${pageNum}"]`);
+        if (!overlay) return;
+
+        const defaults = FIELD_DEFAULTS[fieldType];
+        const w = widthPct || defaults.width;
+        const h = heightPct || defaults.height;
+
+        const signer = signers.find(s => s.id === signerId);
+        const color = signer ? signer.color : '#3B82F6';
+        const signerName = signer ? signer.name : 'Unknown';
+
+        const fieldId = 'field-' + (++fieldCounter);
+
+        const el = document.createElement('div');
+        el.id = fieldId;
+        el.className = 'placed-field absolute cursor-move select-none';
+        el.style.left = xPct + '%';
+        el.style.top = yPct + '%';
+        el.style.width = w + '%';
+        el.style.height = h + '%';
+        el.style.border = `2px solid ${color}`;
+        el.style.backgroundColor = color + '20';
+        el.style.borderRadius = '3px';
+        el.style.zIndex = 10;
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.fontSize = '10px';
+        el.style.color = color;
+        el.style.fontWeight = '600';
+        el.style.overflow = 'hidden';
+        el.title = `${FIELD_LABELS[fieldType]} - ${signerName}`;
+        el.innerHTML = `
+            <span class="pointer-events-none">${FIELD_LABELS[fieldType]}</span>
+            <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px; line-height:1; display:none;">X</button>
+            <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background: ${color}; opacity: 0.5; display:none;"></div>
+        `;
+
+        overlay.appendChild(el);
+
+        // Store field data
+        const fieldData = {
+            id: fieldId,
+            signer_id: signerId,
+            type: fieldType,
+            label: '',
+            page: pageNum,
+            x: xPct,
+            y: yPct,
+            width: w,
+            height: h,
+            required: true,
+            element: el,
+        };
+        placedFields.push(fieldData);
+
+        // Show controls on hover
+        el.addEventListener('mouseenter', () => {
+            el.querySelector('.field-delete').style.display = 'flex';
+            const resizeHandle = el.querySelector('.field-resize');
+            if (resizeHandle) resizeHandle.style.display = 'block';
+        });
+        el.addEventListener('mouseleave', () => {
+            el.querySelector('.field-delete').style.display = 'none';
+            const resizeHandle = el.querySelector('.field-resize');
+            if (resizeHandle) resizeHandle.style.display = 'none';
+        });
+
+        // Delete
+        el.querySelector('.field-delete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            el.remove();
+            placedFields = placedFields.filter(f => f.id !== fieldId);
+            updateFieldsSummary();
+        });
+
+        // Drag to move
+        makeDraggable(el, fieldData, overlay);
+
+        // Resize
+        makeResizable(el, fieldData, overlay);
+    }
+
+    function makeDraggable(el, fieldData, overlay) {
+        let isDragging = false;
+        let startX, startY, startLeft, startTop;
+
+        el.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('field-delete') || e.target.classList.contains('field-resize')) return;
+            isDragging = true;
+            const rect = overlay.getBoundingClientRect();
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseFloat(el.style.left);
+            startTop = parseFloat(el.style.top);
+            el.style.zIndex = 20;
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = overlay.getBoundingClientRect();
+            const dx = ((e.clientX - startX) / rect.width) * 100;
+            const dy = ((e.clientY - startY) / rect.height) * 100;
+            let newX = Math.max(0, Math.min(100 - parseFloat(el.style.width), startLeft + dx));
+            let newY = Math.max(0, Math.min(100 - parseFloat(el.style.height), startTop + dy));
+            el.style.left = newX + '%';
+            el.style.top = newY + '%';
+            fieldData.x = newX;
+            fieldData.y = newY;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                el.style.zIndex = 10;
+            }
+        });
+    }
+
+    function makeResizable(el, fieldData, overlay) {
+        const handle = el.querySelector('.field-resize');
+        if (!handle) return;
+        let isResizing = false;
+        let startX, startY, startW, startH;
+
+        handle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            const rect = overlay.getBoundingClientRect();
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = parseFloat(el.style.width);
+            startH = parseFloat(el.style.height);
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const rect = overlay.getBoundingClientRect();
+            const dw = ((e.clientX - startX) / rect.width) * 100;
+            const dh = ((e.clientY - startY) / rect.height) * 100;
+            el.style.width = Math.max(3, startW + dw) + '%';
+            el.style.height = Math.max(2, startH + dh) + '%';
+            fieldData.width = Math.max(3, startW + dw);
+            fieldData.height = Math.max(2, startH + dh);
+        });
+
+        document.addEventListener('mouseup', () => { isResizing = false; });
+    }
+
+    function updateFieldsSummary() {
+        const summary = document.getElementById('fields-summary');
+        if (placedFields.length === 0) {
+            summary.innerHTML = '<p>No fields placed yet.</p>';
+            return;
+        }
+        let html = `<p class="mb-1">${placedFields.length} field(s) placed:</p><ul class="space-y-1">`;
+        placedFields.forEach(f => {
+            const signer = signers.find(s => s.id === f.signer_id);
+            html += `<li class="flex items-center">
+                <span class="w-2 h-2 rounded-full mr-1" style="background:${signer ? signer.color : '#999'}"></span>
+                ${FIELD_LABELS[f.type]} (p${f.page}) - ${signer ? signer.name : '?'}
+            </li>`;
+        });
+        html += '</ul>';
+        summary.innerHTML = html;
+    }
+
+    // Setup toolbar drag
+    document.querySelectorAll('.field-tool').forEach(btn => {
+        btn.addEventListener('dragstart', (e) => {
+            dragFieldType = btn.dataset.fieldType;
+            e.dataTransfer.setData('text/plain', dragFieldType);
+        });
+        btn.addEventListener('dragend', () => { dragFieldType = null; });
+        // Also support click-then-click-on-page mode
+        btn.addEventListener('click', () => {
+            if (dragFieldType === btn.dataset.fieldType) {
+                dragFieldType = null;
+                document.querySelectorAll('.field-tool').forEach(b => b.classList.remove('ring-2', 'ring-indigo-500'));
+            } else {
+                dragFieldType = btn.dataset.fieldType;
+                document.querySelectorAll('.field-tool').forEach(b => b.classList.remove('ring-2', 'ring-indigo-500'));
+                btn.classList.add('ring-2', 'ring-indigo-500');
+            }
+        });
+    });
+
+    // Save fields
+    window.saveFields = async function() {
+        const fields = placedFields.map(f => ({
+            signer_id: f.signer_id,
+            type: f.type,
+            label: f.label,
+            page: f.page,
+            x: f.x,
+            y: f.y,
+            width: f.width,
+            height: f.height,
+            required: f.required,
+        }));
+
+        const btn = document.getElementById('save-fields-btn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        try {
+            const resp = await fetch(SAVE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN,
+                },
+                body: JSON.stringify({ fields }),
+            });
+            const data = await resp.json();
+            if (data.status === 'ok') {
+                btn.textContent = 'Saved!';
+                setTimeout(() => { btn.textContent = 'Save Fields'; btn.disabled = false; }, 1500);
+            }
+        } catch (err) {
+            btn.textContent = 'Error!';
+            btn.disabled = false;
+            console.error(err);
+        }
+    };
+
+    // Load PDF on page load
+    loadPDF();
+})();
+</script>
+
+<style>
+    .placed-field:hover {
+        box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.5);
+    }
+    .field-overlay {
+        cursor: crosshair;
+    }
+</style>
+{% endblock %}

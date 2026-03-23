@@ -1,10 +1,16 @@
+import json
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView
+from django.views.decorators.http import require_POST
+from django.views.generic import ListView, CreateView, DetailView
 
-from apps.signatures.models import Document, AuditEvent
+from apps.signatures.models import Document, DocumentSigner, DocumentField, AuditEvent
 from apps.signatures.forms import DocumentCreateForm
 
 
@@ -53,3 +59,62 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse_lazy('signatures:prepare', kwargs={'pk': self.object.pk})
+
+
+class DocumentPrepareView(LoginRequiredMixin, DetailView):
+    model = Document
+    template_name = 'signatures/document_prepare.html'
+    context_object_name = 'document'
+
+    def get_queryset(self):
+        return Document.objects.filter(team=self.request.user.team, status='draft')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['signers'] = self.object.signers.all()
+        ctx['fields'] = self.object.fields.select_related('assigned_to').all()
+        ctx['signer_colors'] = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+        return ctx
+
+
+@login_required
+@require_POST
+def add_signer(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='draft')
+    name = request.POST.get('name', '').strip()
+    email = request.POST.get('email', '').strip()
+    role = request.POST.get('role', '').strip()
+    if name and email:
+        DocumentSigner.objects.create(document=doc, name=name, email=email, role=role)
+        messages.success(request, f'Signer {name} added.')
+    return redirect('signatures:prepare', pk=pk)
+
+
+@login_required
+@require_POST
+def delete_signer(request, pk, signer_pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='draft')
+    signer = get_object_or_404(DocumentSigner, pk=signer_pk, document=doc)
+    signer.delete()
+    messages.success(request, 'Signer removed.')
+    return redirect('signatures:prepare', pk=pk)
+
+
+@login_required
+@require_POST
+def save_fields(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='draft')
+    data = json.loads(request.body)
+    doc.fields.all().delete()
+    for f in data.get('fields', []):
+        DocumentField.objects.create(
+            document=doc,
+            assigned_to_id=f['signer_id'],
+            field_type=f['type'],
+            label=f.get('label', ''),
+            page=f['page'],
+            x=f['x'], y=f['y'],
+            width=f['width'], height=f['height'],
+            required=f.get('required', True),
+        )
+    return JsonResponse({'status': 'ok', 'count': len(data.get('fields', []))})
