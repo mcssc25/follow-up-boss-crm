@@ -47,7 +47,12 @@ def generate_signed_pdf(document):
                 w = field.width / 100 * page_width
                 h = field.height / 100 * page_height
 
-                if field.field_type in ('signature', 'initials') and fv.value.startswith('data:image'):
+                if field.field_type == 'name':
+                    # Name field - render as text
+                    font_size = min(h * 0.7, 12)
+                    c.setFont('Helvetica', font_size)
+                    c.drawString(x + 2, y + h * 0.25, str(fv.value))
+                elif field.field_type in ('signature', 'initials') and fv.value.startswith('data:image'):
                     # Base64 image
                     img_data = base64.b64decode(fv.value.split(',')[1])
                     img = ImageReader(io.BytesIO(img_data))

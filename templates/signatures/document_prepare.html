@@ -92,6 +92,11 @@
                     <span class="mr-1 font-bold">AB</span>
                     Initials
                 </button>
+                <button type="button" draggable="true" data-field-type="name"
+                        class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Name
+                </button>
                 <button type="button" draggable="true" data-field-type="text"
                         class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/></svg>
@@ -197,6 +202,7 @@
     const FIELD_DEFAULTS = {
         signature: { width: 20, height: 5 },
         initials: { width: 10, height: 5 },
+        name: { width: 25, height: 3 },
         text: { width: 25, height: 3 },
         date: { width: 15, height: 3 },
         checkbox: { width: 3, height: 3 },
@@ -205,6 +211,7 @@
     const FIELD_LABELS = {
         signature: 'Signature',
         initials: 'Initials',
+        name: 'Name',
         text: 'Text',
         date: 'Date',
         checkbox: 'Checkbox',
@@ -336,11 +343,26 @@
         el.style.fontWeight = '600';
         el.style.overflow = 'hidden';
         el.title = `${FIELD_LABELS[fieldType]} - ${signerName}`;
-        el.innerHTML = `
-            <span class="pointer-events-none">${FIELD_LABELS[fieldType]}</span>
-            <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px; line-height:1; display:none;">X</button>
-            <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background: ${color}; opacity: 0.5; display:none;"></div>
-        `;
+        if (fieldType === 'checkbox') {
+            el.innerHTML = `
+                <span class="pointer-events-none" style="font-size:14px;">&#9744;</span>
+                <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px; line-height:1; display:none;">X</button>
+                <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background: ${color}; opacity: 0.5; display:none;"></div>
+            `;
+            el.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                const span = el.querySelector('span');
+                const isChecked = span.innerHTML === '&#9745;' || span.textContent === '☑';
+                span.innerHTML = isChecked ? '&#9744;' : '&#9745;';
+                span.style.color = isChecked ? color : '#059669';
+            });
+        } else {
+            el.innerHTML = `
+                <span class="pointer-events-none">${FIELD_LABELS[fieldType]}</span>
+                <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px; line-height:1; display:none;">X</button>
+                <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background: ${color}; opacity: 0.5; display:none;"></div>
+            `;
+        }
 
         overlay.appendChild(el);
 

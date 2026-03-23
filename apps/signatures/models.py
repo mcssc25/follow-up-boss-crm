@@ -35,6 +35,7 @@ class TemplateField(models.Model):
     FIELD_TYPES = [
         ('signature', 'Signature'),
         ('initials', 'Initials'),
+        ('name', 'Name'),
         ('text', 'Text'),
         ('date', 'Date'),
         ('checkbox', 'Checkbox'),
@@ -155,6 +156,7 @@ class DocumentField(models.Model):
     FIELD_TYPES = [
         ('signature', 'Signature'),
         ('initials', 'Initials'),
+        ('name', 'Name'),
         ('text', 'Text'),
         ('date', 'Date'),
         ('checkbox', 'Checkbox'),

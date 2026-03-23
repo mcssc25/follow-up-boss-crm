@@ -212,9 +212,12 @@
             {% endfor %}
         ];
 
+        const SIGNER_NAME = '{{ signer.name|escapejs }}';
+
         const FIELD_LABELS = {
             signature: 'Tap to Sign',
             initials: 'Tap to Initial',
+            name: 'Name',
             text: 'Tap to enter text',
             date: 'Tap to enter date',
             checkbox: '',
@@ -360,6 +363,11 @@
                     }
                     updateProgress();
                 });
+            } else if (field.type === 'name') {
+                field.value = SIGNER_NAME;
+                el.innerHTML = '<span class="text-xs text-gray-900 px-1 truncate">' + SIGNER_NAME + '</span>';
+                el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
+                el.style.borderColor = '#059669';
             } else if (field.type === 'text') {
                 el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.text + '</span>';
                 el.addEventListener('click', () => {
