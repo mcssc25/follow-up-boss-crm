@@ -75,7 +75,7 @@ class DocumentPrepareView(LoginRequiredMixin, DetailView):
     context_object_name = 'document'
 
     def get_queryset(self):
-        return Document.objects.filter(team=self.request.user.team, status='draft')
+        return Document.objects.filter(team=self.request.user.team).exclude(status__in=('completed', 'expired'))
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -95,6 +95,23 @@ def add_signer(request, pk):
     if name and email:
         DocumentSigner.objects.create(document=doc, name=name, email=email, role=role)
         messages.success(request, f'Signer {name} added.')
+    return redirect('signatures:prepare', pk=pk)
+
+
+@login_required
+@require_POST
+def edit_signer(request, pk, signer_pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    signer = get_object_or_404(DocumentSigner, pk=signer_pk, document=doc)
+    name = request.POST.get('name', '').strip()
+    email = request.POST.get('email', '').strip()
+    role = request.POST.get('role', '').strip()
+    if name and email:
+        signer.name = name
+        signer.email = email
+        signer.role = role
+        signer.save()
+        messages.success(request, f'Signer updated to {name} ({email}).')
     return redirect('signatures:prepare', pk=pk)
 
 
