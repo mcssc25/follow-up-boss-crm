@@ -5,12 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, DetailView
 
-from apps.signatures.models import Document, DocumentSigner, DocumentField, AuditEvent
+from apps.signatures.models import Document, DocumentSigner, DocumentField, AuditEvent, SignerFieldValue
 from apps.signatures.forms import DocumentCreateForm
 from apps.signatures.email import send_signing_request
 
@@ -165,3 +167,133 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
         ctx['audit_events'] = self.object.audit_events.all()
         ctx['signer_colors'] = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
         return ctx
+
+
+# ---------------------------------------------------------------------------
+# Public signing views (no login required)
+# ---------------------------------------------------------------------------
+
+def sign_document(request, token):
+    """Public signing page — no login required."""
+    signer = get_object_or_404(DocumentSigner, access_token=token)
+    doc = signer.document
+
+    if doc.is_expired:
+        doc.status = 'expired'
+        doc.save()
+        return render(request, 'signatures/sign_expired.html', {'document': doc})
+
+    if signer.status == 'completed':
+        return render(request, 'signatures/sign_completed.html', {'signer': signer, 'document': doc})
+
+    if signer.status == 'declined':
+        return render(request, 'signatures/sign_declined.html', {'signer': signer, 'document': doc})
+
+    if signer.status == 'pending':
+        signer.status = 'opened'
+        signer.save()
+        AuditEvent.objects.create(
+            document=doc, signer=signer, event_type='opened',
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+        )
+        if doc.status == 'sent':
+            doc.status = 'viewed'
+            doc.save()
+
+    fields = DocumentField.objects.filter(
+        document=doc, assigned_to=signer
+    ).order_by('page', 'y')
+
+    return render(request, 'signatures/sign.html', {
+        'signer': signer,
+        'document': doc,
+        'fields': fields,
+    })
+
+
+@csrf_exempt
+@require_POST
+def submit_signing(request, token):
+    """Process submitted field values from signing page."""
+    signer = get_object_or_404(DocumentSigner, access_token=token)
+    doc = signer.document
+
+    if signer.status == 'completed' or doc.is_expired:
+        return JsonResponse({'error': 'Cannot sign this document.'}, status=400)
+
+    data = json.loads(request.body)
+
+    for field_data in data.get('fields', []):
+        field = get_object_or_404(DocumentField, pk=field_data['field_id'], assigned_to=signer)
+        SignerFieldValue.objects.update_or_create(
+            field=field, signer=signer,
+            defaults={'value': field_data['value']},
+        )
+        AuditEvent.objects.create(
+            document=doc, signer=signer, event_type='field_signed',
+            detail=f"Signed {field.get_field_type_display()} on page {field.page}",
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+        )
+
+    signer.status = 'completed'
+    signer.signed_at = timezone.now()
+    signer.ip_address = request.META.get('REMOTE_ADDR')
+    signer.user_agent = request.META.get('HTTP_USER_AGENT', '')
+    signer.save()
+
+    AuditEvent.objects.create(
+        document=doc, signer=signer, event_type='completed',
+        ip_address=request.META.get('REMOTE_ADDR'),
+        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+    )
+
+    # Send confirmation to signer
+    from apps.signatures.email import send_signer_confirmation, send_completion_notification
+    send_signer_confirmation(signer)
+
+    # Check if all signers are done
+    if doc.all_signed:
+        from apps.signatures.pdf import generate_signed_pdf
+        generate_signed_pdf(doc)
+        doc.status = 'completed'
+        doc.completed_at = timezone.now()
+        doc.save()
+        send_completion_notification(doc)
+        if doc.contact:
+            from apps.contacts.models import ContactActivity
+            ContactActivity.objects.create(
+                contact=doc.contact, team=doc.team,
+                activity_type='document_signed',
+                description=f'Document fully signed: {doc.title}',
+            )
+
+    return JsonResponse({'status': 'ok', 'all_complete': doc.all_signed})
+
+
+@csrf_exempt
+@require_POST
+def decline_signing(request, token):
+    """Allow signer to decline."""
+    signer = get_object_or_404(DocumentSigner, access_token=token)
+    doc = signer.document
+    reason = ''
+    try:
+        data = json.loads(request.body)
+        reason = data.get('reason', '')
+    except (json.JSONDecodeError, ValueError):
+        pass
+    signer.status = 'declined'
+    signer.ip_address = request.META.get('REMOTE_ADDR')
+    signer.user_agent = request.META.get('HTTP_USER_AGENT', '')
+    signer.save()
+    doc.status = 'declined'
+    doc.save()
+    AuditEvent.objects.create(
+        document=doc, signer=signer, event_type='declined',
+        detail=reason,
+        ip_address=request.META.get('REMOTE_ADDR'),
+        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+    )
+    return JsonResponse({'status': 'ok'})

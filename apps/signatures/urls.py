@@ -12,4 +12,8 @@ urlpatterns = [
     path('<int:pk>/fields/save/', views.save_fields, name='save_fields'),
     path('<int:pk>/send/', views.send_document, name='send'),
     path('<int:pk>/', views.DocumentDetailView.as_view(), name='detail'),
+    # Public signing views (no login required)
+    path('sign/<uuid:token>/', views.sign_document, name='sign'),
+    path('sign/<uuid:token>/submit/', views.submit_signing, name='submit_signing'),
+    path('sign/<uuid:token>/decline/', views.decline_signing, name='decline'),
 ]

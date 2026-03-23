@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign: {{ document.title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+</head>
+<body class="bg-gray-100 min-h-full">
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div>
+                <h1 class="text-lg font-semibold text-gray-900">{{ document.title }}</h1>
+                <p class="text-xs text-gray-500">Requested by {{ document.created_by.get_full_name|default:document.created_by.username }}</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span id="fields-progress" class="text-sm text-gray-500">0 / {{ fields|length }} fields</span>
+                <button id="finish-btn" disabled
+                        onclick="submitSigning()"
+                        class="px-5 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Finish Signing
+                </button>
+                <button onclick="showDeclineModal()"
+                        class="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800">
+                    Decline
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- PDF Viewer -->
+    <div class="max-w-5xl mx-auto py-6 px-4">
+        <div id="pdf-pages" class="flex flex-col items-center space-y-6">
+            <!-- Pages rendered by PDF.js -->
+        </div>
+    </div>
+
+    <!-- Signature Modal -->
+    <div id="sig-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4" id="sig-modal-title">Sign Here</h3>
+
+            <!-- Tabs: Draw / Type -->
+            <div class="flex space-x-4 mb-4 border-b border-gray-200">
+                <button id="tab-draw" onclick="switchSigTab('draw')"
+                        class="pb-2 text-sm font-medium border-b-2 border-indigo-500 text-indigo-600">Draw</button>
+                <button id="tab-type" onclick="switchSigTab('type')"
+                        class="pb-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Type</button>
+            </div>
+
+            <!-- Draw -->
+            <div id="sig-draw" class="">
+                <canvas id="sig-canvas" width="460" height="160"
+                        class="border border-gray-300 rounded-md w-full cursor-crosshair" style="touch-action: none;"></canvas>
+                <button onclick="clearCanvas()" class="mt-2 text-sm text-gray-500 hover:text-gray-700">Clear</button>
+            </div>
+
+            <!-- Type -->
+            <div id="sig-type" class="hidden">
+                <input type="text" id="sig-text-input" placeholder="Type your name"
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg"
+                       oninput="updateTypedPreview()">
+                <div id="sig-text-preview" class="mt-3 p-4 border border-gray-200 rounded-md text-center"
+                     style="font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: 32px; color: #1e3a5f;">
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeSigModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                <button onclick="applySig()"
+                        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decline Modal -->
+    <div id="decline-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Decline to Sign</h3>
+            <p class="text-sm text-gray-600 mb-4">Are you sure you want to decline signing this document?</p>
+            <textarea id="decline-reason" rows="3" placeholder="Reason (optional)"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm mb-4"></textarea>
+            <div class="flex justify-end space-x-3">
+                <button onclick="document.getElementById('decline-modal').classList.add('hidden')"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                <button onclick="declineSigning()"
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation overlay -->
+    <div id="confirmation" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center p-8">
+            <svg class="mx-auto w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Document Signed!</h2>
+            <p class="text-gray-600">Thank you, {{ signer.name }}. A confirmation email has been sent to {{ signer.email }}.</p>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const PDF_URL = '{{ document.pdf_file.url }}';
+        const SUBMIT_URL = '/signatures/sign/{{ signer.access_token }}/submit/';
+        const DECLINE_URL = '/signatures/sign/{{ signer.access_token }}/decline/';
+
+        const fields = [
+            {% for field in fields %}
+            {
+                id: {{ field.pk }},
+                type: '{{ field.field_type }}',
+                label: '{{ field.label|default:field.get_field_type_display|escapejs }}',
+                page: {{ field.page }},
+                x: {{ field.x }},
+                y: {{ field.y }},
+                width: {{ field.width }},
+                height: {{ field.height }},
+                required: {{ field.required|yesno:"true,false" }},
+                value: null,
+            },
+            {% endfor %}
+        ];
+
+        const FIELD_LABELS = {
+            signature: 'Click to Sign',
+            initials: 'Click to Initial',
+            text: 'Click to enter text',
+            date: 'Click to enter date',
+            checkbox: '',
+        };
+
+        let currentSigField = null;
+        let sigCanvas, sigCtx;
+        let isDrawing = false;
+        let hasDrawn = false;
+        let sigMode = 'draw';
+
+        // Render PDF
+        async function loadPDF() {
+            const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
+            const container = document.getElementById('pdf-pages');
+            container.innerHTML = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale });
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'relative bg-white shadow-lg rounded-lg overflow-hidden';
+                wrapper.dataset.page = i;
+                wrapper.style.width = viewport.width + 'px';
+                wrapper.style.height = viewport.height + 'px';
+
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                wrapper.appendChild(canvas);
+
+                const overlay = document.createElement('div');
+                overlay.className = 'absolute inset-0';
+                overlay.dataset.page = i;
+                wrapper.appendChild(overlay);
+
+                container.appendChild(wrapper);
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+                // Place fields on this page
+                fields.filter(f => f.page === i).forEach(f => placeSigningField(overlay, f));
+            }
+
+            updateProgress();
+        }
+
+        function placeSigningField(overlay, field) {
+            const el = document.createElement('div');
+            el.id = 'sign-field-' + field.id;
+            el.className = 'absolute cursor-pointer transition-all';
+            el.style.left = field.x + '%';
+            el.style.top = field.y + '%';
+            el.style.width = field.width + '%';
+            el.style.height = field.height + '%';
+            el.style.border = '2px solid #4f46e5';
+            el.style.backgroundColor = 'rgba(79, 70, 229, 0.08)';
+            el.style.borderRadius = '4px';
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'center';
+            el.style.zIndex = 10;
+
+            if (field.type === 'checkbox') {
+                el.innerHTML = '<span class="text-gray-400 text-lg">&#9744;</span>';
+                el.addEventListener('click', () => {
+                    field.value = field.value === 'true' ? 'false' : 'true';
+                    el.innerHTML = field.value === 'true'
+                        ? '<span class="text-indigo-600 text-lg font-bold">&#9745;</span>'
+                        : '<span class="text-gray-400 text-lg">&#9744;</span>';
+                    if (field.value === 'true') {
+                        el.style.backgroundColor = 'rgba(79, 70, 229, 0.15)';
+                        el.style.borderColor = '#059669';
+                    } else {
+                        el.style.backgroundColor = 'rgba(79, 70, 229, 0.08)';
+                        el.style.borderColor = '#4f46e5';
+                    }
+                    updateProgress();
+                });
+            } else if (field.type === 'text') {
+                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none">' + FIELD_LABELS.text + '</span>';
+                el.addEventListener('click', () => {
+                    const val = prompt('Enter text:', field.value || '');
+                    if (val !== null) {
+                        field.value = val;
+                        el.innerHTML = '<span class="text-xs text-gray-900 px-1">' + val + '</span>';
+                        el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
+                        el.style.borderColor = '#059669';
+                        updateProgress();
+                    }
+                });
+            } else if (field.type === 'date') {
+                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none">' + FIELD_LABELS.date + '</span>';
+                el.addEventListener('click', () => {
+                    const today = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+                    const val = prompt('Enter date:', field.value || today);
+                    if (val !== null) {
+                        field.value = val;
+                        el.innerHTML = '<span class="text-xs text-gray-900 px-1">' + val + '</span>';
+                        el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
+                        el.style.borderColor = '#059669';
+                        updateProgress();
+                    }
+                });
+            } else {
+                // signature or initials
+                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none">' + FIELD_LABELS[field.type] + '</span>';
+                el.addEventListener('click', () => {
+                    currentSigField = field;
+                    document.getElementById('sig-modal-title').textContent =
+                        field.type === 'initials' ? 'Initial Here' : 'Sign Here';
+                    openSigModal();
+                });
+            }
+
+            overlay.appendChild(el);
+        }
+
+        function updateProgress() {
+            const required = fields.filter(f => f.required);
+            const filled = required.filter(f => f.value && f.value !== '' && f.value !== 'false');
+            document.getElementById('fields-progress').textContent = filled.length + ' / ' + required.length + ' fields';
+            document.getElementById('finish-btn').disabled = filled.length < required.length;
+        }
+
+        // Signature modal
+        function openSigModal() {
+            document.getElementById('sig-modal').classList.remove('hidden');
+            initCanvas();
+        }
+
+        window.closeSigModal = function() {
+            document.getElementById('sig-modal').classList.add('hidden');
+            currentSigField = null;
+        };
+
+        function initCanvas() {
+            sigCanvas = document.getElementById('sig-canvas');
+            sigCtx = sigCanvas.getContext('2d');
+            sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            sigCtx.strokeStyle = '#1e3a5f';
+            sigCtx.lineWidth = 2.5;
+            sigCtx.lineCap = 'round';
+            sigCtx.lineJoin = 'round';
+            hasDrawn = false;
+
+            // Mouse events
+            sigCanvas.onmousedown = (e) => { isDrawing = true; sigCtx.beginPath(); sigCtx.moveTo(e.offsetX, e.offsetY); };
+            sigCanvas.onmousemove = (e) => { if (isDrawing) { sigCtx.lineTo(e.offsetX, e.offsetY); sigCtx.stroke(); hasDrawn = true; } };
+            sigCanvas.onmouseup = () => { isDrawing = false; };
+            sigCanvas.onmouseleave = () => { isDrawing = false; };
+
+            // Touch events
+            sigCanvas.ontouchstart = (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                const r = sigCanvas.getBoundingClientRect();
+                isDrawing = true;
+                sigCtx.beginPath();
+                sigCtx.moveTo(t.clientX - r.left, t.clientY - r.top);
+            };
+            sigCanvas.ontouchmove = (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const t = e.touches[0];
+                const r = sigCanvas.getBoundingClientRect();
+                sigCtx.lineTo(t.clientX - r.left, t.clientY - r.top);
+                sigCtx.stroke();
+                hasDrawn = true;
+            };
+            sigCanvas.ontouchend = () => { isDrawing = false; };
+        }
+
+        window.clearCanvas = function() {
+            if (sigCtx) sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            hasDrawn = false;
+        };
+
+        window.switchSigTab = function(tab) {
+            sigMode = tab;
+            document.getElementById('sig-draw').classList.toggle('hidden', tab !== 'draw');
+            document.getElementById('sig-type').classList.toggle('hidden', tab !== 'type');
+            document.getElementById('tab-draw').classList.toggle('border-indigo-500', tab === 'draw');
+            document.getElementById('tab-draw').classList.toggle('text-indigo-600', tab === 'draw');
+            document.getElementById('tab-draw').classList.toggle('border-transparent', tab !== 'draw');
+            document.getElementById('tab-type').classList.toggle('border-indigo-500', tab === 'type');
+            document.getElementById('tab-type').classList.toggle('text-indigo-600', tab === 'type');
+            document.getElementById('tab-type').classList.toggle('border-transparent', tab !== 'type');
+        };
+
+        window.updateTypedPreview = function() {
+            const text = document.getElementById('sig-text-input').value;
+            document.getElementById('sig-text-preview').textContent = text;
+        };
+
+        window.applySig = function() {
+            if (!currentSigField) return;
+            let value;
+            if (sigMode === 'draw') {
+                if (!hasDrawn) return;
+                value = sigCanvas.toDataURL('image/png');
+            } else {
+                const text = document.getElementById('sig-text-input').value.trim();
+                if (!text) return;
+                // Create a canvas with the typed signature
+                const tc = document.createElement('canvas');
+                tc.width = 460; tc.height = 160;
+                const tctx = tc.getContext('2d');
+                tctx.font = '48px "Brush Script MT", "Segoe Script", cursive';
+                tctx.fillStyle = '#1e3a5f';
+                tctx.textAlign = 'center';
+                tctx.textBaseline = 'middle';
+                tctx.fillText(text, 230, 80);
+                value = tc.toDataURL('image/png');
+            }
+
+            currentSigField.value = value;
+            const el = document.getElementById('sign-field-' + currentSigField.id);
+            el.innerHTML = '<img src="' + value + '" class="w-full h-full object-contain" alt="Signature">';
+            el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
+            el.style.borderColor = '#059669';
+
+            closeSigModal();
+            document.getElementById('sig-text-input').value = '';
+            document.getElementById('sig-text-preview').textContent = '';
+            updateProgress();
+        };
+
+        // Submit
+        window.submitSigning = async function() {
+            const btn = document.getElementById('finish-btn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const fieldData = fields.map(f => ({
+                field_id: f.id,
+                value: f.value || '',
+            }));
+
+            try {
+                const resp = await fetch(SUBMIT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fields: fieldData }),
+                });
+                const data = await resp.json();
+                if (data.status === 'ok') {
+                    document.getElementById('confirmation').classList.remove('hidden');
+                } else {
+                    alert('Error submitting. Please try again.');
+                    btn.disabled = false;
+                    btn.textContent = 'Finish Signing';
+                }
+            } catch (err) {
+                alert('Network error. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Finish Signing';
+            }
+        };
+
+        // Decline
+        window.showDeclineModal = function() {
+            document.getElementById('decline-modal').classList.remove('hidden');
+        };
+
+        window.declineSigning = async function() {
+            const reason = document.getElementById('decline-reason').value;
+            await fetch(DECLINE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason }),
+            });
+            document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen"><div class="text-center p-8"><h2 class="text-2xl font-bold text-gray-900 mb-2">Document Declined</h2><p class="text-gray-600">You have declined to sign this document.</p></div></div>';
+        };
+
+        loadPDF();
+    })();
+    </script>
+</body>
+</html>
