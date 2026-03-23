@@ -61,7 +61,6 @@ def send_signer_confirmation(signer):
     sender = signer.document.created_by
     if not sender:
         return
-    base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
     context = {
         'signer': signer,
         'document': signer.document,
@@ -74,3 +73,25 @@ def send_signer_confirmation(signer):
         body_html=html,
         from_email=sender.email,
     )
+
+
+def send_completed_copy_to_signers(document):
+    """Send the signed PDF to all signers once all have signed."""
+    sender = document.created_by
+    if not sender or not document.signed_pdf:
+        return
+    pdf_bytes = document.signed_pdf.read()
+    filename = f"{document.title} - Signed.pdf"
+    context = {
+        'document': document,
+    }
+    html = render_to_string('signatures/emails/completed_copy.html', context)
+    gmail = _get_gmail_service(sender)
+    for signer in document.signers.all():
+        gmail.send_email(
+            to=signer.email,
+            subject=f"Completed: {document.title}",
+            body_html=html,
+            from_email=sender.email,
+            attachments=[{'filename': filename, 'content': pdf_bytes}],
+        )

@@ -1,4 +1,5 @@
 import base64
+from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -18,9 +19,14 @@ class GmailService:
         )
         self.service = build('gmail', 'v1', credentials=self.credentials)
 
-    def send_email(self, to, subject, body_html, from_email, reply_to=None):
+    def send_email(self, to, subject, body_html, from_email, reply_to=None, attachments=None):
+        """Send an email via Gmail API.
+
+        Args:
+            attachments: list of dicts with 'filename' (str) and 'content' (bytes)
+        """
         try:
-            message = MIMEMultipart('alternative')
+            message = MIMEMultipart('mixed')
             message['to'] = to
             message['from'] = from_email
             message['subject'] = subject
@@ -29,6 +35,11 @@ class GmailService:
 
             html_part = MIMEText(body_html, 'html')
             message.attach(html_part)
+
+            for att in (attachments or []):
+                part = MIMEApplication(att['content'], Name=att['filename'])
+                part['Content-Disposition'] = f'attachment; filename="{att["filename"]}"'
+                message.attach(part)
 
             raw = base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
             result = (

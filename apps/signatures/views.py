@@ -262,7 +262,9 @@ def submit_signing(request, token):
     )
 
     # Send confirmation to signer
-    from apps.signatures.email import send_signer_confirmation, send_completion_notification
+    from apps.signatures.email import (
+        send_signer_confirmation, send_completion_notification, send_completed_copy_to_signers,
+    )
     send_signer_confirmation(signer)
 
     # Check if all signers are done
@@ -273,6 +275,7 @@ def submit_signing(request, token):
         doc.completed_at = timezone.now()
         doc.save()
         send_completion_notification(doc)
+        send_completed_copy_to_signers(doc)
         if doc.contact:
             from apps.contacts.models import ContactActivity
             ContactActivity.objects.create(
