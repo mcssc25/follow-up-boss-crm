@@ -13,12 +13,12 @@
                 class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700">
             Save Fields
         </button>
-        <form method="post" action="{% url 'signatures:send' document.pk %}" class="inline">
+        <button id="send-btn" onclick="saveAndSend()"
+                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+            Send for Signing
+        </button>
+        <form method="post" action="{% url 'signatures:send' document.pk %}" id="send-form" class="hidden">
             {% csrf_token %}
-            <button type="submit" id="send-btn"
-                    class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
-                Send for Signing
-            </button>
         </form>
     </div>
 </div>
@@ -417,6 +417,7 @@
             if (isDragging) {
                 isDragging = false;
                 el.style.zIndex = 10;
+                triggerAutoSave();
             }
         });
     }
@@ -449,7 +450,7 @@
             fieldData.height = Math.max(2, startH + dh);
         });
 
-        document.addEventListener('mouseup', () => { isResizing = false; });
+        document.addEventListener('mouseup', () => { if (isResizing) { isResizing = false; triggerAutoSave(); } });
     }
 
     function updateFieldsSummary() {
@@ -468,6 +469,7 @@
         });
         html += '</ul>';
         summary.innerHTML = html;
+        triggerAutoSave();
     }
 
     // Setup toolbar drag
@@ -526,6 +528,78 @@
             btn.textContent = 'Error!';
             btn.disabled = false;
             console.error(err);
+        }
+    };
+
+    // Auto-save: debounce to avoid hammering the server
+    let autoSaveTimer = null;
+    function triggerAutoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            saveFieldsQuiet();
+        }, 1000);
+    }
+
+    async function saveFieldsQuiet() {
+        const fields = placedFields.map(f => ({
+            signer_id: f.signer_id,
+            type: f.type,
+            label: f.label,
+            page: f.page,
+            x: f.x,
+            y: f.y,
+            width: f.width,
+            height: f.height,
+            required: f.required,
+        }));
+        try {
+            await fetch(SAVE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                body: JSON.stringify({ fields }),
+            });
+            const btn = document.getElementById('save-fields-btn');
+            btn.textContent = 'Auto-saved';
+            setTimeout(() => { btn.textContent = 'Save Fields'; }, 1000);
+        } catch (err) { console.error('Auto-save failed:', err); }
+    }
+
+    // Save then submit the send form
+    window.saveAndSend = async function() {
+        const btn = document.getElementById('send-btn');
+        btn.disabled = true;
+        btn.textContent = 'Saving & Sending...';
+
+        const fields = placedFields.map(f => ({
+            signer_id: f.signer_id,
+            type: f.type,
+            label: f.label,
+            page: f.page,
+            x: f.x,
+            y: f.y,
+            width: f.width,
+            height: f.height,
+            required: f.required,
+        }));
+
+        try {
+            const resp = await fetch(SAVE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                body: JSON.stringify({ fields }),
+            });
+            const data = await resp.json();
+            if (data.status === 'ok') {
+                document.getElementById('send-form').submit();
+            } else {
+                btn.textContent = 'Send for Signing';
+                btn.disabled = false;
+                alert('Failed to save fields. Please try again.');
+            }
+        } catch (err) {
+            btn.textContent = 'Send for Signing';
+            btn.disabled = false;
+            alert('Error saving fields. Please try again.');
         }
     };
 

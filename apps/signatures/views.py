@@ -139,8 +139,12 @@ def send_document(request, pk):
         return redirect('signatures:prepare', pk=pk)
     doc.status = 'sent'
     doc.save()
+    email_errors = []
     for signer in doc.signers.all():
-        send_signing_request(signer)
+        try:
+            send_signing_request(signer)
+        except Exception as e:
+            email_errors.append(f'{signer.name}: {e}')
     AuditEvent.objects.create(
         document=doc, event_type='sent',
         ip_address=request.META.get('REMOTE_ADDR'),
@@ -153,7 +157,10 @@ def send_document(request, pk):
             activity_type='document_sent',
             description=f'Document sent for signature: {doc.title}',
         )
-    messages.success(request, 'Document sent to all signers.')
+    if email_errors:
+        messages.warning(request, f'Document marked as sent but email delivery failed for: {"; ".join(email_errors)}. You can resend from the detail page.')
+    else:
+        messages.success(request, 'Document sent to all signers.')
     return redirect('signatures:detail', pk=pk)
 
 
