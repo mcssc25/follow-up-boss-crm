@@ -149,3 +149,19 @@ def send_document(request, pk):
         )
     messages.success(request, 'Document sent to all signers.')
     return redirect('signatures:detail', pk=pk)
+
+
+class DocumentDetailView(LoginRequiredMixin, DetailView):
+    model = Document
+    template_name = 'signatures/document_detail.html'
+    context_object_name = 'document'
+
+    def get_queryset(self):
+        return Document.objects.filter(team=self.request.user.team)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['signers'] = self.object.signers.all()
+        ctx['audit_events'] = self.object.audit_events.all()
+        ctx['signer_colors'] = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+        return ctx
