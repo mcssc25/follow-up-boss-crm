@@ -14,6 +14,9 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Base URL for links in emails (signing links, etc.)
+BASE_URL = 'https://crm.bigbeachal.com'
+
 # Email (for notifications — not for campaign emails which use Gmail API)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
