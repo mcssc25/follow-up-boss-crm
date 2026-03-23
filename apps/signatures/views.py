@@ -12,6 +12,7 @@ from django.views.generic import ListView, CreateView, DetailView
 
 from apps.signatures.models import Document, DocumentSigner, DocumentField, AuditEvent
 from apps.signatures.forms import DocumentCreateForm
+from apps.signatures.email import send_signing_request
 
 
 class DocumentListView(LoginRequiredMixin, ListView):
@@ -118,3 +119,33 @@ def save_fields(request, pk):
             required=f.get('required', True),
         )
     return JsonResponse({'status': 'ok', 'count': len(data.get('fields', []))})
+
+
+@login_required
+@require_POST
+def send_document(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='draft')
+    if not doc.signers.exists():
+        messages.error(request, 'Add at least one signer before sending.')
+        return redirect('signatures:prepare', pk=pk)
+    if not doc.fields.exists():
+        messages.error(request, 'Place at least one field before sending.')
+        return redirect('signatures:prepare', pk=pk)
+    doc.status = 'sent'
+    doc.save()
+    for signer in doc.signers.all():
+        send_signing_request(signer)
+    AuditEvent.objects.create(
+        document=doc, event_type='sent',
+        ip_address=request.META.get('REMOTE_ADDR'),
+        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+    )
+    if doc.contact:
+        from apps.contacts.models import ContactActivity
+        ContactActivity.objects.create(
+            contact=doc.contact, team=doc.team,
+            activity_type='document_sent',
+            description=f'Document sent for signature: {doc.title}',
+        )
+    messages.success(request, 'Document sent to all signers.')
+    return redirect('signatures:detail', pk=pk)
