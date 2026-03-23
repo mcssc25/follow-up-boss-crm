@@ -484,3 +484,32 @@ def delete_template(request, pk):
     template.delete()
     messages.success(request, 'Template deleted.')
     return redirect('signatures:template_list')
+
+
+# ---------------------------------------------------------------------------
+# Delete & Resend
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def delete_document(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    if doc.status not in ('draft', 'declined', 'expired'):
+        messages.error(request, 'Cannot delete a document that is in progress.')
+        return redirect('signatures:detail', pk=pk)
+    doc.delete()
+    messages.success(request, 'Document deleted.')
+    return redirect('signatures:list')
+
+
+@login_required
+@require_POST
+def resend_to_signer(request, pk, signer_pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    signer = get_object_or_404(DocumentSigner, pk=signer_pk, document=doc)
+    if signer.status in ('completed', 'declined'):
+        messages.error(request, f'{signer.name} has already {signer.get_status_display().lower()}.')
+        return redirect('signatures:detail', pk=pk)
+    send_signing_request(signer)
+    messages.success(request, f'Signing email resent to {signer.name}.')
+    return redirect('signatures:detail', pk=pk)

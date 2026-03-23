@@ -12,7 +12,9 @@ urlpatterns = [
     path('<int:pk>/fields/save/', views.save_fields, name='save_fields'),
     path('<int:pk>/send/', views.send_document, name='send'),
     path('<int:pk>/', views.DocumentDetailView.as_view(), name='detail'),
+    path('<int:pk>/delete/', views.delete_document, name='delete'),
     path('<int:pk>/download/', views.download_signed, name='download'),
+    path('<int:pk>/signers/<int:signer_pk>/resend/', views.resend_to_signer, name='resend'),
     path('verify/', views.verify_document, name='verify'),
     # Templates
     path('templates/', views.TemplateListView.as_view(), name='template_list'),
