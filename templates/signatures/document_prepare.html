@@ -402,12 +402,73 @@
             updateFieldsSummary();
         });
 
+        // Select on click
+        el.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('field-delete') || e.target.classList.contains('field-resize')) return;
+            selectField(fieldData);
+        });
+
         // Drag to move
         makeDraggable(el, fieldData, overlay);
 
         // Resize
         makeResizable(el, fieldData, overlay);
     }
+
+    let clipboardField = null;
+
+    function selectField(fieldData) {
+        // Deselect previous
+        if (selectedField && selectedField.element) {
+            selectedField.element.style.outline = '';
+        }
+        selectedField = fieldData;
+        if (fieldData && fieldData.element) {
+            fieldData.element.style.outline = '2px dashed #6366f1';
+        }
+    }
+
+    // Click on empty area deselects
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.placed-field') && !e.target.closest('.field-tool')) {
+            if (selectedField && selectedField.element) {
+                selectedField.element.style.outline = '';
+            }
+            selectedField = null;
+        }
+    });
+
+    // Ctrl+C / Ctrl+V
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'c' && (e.ctrlKey || e.metaKey) && selectedField) {
+            e.preventDefault();
+            clipboardField = {
+                type: selectedField.type,
+                signer_id: selectedField.signer_id,
+                page: selectedField.page,
+                x: selectedField.x,
+                y: selectedField.y,
+                width: selectedField.width,
+                height: selectedField.height,
+            };
+        }
+        if (e.key === 'v' && (e.ctrlKey || e.metaKey) && clipboardField) {
+            e.preventDefault();
+            // Paste with a slight offset so it's visible
+            const newX = Math.min(clipboardField.x + 2, 100 - clipboardField.width);
+            const newY = Math.min(clipboardField.y + 2, 100 - clipboardField.height);
+            addFieldToPage(clipboardField.page, newX, newY, clipboardField.type, clipboardField.signer_id, clipboardField.width, clipboardField.height);
+            updateFieldsSummary();
+        }
+        // Delete selected field with Delete or Backspace
+        if ((e.key === 'Delete' || e.key === 'Backspace') && selectedField && !e.target.matches('input, textarea, select')) {
+            e.preventDefault();
+            selectedField.element.remove();
+            placedFields = placedFields.filter(f => f.id !== selectedField.id);
+            selectedField = null;
+            updateFieldsSummary();
+        }
+    });
 
     function makeDraggable(el, fieldData, overlay) {
         let isDragging = false;
