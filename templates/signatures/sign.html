@@ -2,45 +2,76 @@
 <html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sign: {{ document.title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <style>
+        .pdf-page-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+        }
+        .pdf-page-wrapper canvas {
+            width: 100% !important;
+            height: auto !important;
+            display: block;
+        }
+        .pdf-page-wrapper .field-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-full">
     <!-- Top Bar -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div>
-                <h1 class="text-lg font-semibold text-gray-900">{{ document.title }}</h1>
-                <p class="text-xs text-gray-500">Requested by {{ document.created_by.get_full_name|default:document.created_by.username }}</p>
-            </div>
-            <div class="flex items-center space-x-3">
-                <span id="fields-progress" class="text-sm text-gray-500">0 / {{ fields|length }} fields</span>
-                <button id="finish-btn" disabled
-                        onclick="submitSigning()"
-                        class="px-5 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                    Finish Signing
-                </button>
-                <button onclick="showDeclineModal()"
-                        class="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800">
-                    Decline
-                </button>
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-3xl mx-auto px-3 py-2 sm:px-4 sm:py-3">
+            <div class="flex items-center justify-between">
+                <div class="min-w-0 flex-1 mr-3">
+                    <h1 class="text-sm sm:text-lg font-semibold text-gray-900 truncate">{{ document.title }}</h1>
+                    <p class="text-xs text-gray-500 hidden sm:block">Requested by {{ document.created_by.get_full_name|default:document.created_by.username }}</p>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+                    <span id="fields-progress" class="text-xs sm:text-sm text-gray-500 whitespace-nowrap">0 / {{ fields|length }}</span>
+                    <button id="finish-btn" disabled
+                            onclick="submitSigning()"
+                            class="px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                        Finish
+                    </button>
+                    <button onclick="showDeclineModal()"
+                            class="px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-red-600 hover:text-red-800 whitespace-nowrap">
+                        Decline
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
+    <!-- Field Guide Banner (mobile) -->
+    <div id="field-guide" class="bg-indigo-50 border-b border-indigo-200 sm:hidden">
+        <div class="px-3 py-2 flex items-center justify-between">
+            <p class="text-xs text-indigo-700"><span class="font-medium">Tap highlighted fields</span> to sign, initial, or fill in.</p>
+            <button onclick="this.parentElement.parentElement.remove()" class="text-indigo-400 hover:text-indigo-600 ml-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+    </div>
+
     <!-- PDF Viewer -->
-    <div class="max-w-5xl mx-auto py-6 px-4">
-        <div id="pdf-pages" class="flex flex-col items-center space-y-6">
+    <div class="max-w-3xl mx-auto py-4 px-2 sm:py-6 sm:px-4">
+        <div id="pdf-pages" class="flex flex-col items-center space-y-4 sm:space-y-6">
             <!-- Pages rendered by PDF.js -->
         </div>
     </div>
 
     <!-- Signature Modal -->
-    <div id="sig-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+    <div id="sig-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center">
+        <div class="bg-white rounded-t-xl sm:rounded-lg shadow-xl w-full sm:max-w-lg p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
             <h3 class="text-lg font-semibold text-gray-900 mb-4" id="sig-modal-title">Sign Here</h3>
 
             <!-- Tabs: Draw / Type -->
@@ -78,8 +109,8 @@
     </div>
 
     <!-- Decline Modal -->
-    <div id="decline-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+    <div id="decline-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center">
+        <div class="bg-white rounded-t-xl sm:rounded-lg shadow-xl w-full sm:max-w-md p-4 sm:p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Decline to Sign</h3>
             <p class="text-sm text-gray-600 mb-4">Are you sure you want to decline signing this document?</p>
             <textarea id="decline-reason" rows="3" placeholder="Reason (optional)"
@@ -94,8 +125,8 @@
     </div>
 
     <!-- Confirmation overlay -->
-    <div id="confirmation" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center">
-        <div class="text-center p-8">
+    <div id="confirmation" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center p-6">
+        <div class="text-center">
             <svg class="mx-auto w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <h2 class="text-2xl font-bold text-gray-900 mb-2">Document Signed!</h2>
             <p class="text-gray-600">Thank you, {{ signer.name }}. A confirmation email has been sent to {{ signer.email }}.</p>
@@ -126,10 +157,10 @@
         ];
 
         const FIELD_LABELS = {
-            signature: 'Click to Sign',
-            initials: 'Click to Initial',
-            text: 'Click to enter text',
-            date: 'Click to enter date',
+            signature: 'Tap to Sign',
+            initials: 'Tap to Initial',
+            text: 'Tap to enter text',
+            date: 'Tap to enter date',
             checkbox: '',
         };
 
@@ -139,30 +170,38 @@
         let hasDrawn = false;
         let sigMode = 'draw';
 
-        // Render PDF
+        // Render PDF — scale to fit container width
         async function loadPDF() {
             const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
             const container = document.getElementById('pdf-pages');
             container.innerHTML = '';
 
+            // Measure available width (container is max-w-3xl with padding)
+            const containerWidth = container.clientWidth;
+
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                const scale = 1.5;
+                // Get the natural page dimensions at scale=1
+                const baseViewport = page.getViewport({ scale: 1 });
+                // Scale to fit the container width
+                const scale = containerWidth / baseViewport.width;
                 const viewport = page.getViewport({ scale });
 
                 const wrapper = document.createElement('div');
-                wrapper.className = 'relative bg-white shadow-lg rounded-lg overflow-hidden';
+                wrapper.className = 'pdf-page-wrapper bg-white shadow-lg rounded-lg overflow-hidden';
                 wrapper.dataset.page = i;
-                wrapper.style.width = viewport.width + 'px';
-                wrapper.style.height = viewport.height + 'px';
 
                 const canvas = document.createElement('canvas');
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 wrapper.appendChild(canvas);
 
+                // Use padding-top trick for correct aspect ratio when CSS scales the canvas
+                const aspectRatio = (viewport.height / viewport.width) * 100;
+                wrapper.style.position = 'relative';
+
                 const overlay = document.createElement('div');
-                overlay.className = 'absolute inset-0';
+                overlay.className = 'field-overlay';
                 overlay.dataset.page = i;
                 wrapper.appendChild(overlay);
 
@@ -191,6 +230,8 @@
             el.style.alignItems = 'center';
             el.style.justifyContent = 'center';
             el.style.zIndex = 10;
+            // Pulse animation to draw attention on mobile
+            el.style.animation = 'pulse-border 2s ease-in-out 3';
 
             if (field.type === 'checkbox') {
                 el.innerHTML = '<span class="text-gray-400 text-lg">&#9744;</span>';
@@ -209,25 +250,25 @@
                     updateProgress();
                 });
             } else if (field.type === 'text') {
-                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none">' + FIELD_LABELS.text + '</span>';
+                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.text + '</span>';
                 el.addEventListener('click', () => {
                     const val = prompt('Enter text:', field.value || '');
                     if (val !== null) {
                         field.value = val;
-                        el.innerHTML = '<span class="text-xs text-gray-900 px-1">' + val + '</span>';
+                        el.innerHTML = '<span class="text-xs text-gray-900 px-1 truncate">' + val + '</span>';
                         el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
                         el.style.borderColor = '#059669';
                         updateProgress();
                     }
                 });
             } else if (field.type === 'date') {
-                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none">' + FIELD_LABELS.date + '</span>';
+                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.date + '</span>';
                 el.addEventListener('click', () => {
                     const today = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
                     const val = prompt('Enter date:', field.value || today);
                     if (val !== null) {
                         field.value = val;
-                        el.innerHTML = '<span class="text-xs text-gray-900 px-1">' + val + '</span>';
+                        el.innerHTML = '<span class="text-xs text-gray-900 px-1 truncate">' + val + '</span>';
                         el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
                         el.style.borderColor = '#059669';
                         updateProgress();
@@ -235,7 +276,7 @@
                 });
             } else {
                 // signature or initials
-                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none">' + FIELD_LABELS[field.type] + '</span>';
+                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS[field.type] + '</span>';
                 el.addEventListener('click', () => {
                     currentSigField = field;
                     document.getElementById('sig-modal-title').textContent =
@@ -250,18 +291,21 @@
         function updateProgress() {
             const required = fields.filter(f => f.required);
             const filled = required.filter(f => f.value && f.value !== '' && f.value !== 'false');
-            document.getElementById('fields-progress').textContent = filled.length + ' / ' + required.length + ' fields';
+            document.getElementById('fields-progress').textContent = filled.length + ' / ' + required.length;
             document.getElementById('finish-btn').disabled = filled.length < required.length;
         }
 
         // Signature modal
         function openSigModal() {
             document.getElementById('sig-modal').classList.remove('hidden');
+            // Prevent body scroll while modal is open
+            document.body.style.overflow = 'hidden';
             initCanvas();
         }
 
         window.closeSigModal = function() {
             document.getElementById('sig-modal').classList.add('hidden');
+            document.body.style.overflow = '';
             currentSigField = null;
         };
 
@@ -281,21 +325,25 @@
             sigCanvas.onmouseup = () => { isDrawing = false; };
             sigCanvas.onmouseleave = () => { isDrawing = false; };
 
-            // Touch events
+            // Touch events — scale coordinates to canvas internal size
             sigCanvas.ontouchstart = (e) => {
                 e.preventDefault();
                 const t = e.touches[0];
                 const r = sigCanvas.getBoundingClientRect();
+                const scaleX = sigCanvas.width / r.width;
+                const scaleY = sigCanvas.height / r.height;
                 isDrawing = true;
                 sigCtx.beginPath();
-                sigCtx.moveTo(t.clientX - r.left, t.clientY - r.top);
+                sigCtx.moveTo((t.clientX - r.left) * scaleX, (t.clientY - r.top) * scaleY);
             };
             sigCanvas.ontouchmove = (e) => {
                 e.preventDefault();
                 if (!isDrawing) return;
                 const t = e.touches[0];
                 const r = sigCanvas.getBoundingClientRect();
-                sigCtx.lineTo(t.clientX - r.left, t.clientY - r.top);
+                const scaleX = sigCanvas.width / r.width;
+                const scaleY = sigCanvas.height / r.height;
+                sigCtx.lineTo((t.clientX - r.left) * scaleX, (t.clientY - r.top) * scaleY);
                 sigCtx.stroke();
                 hasDrawn = true;
             };
@@ -333,7 +381,6 @@
             } else {
                 const text = document.getElementById('sig-text-input').value.trim();
                 if (!text) return;
-                // Create a canvas with the typed signature
                 const tc = document.createElement('canvas');
                 tc.width = 460; tc.height = 160;
                 const tctx = tc.getContext('2d');
@@ -380,18 +427,19 @@
                 } else {
                     alert('Error submitting. Please try again.');
                     btn.disabled = false;
-                    btn.textContent = 'Finish Signing';
+                    btn.textContent = 'Finish';
                 }
             } catch (err) {
                 alert('Network error. Please try again.');
                 btn.disabled = false;
-                btn.textContent = 'Finish Signing';
+                btn.textContent = 'Finish';
             }
         };
 
         // Decline
         window.showDeclineModal = function() {
             document.getElementById('decline-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         };
 
         window.declineSigning = async function() {
@@ -401,8 +449,15 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reason }),
             });
-            document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen"><div class="text-center p-8"><h2 class="text-2xl font-bold text-gray-900 mb-2">Document Declined</h2><p class="text-gray-600">You have declined to sign this document.</p></div></div>';
+            document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen p-6"><div class="text-center"><h2 class="text-2xl font-bold text-gray-900 mb-2">Document Declined</h2><p class="text-gray-600">You have declined to sign this document.</p></div></div>';
         };
+
+        // Reload on orientation change to re-scale PDF
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => loadPDF(), 300);
+        });
 
         loadPDF();
     })();
