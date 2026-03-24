@@ -8,7 +8,10 @@ from google_auth_oauthlib.flow import Flow
 # Allow OAuth over HTTP (before SSL is set up)
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' if not getattr(settings, 'SECURE_SSL_REDIRECT', False) else '0'
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+SCOPES = [
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/calendar',
+]
 
 
 def _build_flow(request, state=None, code_verifier=None):
