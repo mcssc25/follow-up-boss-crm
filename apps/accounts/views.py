@@ -52,6 +52,7 @@ def dashboard_view(request):
     from apps.campaigns.models import Campaign
     from apps.contacts.models import Contact, ContactActivity
     from apps.pipeline.models import Deal, Pipeline, PipelineStage
+    from apps.scheduling.models import Booking
     from apps.tasks.models import Task
 
     team = request.user.team
@@ -89,5 +90,10 @@ def dashboard_view(request):
         ).select_related('contact').order_by('-created_at')[:10],
         'pipeline_summary': pipeline_summary,
         'default_pipeline': default_pipeline,
+        'upcoming_bookings': Booking.objects.filter(
+            event_type__team=team,
+            status='scheduled',
+            start_time__gte=timezone.now(),
+        ).select_related('event_type').order_by('start_time')[:5],
     }
     return render(request, 'dashboard.html', context)
