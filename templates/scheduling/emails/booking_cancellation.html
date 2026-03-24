@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+    <div style="text-align: center; padding: 30px 0; border-bottom: 1px solid #e5e7eb;">
+        <h1 style="font-size: 24px; margin: 0; color: #111;">Your Appointment Has Been Cancelled</h1>
+    </div>
+    <div style="padding: 30px 0;">
+        <p>Hi {{ booking.first_name }},</p>
+        <p>Your <strong>{{ event_type.name }}</strong> appointment has been cancelled.</p>
+
+        <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; width: 100px;">Event</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ event_type.name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Was on</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ booking.start_time|date:"l, F j, Y \a\t g:i A" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <p>Want to rebook? You can schedule a new appointment below.</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ booking_url }}"
+               style="display: inline-block; padding: 14px 32px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                Schedule New Appointment
+            </a>
+        </div>
+    </div>
+    <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; font-size: 12px; color: #9ca3af; text-align: center;">
+        <p>If you have any questions, please reply to this email.</p>
+    </div>
+</body>
+</html>

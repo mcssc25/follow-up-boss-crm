@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+    <div style="text-align: center; padding: 30px 0; border-bottom: 1px solid #e5e7eb;">
+        <h1 style="font-size: 24px; margin: 0; color: #111;">Your Appointment is Confirmed!</h1>
+    </div>
+    <div style="padding: 30px 0;">
+        <p>Hi {{ booking.first_name }},</p>
+        <p>Your <strong>{{ event_type.name }}</strong> has been scheduled.</p>
+
+        <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; width: 100px;">Event</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ event_type.name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Date</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ local_start|date:"l, F j, Y" }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Time</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ local_start|date:"g:i A" }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Duration</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ event_type.duration }} minutes</td>
+                </tr>
+            </table>
+        </div>
+
+        <p>You'll receive a call from <strong>{{ owner.get_full_name|default:owner.email }}</strong> at the scheduled time.</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ gcal_url }}"
+               style="display: inline-block; padding: 14px 32px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                Add to Google Calendar
+            </a>
+        </div>
+
+        <p style="text-align: center; font-size: 14px; color: #6b7280;">
+            Need to make changes?
+            <a href="{{ reschedule_url }}" style="color: #4f46e5; text-decoration: none;">Reschedule</a>
+            &nbsp;&middot;&nbsp;
+            <a href="{{ cancel_url }}" style="color: #4f46e5; text-decoration: none;">Cancel</a>
+        </p>
+    </div>
+    <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; font-size: 12px; color: #9ca3af; text-align: center;">
+        <p>This confirmation was sent by {{ owner.get_full_name|default:owner.email }}.</p>
+    </div>
+</body>
+</html>

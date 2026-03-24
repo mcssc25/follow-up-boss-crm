@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+    <div style="text-align: center; padding: 30px 0; border-bottom: 1px solid #e5e7eb;">
+        <h1 style="font-size: 24px; margin: 0; color: #111;">New Booking!</h1>
+    </div>
+    <div style="padding: 30px 0;">
+        <p>You have a new appointment scheduled.</p>
+
+        <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; width: 100px;">Name</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ booking.first_name }} {{ booking.last_name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Phone</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ booking.phone }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Email</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ booking.email }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Event</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ event_type.name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Date</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ local_start|date:"l, F j, Y" }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Time</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ local_start|date:"g:i A" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        {% if contact_url %}
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ contact_url }}"
+               style="display: inline-block; padding: 14px 32px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                View Contact in CRM
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; font-size: 12px; color: #9ca3af; text-align: center;">
+        <p>This is an automated notification from your scheduling system.</p>
+    </div>
+</body>
+</html>
