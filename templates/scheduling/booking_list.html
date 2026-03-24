@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Bookings - CRM{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Bookings</h1>
+</div>
+
+<!-- Tabs: Upcoming | Past | All -->
+<div class="border-b border-gray-200 mb-6">
+    <nav class="-mb-px flex space-x-8">
+        <a href="?show=upcoming"
+           class="pb-3 px-1 text-sm font-medium {% if current_show == 'upcoming' %}border-b-2 border-indigo-500 text-indigo-600{% else %}text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}">
+            Upcoming
+        </a>
+        <a href="?show=past"
+           class="pb-3 px-1 text-sm font-medium {% if current_show == 'past' %}border-b-2 border-indigo-500 text-indigo-600{% else %}text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}">
+            Past
+        </a>
+        <a href="?show=all"
+           class="pb-3 px-1 text-sm font-medium {% if current_show == 'all' %}border-b-2 border-indigo-500 text-indigo-600{% else %}text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}">
+            All
+        </a>
+    </nav>
+</div>
+
+<!-- Filter Bar -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <form method="get" class="flex flex-wrap items-end gap-4">
+        <input type="hidden" name="show" value="{{ current_show }}">
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Event Type</label>
+            <select name="event_type"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <option value="">All Event Types</option>
+                {% for et in event_types %}
+                <option value="{{ et.pk }}" {% if request.GET.event_type == et.pk|stringformat:"d" %}selected{% endif %}>{{ et.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+            <select name="status"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <option value="">All Statuses</option>
+                <option value="scheduled" {% if request.GET.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                <option value="no_show" {% if request.GET.status == 'no_show' %}selected{% endif %}>No-Show</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit"
+                    class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-md hover:bg-gray-700">
+                Filter
+            </button>
+            <a href="?show={{ current_show }}" class="ml-2 text-sm text-gray-500 hover:text-gray-700">Clear</a>
+        </div>
+    </form>
+</div>
+
+<!-- Bookings Table -->
+<div class="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prospect</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Type</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for booking in bookings %}
+            <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-indigo-50">
+                <td class="px-4 py-3 text-sm text-gray-900">
+                    {{ booking.start_time|date:"M d, Y" }} at {{ booking.start_time|date:"g:i A" }}
+                </td>
+                <td class="px-4 py-3 text-sm">
+                    {% if booking.contact %}
+                    <a href="{% url 'contacts:detail' booking.contact.pk %}" class="font-medium text-indigo-600 hover:text-indigo-800">
+                        {{ booking.first_name }} {{ booking.last_name }}
+                    </a>
+                    {% else %}
+                    <span class="text-gray-900">{{ booking.first_name }} {{ booking.last_name }}</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-sm">
+                    {% if booking.phone_number %}
+                    <a href="tel:{{ booking.phone_number }}" class="text-indigo-600 hover:text-indigo-800">{{ booking.phone_number }}</a>
+                    {% else %}
+                    <span class="text-gray-400">--</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ booking.email }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ booking.event_type.name }}</td>
+                <td class="px-4 py-3 text-sm">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if booking.status == 'scheduled' %}bg-blue-100 text-blue-800
+                        {% elif booking.status == 'completed' %}bg-green-100 text-green-800
+                        {% elif booking.status == 'cancelled' %}bg-red-100 text-red-800
+                        {% elif booking.status == 'no_show' %}bg-yellow-100 text-yellow-800
+                        {% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-sm">
+                    {% if booking.status == 'scheduled' %}
+                    <div class="flex items-center space-x-3">
+                        <form method="post" action="{% url 'scheduling:booking_complete' booking.pk %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-green-600 hover:text-green-800">Complete</button>
+                        </form>
+                        <form method="post" action="{% url 'scheduling:booking_noshow' booking.pk %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-yellow-600 hover:text-yellow-800">No-Show</button>
+                        </form>
+                        <form method="post" action="{% url 'scheduling:booking_admin_cancel' booking.pk %}"
+                              onsubmit="return confirm('Cancel this booking? The prospect will be notified.')" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-600 hover:text-red-800">Cancel</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">
+                    No bookings found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav class="mt-6 flex items-center justify-between">
+    <p class="text-sm text-gray-700">
+        Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} bookings
+    </p>
+    <div class="flex space-x-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&show={{ current_show }}&event_type={{ request.GET.event_type }}&status={{ request.GET.status }}"
+           class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&show={{ current_show }}&event_type={{ request.GET.event_type }}&status={{ request.GET.status }}"
+           class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">Next</a>
+        {% endif %}
+    </div>
+</nav>
+{% endif %}
+{% endblock %}

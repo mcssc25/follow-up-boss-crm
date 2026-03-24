@@ -16,7 +16,7 @@ from apps.contacts.models import Contact, ContactActivity
 from .calendar import GoogleCalendarService
 from .email import send_booking_confirmation, send_booking_cancellation, send_owner_notification, send_owner_cancellation
 from .forms import BookingForm
-from .models import EventType, Booking
+from .models import EventType, Availability, Booking
 from .slots import generate_available_slots
 
 
@@ -234,3 +234,169 @@ def confirm_reschedule(request, slug, token):
             pass
 
     return confirm_booking(request, slug)
+
+
+DAY_CHOICES = Availability.DAYS_OF_WEEK
+
+# -- CRM Admin Views --
+
+class EventTypeListView(LoginRequiredMixin, ListView):
+    model = EventType
+    template_name = 'scheduling/event_type_list.html'
+    context_object_name = 'event_types'
+
+    def get_queryset(self):
+        return EventType.objects.filter(team=self.request.user.team)
+
+
+@login_required
+def event_type_create(request):
+    """Create a new event type with availability."""
+    from .forms import EventTypeForm
+    if request.method == 'POST':
+        form = EventTypeForm(request.POST, team=request.user.team)
+        if form.is_valid():
+            event_type = form.save(commit=False)
+            event_type.owner = request.user
+            event_type.team = request.user.team
+            event_type.save()
+            event_type.tags.set(form.cleaned_data.get('tag_ids', []))
+            _save_availability(request, event_type)
+            messages.success(request, f'Event type "{event_type.name}" created.')
+            return redirect('scheduling:event_type_list')
+    else:
+        form = EventTypeForm(team=request.user.team)
+    return render(request, 'scheduling/event_type_form.html', {
+        'form': form,
+        'is_edit': False,
+        'day_choices': DAY_CHOICES,
+    })
+
+
+@login_required
+def event_type_edit(request, pk):
+    """Edit an existing event type."""
+    from .forms import EventTypeForm
+    event_type = get_object_or_404(EventType, pk=pk, team=request.user.team)
+    if request.method == 'POST':
+        form = EventTypeForm(request.POST, instance=event_type, team=request.user.team)
+        if form.is_valid():
+            event_type = form.save()
+            event_type.tags.set(form.cleaned_data.get('tag_ids', []))
+            _save_availability(request, event_type)
+            messages.success(request, f'Event type "{event_type.name}" updated.')
+            return redirect('scheduling:event_type_list')
+    else:
+        form = EventTypeForm(instance=event_type, team=request.user.team)
+        form.fields['tag_ids'].initial = event_type.tags.all()
+    return render(request, 'scheduling/event_type_form.html', {
+        'form': form,
+        'event_type': event_type,
+        'is_edit': True,
+        'availabilities': event_type.availabilities.all(),
+        'day_choices': DAY_CHOICES,
+    })
+
+
+@login_required
+@require_POST
+def event_type_delete(request, pk):
+    """Delete an event type."""
+    event_type = get_object_or_404(EventType, pk=pk, team=request.user.team)
+    name = event_type.name
+    event_type.delete()
+    messages.success(request, f'Event type "{name}" deleted.')
+    return redirect('scheduling:event_type_list')
+
+
+def _save_availability(request, event_type):
+    """Parse availability from POST data and save."""
+    event_type.availabilities.all().delete()
+    for day in range(7):
+        enabled = request.POST.get(f'day_{day}_enabled')
+        start = request.POST.get(f'day_{day}_start')
+        end = request.POST.get(f'day_{day}_end')
+        if enabled and start and end:
+            Availability.objects.create(
+                event_type=event_type,
+                day_of_week=day,
+                start_time=start,
+                end_time=end,
+            )
+
+
+# -- Admin Booking Management Views --
+
+class BookingListView(LoginRequiredMixin, ListView):
+    model = Booking
+    template_name = 'scheduling/booking_list.html'
+    context_object_name = 'bookings'
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = Booking.objects.filter(
+            event_type__team=self.request.user.team
+        ).select_related('event_type', 'contact')
+
+        status = self.request.GET.get('status')
+        if status:
+            qs = qs.filter(status=status)
+
+        event_type = self.request.GET.get('event_type')
+        if event_type:
+            qs = qs.filter(event_type_id=event_type)
+
+        show = self.request.GET.get('show', 'upcoming')
+        if show == 'upcoming':
+            qs = qs.filter(start_time__gte=timezone.now(), status='scheduled')
+        elif show == 'past':
+            qs = qs.filter(start_time__lt=timezone.now())
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['event_types'] = EventType.objects.filter(team=self.request.user.team)
+        ctx['current_show'] = self.request.GET.get('show', 'upcoming')
+        return ctx
+
+
+@login_required
+@require_POST
+def booking_mark_completed(request, pk):
+    booking = get_object_or_404(Booking, pk=pk, event_type__team=request.user.team)
+    booking.status = 'completed'
+    booking.save()
+    messages.success(request, 'Booking marked as completed.')
+    return redirect('scheduling:booking_list')
+
+
+@login_required
+@require_POST
+def booking_mark_noshow(request, pk):
+    booking = get_object_or_404(Booking, pk=pk, event_type__team=request.user.team)
+    booking.status = 'no_show'
+    booking.save()
+    messages.success(request, 'Booking marked as no-show.')
+    return redirect('scheduling:booking_list')
+
+
+@login_required
+@require_POST
+def booking_admin_cancel(request, pk):
+    booking = get_object_or_404(Booking, pk=pk, event_type__team=request.user.team, status='scheduled')
+    booking.status = 'cancelled'
+    booking.save()
+
+    if booking.google_event_id and booking.event_type.owner.gmail_connected:
+        try:
+            cal = GoogleCalendarService(booking.event_type.owner)
+            cal.delete_event(booking.google_event_id)
+        except Exception:
+            pass
+
+    base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
+    send_booking_cancellation(booking, base_url)
+
+    messages.success(request, 'Booking cancelled.')
+    return redirect('scheduling:booking_list')
