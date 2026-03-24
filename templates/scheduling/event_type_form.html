@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Event Type{% else %}New Event Type{% endif %} - CRM{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6 flex items-center space-x-3">
+        <a href="{% url 'scheduling:event_type_list' %}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900">{% if is_edit %}Edit Event Type{% else %}New Event Type{% endif %}</h1>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-md">
+                {% for error in form.non_field_errors %}
+                <p class="text-sm text-red-700">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="space-y-6">
+                <!-- Name -->
+                <div>
+                    <label for="id_name" class="block text-sm font-medium text-gray-700">Name <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                           required>
+                    {% if form.name.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Slug -->
+                <div>
+                    <label for="id_slug" class="block text-sm font-medium text-gray-700">Slug <span class="text-red-500">*</span></label>
+                    <input type="text" name="slug" id="id_slug" value="{{ form.slug.value|default:'' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                           required>
+                    <p class="mt-1 text-xs text-gray-500">URL-friendly identifier. Auto-generated from name.</p>
+                    {% if form.slug.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.slug.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="id_description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea name="description" id="id_description" rows="3"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ form.description.value|default:'' }}</textarea>
+                    {% if form.description.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Duration -->
+                <div>
+                    <label for="id_duration_minutes" class="block text-sm font-medium text-gray-700">Duration <span class="text-red-500">*</span></label>
+                    <select name="duration_minutes" id="id_duration_minutes"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="15" {% if form.duration_minutes.value|stringformat:"s" == "15" %}selected{% endif %}>15 minutes</option>
+                        <option value="30" {% if form.duration_minutes.value|stringformat:"s" == "30" or not form.duration_minutes.value %}selected{% endif %}>30 minutes</option>
+                        <option value="45" {% if form.duration_minutes.value|stringformat:"s" == "45" %}selected{% endif %}>45 minutes</option>
+                        <option value="60" {% if form.duration_minutes.value|stringformat:"s" == "60" %}selected{% endif %}>60 minutes</option>
+                    </select>
+                </div>
+
+                <!-- Tags -->
+                {% if form.tag_ids.field.queryset.count %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                    <div class="space-y-2">
+                        {% for checkbox in form.tag_ids %}
+                        <label class="flex items-center">
+                            {{ checkbox.tag }}
+                            <span class="ml-2 text-sm text-gray-700">{{ checkbox.choice_label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Tags will be applied to contacts who book this event.</p>
+                </div>
+                {% endif %}
+
+                <!-- Availability -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Availability</label>
+                    <div class="space-y-3">
+                        {% with days="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday" %}
+                        {% for day_name in days|make_list %}
+                        {% endfor %}
+                        {% endwith %}
+
+                        {% for day_num, day_name in day_choices %}
+                        <div class="flex items-center space-x-3">
+                            <label class="flex items-center w-28">
+                                <input type="checkbox" name="day_{{ day_num }}_enabled" value="1"
+                                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                       {% if is_edit %}
+                                           {% for avail in availabilities %}{% if avail.day_of_week == day_num %}checked{% endif %}{% endfor %}
+                                       {% else %}
+                                           {% if day_num < 5 %}checked{% endif %}
+                                       {% endif %}
+                                       onchange="toggleDay({{ day_num }}, this.checked)">
+                                <span class="ml-2 text-sm text-gray-700">{{ day_name }}</span>
+                            </label>
+                            <input type="time" name="day_{{ day_num }}_start" id="day_{{ day_num }}_start"
+                                   value="{% for avail in availabilities %}{% if avail.day_of_week == day_num %}{{ avail.start_time|time:'H:i' }}{% endif %}{% endfor %}{% if not is_edit %}{% if day_num < 5 %}10:00{% endif %}{% endif %}"
+                                   class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm {% if not is_edit and day_num >= 5 %}opacity-50{% endif %}"
+                                   {% if not is_edit and day_num >= 5 %}disabled{% endif %}>
+                            <span class="text-gray-400 text-sm">to</span>
+                            <input type="time" name="day_{{ day_num }}_end" id="day_{{ day_num }}_end"
+                                   value="{% for avail in availabilities %}{% if avail.day_of_week == day_num %}{{ avail.end_time|time:'H:i' }}{% endif %}{% endfor %}{% if not is_edit %}{% if day_num < 5 %}15:00{% endif %}{% endif %}"
+                                   class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm {% if not is_edit and day_num >= 5 %}opacity-50{% endif %}"
+                                   {% if not is_edit and day_num >= 5 %}disabled{% endif %}>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <!-- Min Advance Hours -->
+                    <div>
+                        <label for="id_min_advance_hours" class="block text-sm font-medium text-gray-700">Min Advance Hours</label>
+                        <input type="number" name="min_advance_hours" id="id_min_advance_hours"
+                               value="{{ form.min_advance_hours.value|default:'24' }}" min="0"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <p class="mt-1 text-xs text-gray-500">Minimum hours before an appointment can be booked.</p>
+                    </div>
+
+                    <!-- Buffer Minutes -->
+                    <div>
+                        <label for="id_buffer_minutes" class="block text-sm font-medium text-gray-700">Buffer Minutes</label>
+                        <input type="number" name="buffer_minutes" id="id_buffer_minutes"
+                               value="{{ form.buffer_minutes.value|default:'10' }}" min="0"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <p class="mt-1 text-xs text-gray-500">Buffer time between appointments.</p>
+                    </div>
+                </div>
+
+                <!-- Timezone -->
+                <div>
+                    <label for="id_timezone" class="block text-sm font-medium text-gray-700">Timezone</label>
+                    <select name="timezone" id="id_timezone"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="America/New_York" {% if form.timezone.value == "America/New_York" %}selected{% endif %}>Eastern (America/New_York)</option>
+                        <option value="America/Chicago" {% if form.timezone.value == "America/Chicago" or not form.timezone.value %}selected{% endif %}>Central (America/Chicago)</option>
+                        <option value="America/Denver" {% if form.timezone.value == "America/Denver" %}selected{% endif %}>Mountain (America/Denver)</option>
+                        <option value="America/Los_Angeles" {% if form.timezone.value == "America/Los_Angeles" %}selected{% endif %}>Pacific (America/Los_Angeles)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <!-- Color -->
+                    <div>
+                        <label for="id_color" class="block text-sm font-medium text-gray-700">Color</label>
+                        <input type="color" name="color" id="id_color"
+                               value="{{ form.color.value|default:'#6366f1' }}"
+                               class="mt-1 h-10 w-20 rounded border-gray-300 cursor-pointer">
+                    </div>
+
+                    <!-- Active -->
+                    <div class="flex items-center pt-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="is_active" value="true"
+                                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                   {% if form.is_active.value != False %}checked{% endif %}>
+                            <span class="ml-2 text-sm text-gray-700">Active (visible on public booking page)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                    <a href="{% url 'scheduling:event_type_list' %}"
+                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        {% if is_edit %}Save Changes{% else %}Create Event Type{% endif %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+var isEdit = {{ is_edit|yesno:"true,false" }};
+
+document.getElementById('id_name').addEventListener('input', function() {
+    if (!isEdit) {
+        document.getElementById('id_slug').value = this.value.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+});
+
+function toggleDay(day, enabled) {
+    var start = document.getElementById('day_' + day + '_start');
+    var end = document.getElementById('day_' + day + '_end');
+    start.disabled = !enabled;
+    end.disabled = !enabled;
+    if (enabled) {
+        start.classList.remove('opacity-50');
+        end.classList.remove('opacity-50');
+        if (!start.value) start.value = '10:00';
+        if (!end.value) end.value = '15:00';
+    } else {
+        start.classList.add('opacity-50');
+        end.classList.add('opacity-50');
+    }
+}
+</script>
+{% endblock %}
