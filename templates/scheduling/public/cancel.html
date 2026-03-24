@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel Appointment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-full flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+            <!-- Warning icon -->
+            <div class="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-5">
+                <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+            </div>
+
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Cancel your appointment?</h1>
+            <p class="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
+
+            <!-- Appointment details -->
+            <div class="bg-gray-50 rounded-xl p-5 text-left mb-6">
+                <h2 class="text-sm font-semibold text-gray-900 mb-3">{{ booking.event_type.name }}</h2>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3 text-sm">
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="text-gray-700" id="booking-date"></span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="text-gray-700">{{ booking.event_type.duration_minutes }} minutes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="space-y-3">
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition shadow-sm">
+                        Yes, cancel my appointment
+                    </button>
+                </form>
+                <a href="javascript:history.back()"
+                   class="block w-full text-center text-sm text-gray-600 hover:text-gray-800 font-medium py-2.5 transition">
+                    Keep my appointment
+                </a>
+            </div>
+        </div>
+
+        <p class="mt-6 text-center text-xs text-gray-400">Powered by BigBeach CRM</p>
+    </div>
+
+<script>
+(function() {
+    const startISO = '{{ booking.start_time.isoformat }}';
+    const start = new Date(startISO);
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+    document.getElementById('booking-date').textContent = start.toLocaleString('en-US', opts);
+})();
+</script>
+</body>
+</html>
