@@ -102,6 +102,7 @@ class ContactActivity(models.Model):
         ('email_opened', 'Email Opened'),
         ('email_replied', 'Email Replied'),
         ('call_logged', 'Call Logged'),
+        ('call_scheduled', 'Call Scheduled'),
         ('note_added', 'Note Added'),
         ('stage_changed', 'Stage Changed'),
         ('campaign_enrolled', 'Campaign Enrolled'),
