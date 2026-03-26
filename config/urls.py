@@ -10,7 +10,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from apps.pwa.views import service_worker_view
+
 urlpatterns = [
+    path('sw.js', service_worker_view, name='service_worker'),
     path('admin/', admin.site.urls),
 
     # Project apps (our custom views first, so they take priority over allauth)

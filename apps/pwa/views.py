@@ -2,7 +2,7 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import FileResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import render
 
@@ -12,6 +12,14 @@ from .models import PushSubscription
 def offline_view(request):
     """Serve the offline fallback page."""
     return render(request, 'pwa/offline.html')
+
+
+def service_worker_view(request):
+    """Serve sw.js from root URL with correct scope header."""
+    sw_path = settings.BASE_DIR / 'static' / 'sw.js'
+    response = FileResponse(open(sw_path, 'rb'), content_type='application/javascript')
+    response['Service-Worker-Allowed'] = '/'
+    return response
 
 
 @login_required
