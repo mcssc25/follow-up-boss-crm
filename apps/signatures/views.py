@@ -24,6 +24,7 @@ from apps.signatures.models import (
 )
 from apps.signatures.forms import DocumentCreateForm
 from apps.signatures.email import send_signing_request
+from apps.signatures.pdf import extract_text_fingerprint, match_template
 
 
 class DocumentListView(LoginRequiredMixin, ListView):
@@ -208,8 +209,52 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
             ip_address=self.request.META.get('REMOTE_ADDR'),
             user_agent=self.request.META.get('HTTP_USER_AGENT', ''),
         )
-        file_word = 'file' if len(pdf_files) == 1 else 'files'
-        messages.success(self.request, f'{len(pdf_files)} {file_word} uploaded. Now add signers and place fields.')
+
+        # Auto-match against templates
+        try:
+            matched_template, confidence = match_template(
+                self.object.pdf_file, self.request.user.team
+            )
+            if matched_template:
+                self.object.template = matched_template
+                self.object.save(update_fields=['template'])
+                # Auto-create placeholder signers for each role
+                role_signers = {}
+                for role in matched_template.signer_roles or []:
+                    signer = DocumentSigner.objects.create(
+                        document=self.object,
+                        name=f'{role} (edit name)',
+                        email=f'placeholder@example.com',
+                        role=role,
+                    )
+                    role_signers[role] = signer
+                # Copy template fields to document
+                for tf in matched_template.fields.all():
+                    signer = role_signers.get(tf.signer_role)
+                    if signer:
+                        DocumentField.objects.create(
+                            document=self.object,
+                            assigned_to=signer,
+                            field_type=tf.field_type,
+                            label=tf.label,
+                            page=tf.page,
+                            x=tf.x, y=tf.y,
+                            width=tf.width, height=tf.height,
+                            required=tf.required,
+                        )
+                pct = int(confidence * 100)
+                messages.success(
+                    self.request,
+                    f'Matched template "{matched_template.title}" ({pct}% confidence). '
+                    f'Fields auto-placed. Update signer names/emails before sending.'
+                )
+            else:
+                file_word = 'file' if len(pdf_files) == 1 else 'files'
+                messages.success(self.request, f'{len(pdf_files)} {file_word} uploaded. Now add signers and place fields.')
+        except Exception:
+            file_word = 'file' if len(pdf_files) == 1 else 'files'
+            messages.success(self.request, f'{len(pdf_files)} {file_word} uploaded. Now add signers and place fields.')
+
         return response
 
     def get_success_url(self):
@@ -313,6 +358,11 @@ def send_document(request, pk):
         return redirect('signatures:prepare', pk=pk)
     if not doc.fields.exists():
         messages.error(request, 'Place at least one field before sending.')
+        return redirect('signatures:prepare', pk=pk)
+    placeholder_signers = doc.signers.filter(email='placeholder@example.com')
+    if placeholder_signers.exists():
+        names = ', '.join(s.name for s in placeholder_signers)
+        messages.error(request, f'Update signer details before sending: {names}')
         return redirect('signatures:prepare', pk=pk)
     doc.status = 'sent'
     doc.save()
@@ -591,6 +641,14 @@ class TemplateCreateView(LoginRequiredMixin, CreateView):
         form.instance.team = self.request.user.team
         form.instance.created_by = self.request.user
         response = super().form_valid(form)
+        # Generate text fingerprint for auto-matching
+        try:
+            fingerprint, page_count = extract_text_fingerprint(self.object.pdf_file)
+            self.object.text_fingerprint = fingerprint
+            self.object.page_count = page_count
+            self.object.save(update_fields=['text_fingerprint', 'page_count'])
+        except Exception:
+            pass  # Non-critical — template still works without fingerprint
         messages.success(self.request, 'Template created.')
         return response
 

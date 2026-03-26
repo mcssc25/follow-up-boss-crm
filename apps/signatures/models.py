@@ -21,6 +21,8 @@ class DocumentTemplate(models.Model):
     title = models.CharField(max_length=255)
     pdf_file = models.FileField(upload_to='signatures/templates/')
     signer_roles = models.JSONField(default=list, blank=True, help_text='List of role names, e.g. ["Buyer", "Seller"]')
+    text_fingerprint = models.TextField(blank=True, help_text='Extracted text from PDF for auto-matching')
+    page_count = models.PositiveIntegerField(default=0, help_text='Number of pages in the template PDF')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

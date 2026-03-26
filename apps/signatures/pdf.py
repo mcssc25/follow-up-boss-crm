@@ -1,5 +1,6 @@
 import hashlib
 import io
+import re
 import base64
 
 from django.core.files.base import ContentFile
@@ -10,6 +11,87 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas as pdf_canvas
 
 from apps.signatures.models import SignerFieldValue, AuditEvent
+
+
+def extract_text_fingerprint(pdf_file):
+    """Extract normalized text from a PDF for template matching.
+
+    Returns (fingerprint_text, page_count). The fingerprint strips out
+    variable data (names, dates, amounts) and keeps structural text like
+    headings, labels, and boilerplate that identify the contract type.
+    """
+    pdf_file.seek(0)
+    reader = PdfReader(pdf_file)
+    page_count = len(reader.pages)
+    all_text = []
+
+    for page in reader.pages:
+        text = page.extract_text() or ''
+        # Normalize whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        all_text.append(text)
+
+    fingerprint = '\n---PAGE---\n'.join(all_text)
+    pdf_file.seek(0)
+    return fingerprint, page_count
+
+
+def match_template(pdf_file, team):
+    """Try to match an uploaded PDF against existing templates.
+
+    Uses page count as a quick filter, then compares text similarity.
+    Returns (template, confidence) or (None, 0).
+    """
+    from apps.signatures.models import DocumentTemplate
+    from difflib import SequenceMatcher
+
+    fingerprint, page_count = extract_text_fingerprint(pdf_file)
+    if not fingerprint.strip():
+        return None, 0
+
+    # Only consider templates with matching page count and a fingerprint
+    candidates = DocumentTemplate.objects.filter(
+        team=team,
+        page_count=page_count,
+    ).exclude(text_fingerprint='')
+
+    best_match = None
+    best_score = 0
+
+    for template in candidates:
+        # Compare the structural text using SequenceMatcher
+        score = SequenceMatcher(
+            None,
+            _normalize_for_comparison(template.text_fingerprint),
+            _normalize_for_comparison(fingerprint),
+        ).ratio()
+
+        if score > best_score:
+            best_score = score
+            best_match = template
+
+    # Require at least 60% similarity to consider it a match
+    if best_score >= 0.60:
+        return best_match, best_score
+
+    return None, 0
+
+
+def _normalize_for_comparison(text):
+    """Strip out variable content (dates, dollar amounts, phone numbers)
+    to focus comparison on structural/boilerplate text."""
+    # Remove dates like MM/DD/YYYY, YYYY-MM-DD, etc.
+    text = re.sub(r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}', '', text)
+    text = re.sub(r'\d{4}-\d{2}-\d{2}', '', text)
+    # Remove dollar amounts
+    text = re.sub(r'\$[\d,]+\.?\d*', '', text)
+    # Remove phone numbers
+    text = re.sub(r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', '', text)
+    # Remove standalone numbers (but keep words with numbers)
+    text = re.sub(r'\b\d+\b', '', text)
+    # Collapse whitespace
+    text = re.sub(r'\s+', ' ', text).strip().lower()
+    return text
 
 
 def generate_signed_pdf(document):
