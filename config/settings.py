@@ -32,6 +32,8 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
+BASE_URL = os.getenv('BASE_URL', 'http://localhost:8000').rstrip('/')
+
 # Google OAuth (for Gmail API integration)
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
@@ -73,6 +75,7 @@ PROJECT_APPS = [
     'apps.api',
     'apps.signatures',
     'apps.scheduling',
+    'apps.courses',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
@@ -297,6 +300,7 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = os.getenv('USE_SSL', 'False').lower() in ('true', '1', 'yes')
     CSRF_COOKIE_SECURE = os.getenv('USE_SSL', 'False').lower() in ('true', '1', 'yes')
     SECURE_SSL_REDIRECT = os.getenv('USE_SSL', 'False').lower() in ('true', '1', 'yes')
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     if SECURE_SSL_REDIRECT:
         SECURE_HSTS_SECONDS = 31536000
         SECURE_HSTS_INCLUDE_SUBDOMAINS = True
