@@ -288,6 +288,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.tasks.tasks.send_overdue_digest',
         'schedule': crontab(hour=8, minute=0),  # Daily at 8 AM
     },
+    'process-course-drip-unlocks': {
+        'task': 'apps.courses.tasks.process_drip_unlocks',
+        'schedule': crontab(hour=0, minute=30),  # Daily at 12:30 AM
+    },
 }
 
 # ---------------------------------------------------------------------------
