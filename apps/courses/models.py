@@ -116,13 +116,13 @@ class Lesson(models.Model):
             qs = parse_qs(parsed.query)
             video_id = qs.get('v', [None])[0]
             if video_id:
-                return f'https://www.youtube.com/embed/{video_id}'
+                return f'https://www.youtube-nocookie.com/embed/{video_id}'
 
         # youtu.be/ID
         if parsed.hostname == 'youtu.be':
-            video_id = parsed.path.lstrip('/')
+            video_id = parsed.path.lstrip('/').split('?')[0]
             if video_id:
-                return f'https://www.youtube.com/embed/{video_id}'
+                return f'https://www.youtube-nocookie.com/embed/{video_id}'
 
         # vimeo.com/ID
         if parsed.hostname in ('www.vimeo.com', 'vimeo.com'):
