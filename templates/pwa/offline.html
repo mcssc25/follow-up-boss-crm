@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Offline — BigBeach CRM{% endblock %}
+{% block unauthenticated_content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+  <div class="text-center p-8">
+    <div class="w-16 h-16 mx-auto mb-4 text-gray-400">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4m0 4h.01"/></svg>
+    </div>
+    <h1 class="text-2xl font-bold text-gray-800 mb-2">You're Offline</h1>
+    <p class="text-gray-600 mb-6">Check your connection and try again.</p>
+    <button onclick="window.location.reload()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Retry</button>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="text-center py-20">
+  <h1 class="text-2xl font-bold text-gray-800 mb-2">You're Offline</h1>
+  <p class="text-gray-600 mb-6">Showing cached data. Check your connection and try again.</p>
+  <button onclick="window.location.reload()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Retry</button>
+</div>
+{% endblock %}
