@@ -20,14 +20,18 @@
             <div id="roles-list" class="space-y-2 mb-3">
                 {% for role in signer_roles %}
                 <div class="flex items-center justify-between role-item">
-                    <span class="text-sm text-gray-700">{{ role }}</span>
+                    <div class="flex items-center">
+                        <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0 role-dot"></span>
+                        <span class="text-sm text-gray-700">{{ role }}</span>
+                    </div>
                     <button onclick="removeRole(this)" class="text-red-400 hover:text-red-600 text-xs">Remove</button>
                 </div>
                 {% endfor %}
             </div>
             <div class="flex gap-2">
                 <input type="text" id="new-role" placeholder="e.g. Buyer, Seller"
-                       class="flex-1 rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                       class="flex-1 rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();addRole();}">
                 <button onclick="addRole()" class="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Add</button>
             </div>
         </div>
@@ -35,26 +39,73 @@
         <!-- Field Toolbar -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <h3 class="text-sm font-semibold text-gray-900 mb-3">Fields</h3>
-            <div class="mb-3">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Assign to role</label>
-                <select id="active-role" class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    {% for role in signer_roles %}
-                    <option value="{{ role }}">{{ role }}</option>
-                    {% endfor %}
-                </select>
+            <p class="text-xs text-gray-500 mb-3">Click a field type then click on the document, or drag and drop.</p>
+
+            <div id="toolbar-content">
+                <div class="mb-3">
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Assign to role</label>
+                    <select id="active-role" class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        {% for role in signer_roles %}
+                        <option value="{{ role }}">{{ role }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" draggable="true" data-field-type="signature"
+                            class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        Signature
+                    </button>
+                    <button type="button" draggable="true" data-field-type="initials"
+                            class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                        <span class="mr-1 font-bold">AB</span>
+                        Initials
+                    </button>
+                    <button type="button" draggable="true" data-field-type="name"
+                            class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Name
+                    </button>
+                    <button type="button" draggable="true" data-field-type="text"
+                            class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/></svg>
+                        Text
+                    </button>
+                    <button type="button" draggable="true" data-field-type="date"
+                            class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Date
+                    </button>
+                    <button type="button" draggable="true" data-field-type="checkbox"
+                            class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab col-span-2">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Checkbox
+                    </button>
+                </div>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-                <button type="button" data-field-type="signature" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">Signature</button>
-                <button type="button" data-field-type="initials" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">Initials</button>
-                <button type="button" data-field-type="text" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">Text</button>
-                <button type="button" data-field-type="date" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">Date</button>
-                <button type="button" data-field-type="checkbox" class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer col-span-2">Checkbox</button>
+            <p id="no-roles-msg" class="text-xs text-gray-400 italic hidden">Add at least one signer role first.</p>
+        </div>
+
+        <!-- Field Properties -->
+        <div id="field-properties" class="bg-white rounded-lg shadow-sm border border-indigo-200 p-4 hidden">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Field Properties</h3>
+            <p id="prop-selection-info" class="text-xs text-gray-500 mb-3">1 field selected</p>
+            <div class="space-y-2">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="prop-required" checked
+                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm text-gray-700">Required</span>
+                </label>
             </div>
         </div>
 
+        <!-- Placed Fields Summary -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <h3 class="text-sm font-semibold text-gray-900 mb-2">Placed Fields</h3>
-            <div id="fields-summary" class="text-xs text-gray-500"><p>No fields placed yet.</p></div>
+            <div id="fields-summary" class="text-xs text-gray-500">
+                <p>No fields placed yet.</p>
+            </div>
         </div>
     </div>
 
@@ -74,13 +125,29 @@
     const ROLES_URL = '{% url "signatures:template_save_roles" template.pk %}';
     const FIELDS_URL = '{% url "signatures:template_save_fields" template.pk %}';
     const ROLE_COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
-    const FIELD_DEFAULTS = { signature: {w:20,h:5}, initials: {w:10,h:5}, text: {w:25,h:3}, date: {w:15,h:3}, checkbox: {w:3,h:3} };
-    const FIELD_LABELS = { signature:'Signature', initials:'Initials', text:'Text', date:'Date', checkbox:'Checkbox' };
+    const FIELD_DEFAULTS = {
+        signature: { width: 20, height: 5 },
+        initials: { width: 10, height: 5 },
+        name: { width: 25, height: 3 },
+        text: { width: 25, height: 3 },
+        date: { width: 15, height: 3 },
+        checkbox: { width: 3, height: 3 },
+    };
+    const FIELD_LABELS = {
+        signature: 'Signature',
+        initials: 'Initials',
+        name: 'Name',
+        text: 'Text',
+        date: 'Date',
+        checkbox: 'Checkbox',
+    };
 
     let roles = [{% for role in signer_roles %}'{{ role|escapejs }}',{% endfor %}];
     let placedFields = [];
     let fieldCounter = 0;
-    let activeFieldType = null;
+    let dragFieldType = null;
+    let selectedFields = [];
+    let clipboardFields = [];
 
     const existingFields = [
         {% for field in template_fields %}
@@ -89,6 +156,41 @@
     ];
 
     function getRoleColor(role) { return ROLE_COLORS[roles.indexOf(role) % ROLE_COLORS.length]; }
+
+    function updateRolesUI() {
+        const list = document.getElementById('roles-list');
+        list.innerHTML = roles.map((r, i) => `
+            <div class="flex items-center justify-between role-item">
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color:${ROLE_COLORS[i % ROLE_COLORS.length]}"></span>
+                    <span class="text-sm text-gray-700">${r}</span>
+                </div>
+                <button onclick="removeRole(this)" class="text-red-400 hover:text-red-600 text-xs">Remove</button>
+            </div>
+        `).join('');
+
+        const sel = document.getElementById('active-role');
+        const prev = sel.value;
+        sel.innerHTML = roles.map(r => `<option value="${r}">${r}</option>`).join('');
+        if (roles.includes(prev)) sel.value = prev;
+        updateRoleSelectColor();
+
+        // Show/hide toolbar
+        document.getElementById('toolbar-content').classList.toggle('hidden', roles.length === 0);
+        document.getElementById('no-roles-msg').classList.toggle('hidden', roles.length > 0);
+    }
+
+    function updateRoleSelectColor() {
+        const sel = document.getElementById('active-role');
+        const idx = roles.indexOf(sel.value);
+        sel.style.borderColor = idx >= 0 ? ROLE_COLORS[idx % ROLE_COLORS.length] : '';
+    }
+
+    // Color the initial role dots
+    document.querySelectorAll('.role-dot').forEach((dot, i) => {
+        dot.style.backgroundColor = ROLE_COLORS[i % ROLE_COLORS.length];
+    });
+    updateRoleSelectColor();
 
     window.addRole = function() {
         const input = document.getElementById('new-role');
@@ -101,21 +203,126 @@
 
     window.removeRole = function(btn) {
         const item = btn.closest('.role-item');
-        const role = item.querySelector('span').textContent;
+        const role = item.querySelector('.text-gray-700').textContent;
         roles = roles.filter(r => r !== role);
-        placedFields = placedFields.filter(f => { if (f.signer_role === role) { f.element.remove(); return false; } return true; });
+        // Remove fields assigned to this role
+        placedFields = placedFields.filter(f => {
+            if (f.signer_role === role) { f.element.remove(); return false; }
+            return true;
+        });
+        selectedFields = selectedFields.filter(f => f.signer_role !== role);
         updateRolesUI();
         updateFieldsSummary();
+        updatePropertiesPanel();
     };
 
-    function updateRolesUI() {
-        const list = document.getElementById('roles-list');
-        list.innerHTML = roles.map(r => `<div class="flex items-center justify-between role-item"><span class="text-sm text-gray-700">${r}</span><button onclick="removeRole(this)" class="text-red-400 hover:text-red-600 text-xs">Remove</button></div>`).join('');
-        const sel = document.getElementById('active-role');
-        sel.innerHTML = roles.map(r => `<option value="${r}">${r}</option>`).join('');
+    // --- Properties Panel ---
+    const propPanel = document.getElementById('field-properties');
+    const propRequired = document.getElementById('prop-required');
+    const propInfo = document.getElementById('prop-selection-info');
+
+    function updatePropertiesPanel() {
+        if (selectedFields.length === 0) { propPanel.classList.add('hidden'); return; }
+        propPanel.classList.remove('hidden');
+        propInfo.textContent = selectedFields.length === 1
+            ? `1 field selected (${FIELD_LABELS[selectedFields[0].type]})`
+            : `${selectedFields.length} fields selected`;
+        const allReq = selectedFields.every(f => f.required);
+        const noneReq = selectedFields.every(f => !f.required);
+        propRequired.checked = allReq;
+        propRequired.indeterminate = !allReq && !noneReq;
     }
 
-    // PDF + field placement (same logic as document_prepare but with roles)
+    propRequired.addEventListener('change', () => {
+        selectedFields.forEach(f => f.required = propRequired.checked);
+    });
+
+    function clearSelection() {
+        selectedFields.forEach(f => { if (f.element) f.element.style.outline = ''; });
+        selectedFields = [];
+        updatePropertiesPanel();
+    }
+
+    function selectField(fieldData, addToSelection) {
+        if (!addToSelection) clearSelection();
+        if (fieldData && fieldData.element) {
+            const idx = selectedFields.indexOf(fieldData);
+            if (idx >= 0 && addToSelection) {
+                selectedFields.splice(idx, 1);
+                fieldData.element.style.outline = '';
+            } else if (idx < 0) {
+                selectedFields.push(fieldData);
+                fieldData.element.style.outline = '2px dashed #6366f1';
+            }
+        }
+        updatePropertiesPanel();
+    }
+
+    // Reassign selected fields when role dropdown changes
+    const roleSelect = document.getElementById('active-role');
+    roleSelect.addEventListener('change', () => {
+        if (selectedFields.length === 0) { updateRoleSelectColor(); return; }
+        const newRole = roleSelect.value;
+        if (!newRole) { updateRoleSelectColor(); return; }
+        const color = getRoleColor(newRole);
+        selectedFields.forEach(f => {
+            f.signer_role = newRole;
+            if (f.element) {
+                f.element.style.borderColor = color;
+                f.element.style.backgroundColor = color + '20';
+                f.element.style.color = color;
+                f.element.title = f.element.title.replace(/ - .*$/, ' - ' + newRole);
+                const rh = f.element.querySelector('.field-resize');
+                if (rh) rh.style.background = color;
+            }
+        });
+        updateRoleSelectColor();
+        updateFieldsSummary();
+    });
+
+    // Click empty area deselects
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.placed-field') && !e.target.closest('.field-tool') && !e.target.closest('#active-role')) {
+            clearSelection();
+        }
+    });
+
+    // Keyboard: Ctrl+C, Ctrl+V, Delete, Ctrl+A
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'c' && (e.ctrlKey || e.metaKey) && selectedFields.length > 0) {
+            e.preventDefault();
+            clipboardFields = selectedFields.map(f => ({
+                type: f.type, signer_role: f.signer_role, required: f.required,
+                page: f.page, x: f.x, y: f.y, width: f.width, height: f.height,
+            }));
+        }
+        if (e.key === 'v' && (e.ctrlKey || e.metaKey) && clipboardFields.length > 0) {
+            e.preventDefault();
+            clearSelection();
+            clipboardFields.forEach(cf => {
+                addField(cf.page, Math.min(cf.x + 2, 100 - cf.width), Math.min(cf.y + 2, 100 - cf.height), cf.type, cf.signer_role, cf.width, cf.height, cf.required);
+            });
+            const newFields = placedFields.slice(-clipboardFields.length);
+            newFields.forEach(f => selectField(f, true));
+            updateFieldsSummary();
+        }
+        if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFields.length > 0 && !e.target.matches('input, textarea, select')) {
+            e.preventDefault();
+            const ids = selectedFields.map(f => f.id);
+            selectedFields.forEach(f => f.element.remove());
+            placedFields = placedFields.filter(f => !ids.includes(f.id));
+            selectedFields = [];
+            updateFieldsSummary();
+            updatePropertiesPanel();
+        }
+        if (e.key === 'a' && (e.ctrlKey || e.metaKey) && !e.target.matches('input, textarea, select')) {
+            e.preventDefault();
+            clearSelection();
+            placedFields.forEach(f => selectField(f, true));
+        }
+    });
+
+    // --- PDF Loading ---
     async function loadPDF() {
         const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
         const container = document.getElementById('pdf-pages');
@@ -134,85 +341,257 @@
             const overlay = document.createElement('div');
             overlay.className = 'field-overlay absolute inset-0';
             overlay.dataset.page = i;
-            overlay.style.cursor = 'crosshair';
             wrap.appendChild(overlay);
             container.appendChild(wrap);
             await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-            overlay.addEventListener('click', (e) => {
-                if (!activeFieldType || e.target !== overlay) return;
-                const sel = document.getElementById('active-role');
-                if (!sel.value) return;
-                const rect = overlay.getBoundingClientRect();
-                const xPct = ((e.clientX - rect.left) / rect.width) * 100;
-                const yPct = ((e.clientY - rect.top) / rect.height) * 100;
-                addField(i, xPct, yPct, activeFieldType, sel.value, overlay);
-            });
-            overlay.addEventListener('dragover', (e) => e.preventDefault());
-            overlay.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (!activeFieldType) return;
-                const sel = document.getElementById('active-role');
-                if (!sel.value) return;
-                const rect = overlay.getBoundingClientRect();
-                addField(i, ((e.clientX-rect.left)/rect.width)*100, ((e.clientY-rect.top)/rect.height)*100, activeFieldType, sel.value, overlay);
-            });
+            setupDropZone(overlay, i);
         }
+        // Load existing fields
         existingFields.forEach(f => {
             const overlay = document.querySelector(`.field-overlay[data-page="${f.page}"]`);
-            if (overlay) addField(f.page, f.x, f.y, f.type, f.signer_role, overlay, f.width, f.height);
+            if (overlay) addField(f.page, f.x, f.y, f.type, f.signer_role, f.width, f.height, f.required);
         });
         updateFieldsSummary();
     }
 
-    function addField(page, x, y, type, role, overlay, w, h) {
+    function setupDropZone(overlay, pageNum) {
+        overlay.addEventListener('dragover', (e) => { e.preventDefault(); overlay.style.outline = '2px dashed #6366f1'; });
+        overlay.addEventListener('dragleave', () => { overlay.style.outline = ''; });
+        overlay.addEventListener('drop', (e) => {
+            e.preventDefault(); overlay.style.outline = '';
+            if (!dragFieldType) return;
+            const role = roleSelect.value;
+            if (!role) return;
+            const rect = overlay.getBoundingClientRect();
+            addField(pageNum, ((e.clientX - rect.left) / rect.width) * 100, ((e.clientY - rect.top) / rect.height) * 100, dragFieldType, role);
+            updateFieldsSummary();
+        });
+        overlay.addEventListener('click', (e) => {
+            if (!dragFieldType || e.target !== overlay) return;
+            const role = roleSelect.value;
+            if (!role) return;
+            const rect = overlay.getBoundingClientRect();
+            addField(pageNum, ((e.clientX - rect.left) / rect.width) * 100, ((e.clientY - rect.top) / rect.height) * 100, dragFieldType, role);
+            updateFieldsSummary();
+        });
+
+        // Lasso selection
+        let lassoActive = false, lassoStartX, lassoStartY, lassoRect = null;
+        overlay.addEventListener('mousedown', (e) => {
+            if (e.target !== overlay || dragFieldType) return;
+            lassoActive = true;
+            const rect = overlay.getBoundingClientRect();
+            lassoStartX = e.clientX - rect.left;
+            lassoStartY = e.clientY - rect.top;
+            lassoRect = document.createElement('div');
+            lassoRect.style.cssText = 'position:absolute;border:2px dashed #6366f1;background:rgba(99,102,241,0.08);pointer-events:none;z-index:50;';
+            lassoRect.style.left = lassoStartX + 'px';
+            lassoRect.style.top = lassoStartY + 'px';
+            lassoRect.style.width = '0'; lassoRect.style.height = '0';
+            overlay.appendChild(lassoRect);
+            e.preventDefault();
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!lassoActive || !lassoRect) return;
+            const rect = overlay.getBoundingClientRect();
+            const curX = e.clientX - rect.left, curY = e.clientY - rect.top;
+            lassoRect.style.left = Math.min(lassoStartX, curX) + 'px';
+            lassoRect.style.top = Math.min(lassoStartY, curY) + 'px';
+            lassoRect.style.width = Math.abs(curX - lassoStartX) + 'px';
+            lassoRect.style.height = Math.abs(curY - lassoStartY) + 'px';
+        });
+        document.addEventListener('mouseup', (e) => {
+            if (!lassoActive || !lassoRect) return;
+            lassoActive = false;
+            const rect = overlay.getBoundingClientRect();
+            const curX = e.clientX - rect.left, curY = e.clientY - rect.top;
+            const lx1 = Math.min(lassoStartX, curX) / rect.width * 100;
+            const ly1 = Math.min(lassoStartY, curY) / rect.height * 100;
+            const lx2 = Math.max(lassoStartX, curX) / rect.width * 100;
+            const ly2 = Math.max(lassoStartY, curY) / rect.height * 100;
+            if (Math.hypot(curX - lassoStartX, curY - lassoStartY) > 5) {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey) clearSelection();
+                placedFields.filter(f => f.page === pageNum).forEach(f => {
+                    if (f.x < lx2 && f.x + f.width > lx1 && f.y < ly2 && f.y + f.height > ly1) selectField(f, true);
+                });
+            }
+            lassoRect.remove(); lassoRect = null;
+        });
+    }
+
+    function scaleFieldText(el, overlay) {
+        if (!overlay) return;
+        const overlayHeight = overlay.getBoundingClientRect().height;
+        const heightPct = parseFloat(el.style.height);
+        const fieldHeightPx = (heightPct / 100) * overlayHeight;
+        const fontSize = Math.max(8, Math.min(fieldHeightPx * 0.6, 32));
+        const span = el.querySelector('span:first-child');
+        if (span) span.style.fontSize = fontSize + 'px';
+    }
+
+    function addField(pageNum, xPct, yPct, type, role, w, h, isRequired) {
+        const overlay = document.querySelector(`.field-overlay[data-page="${pageNum}"]`);
+        if (!overlay) return;
         const defaults = FIELD_DEFAULTS[type];
-        w = w || defaults.w; h = h || defaults.h;
+        w = w || defaults.width; h = h || defaults.height;
         const color = getRoleColor(role);
         const fid = 'tf-' + (++fieldCounter);
+
         const el = document.createElement('div');
         el.id = fid;
-        el.className = 'absolute cursor-move select-none';
-        el.style.cssText = `left:${x}%;top:${y}%;width:${w}%;height:${h}%;border:2px solid ${color};background:${color}20;border-radius:3px;z-index:10;display:flex;align-items:center;justify-content:center;font-size:10px;color:${color};font-weight:600;overflow:hidden;`;
-        el.innerHTML = `<span class="pointer-events-none">${FIELD_LABELS[type]}<br><span style="font-size:8px;opacity:0.7">${role}</span></span><button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs items-center justify-center hover:bg-red-700" style="font-size:8px;display:none;">X</button>`;
+        el.className = 'placed-field absolute cursor-move select-none';
+        el.style.cssText = `left:${xPct}%;top:${yPct}%;width:${w}%;height:${h}%;border:2px solid ${color};background:${color}20;border-radius:3px;z-index:10;display:flex;align-items:center;justify-content:center;color:${color};font-weight:600;overflow:hidden;`;
+        el.title = `${FIELD_LABELS[type]} - ${role}`;
+
+        if (type === 'checkbox') {
+            el.innerHTML = `
+                <span class="pointer-events-none" style="font-size:14px;">&#9744;</span>
+                <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px;line-height:1;display:none;">X</button>
+                <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background:${color};opacity:0.5;display:none;"></div>`;
+            el.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                const span = el.querySelector('span');
+                const isChecked = span.innerHTML === '&#9745;' || span.textContent === '\u2611';
+                span.innerHTML = isChecked ? '&#9744;' : '&#9745;';
+                span.style.color = isChecked ? color : '#059669';
+            });
+        } else {
+            el.innerHTML = `
+                <span class="pointer-events-none">${FIELD_LABELS[type]}<br><span style="font-size:8px;opacity:0.7">${role}</span></span>
+                <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px;line-height:1;display:none;">X</button>
+                <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background:${color};opacity:0.5;display:none;"></div>`;
+        }
+
         overlay.appendChild(el);
-        const fd = { id:fid, signer_role:role, type, page, x, y, width:w, height:h, required:true, element:el };
+        scaleFieldText(el, overlay);
+
+        const fd = { id: fid, signer_role: role, type, page: pageNum, x: xPct, y: yPct, width: w, height: h, required: isRequired !== undefined ? isRequired : true, element: el };
         placedFields.push(fd);
-        el.addEventListener('mouseenter', () => el.querySelector('.field-delete').style.display='flex');
-        el.addEventListener('mouseleave', () => el.querySelector('.field-delete').style.display='none');
-        el.querySelector('.field-delete').addEventListener('click', (e) => { e.stopPropagation(); el.remove(); placedFields=placedFields.filter(f=>f.id!==fid); updateFieldsSummary(); });
-        // Drag
-        let dragging=false, sx, sy, sl, st;
-        el.addEventListener('mousedown', (e) => { if(e.target.classList.contains('field-delete'))return; dragging=true; sx=e.clientX; sy=e.clientY; sl=parseFloat(el.style.left); st=parseFloat(el.style.top); e.preventDefault(); });
-        document.addEventListener('mousemove', (e) => { if(!dragging)return; const r=overlay.getBoundingClientRect(); fd.x=Math.max(0,Math.min(100-fd.width,sl+((e.clientX-sx)/r.width)*100)); fd.y=Math.max(0,Math.min(100-fd.height,st+((e.clientY-sy)/r.height)*100)); el.style.left=fd.x+'%'; el.style.top=fd.y+'%'; });
-        document.addEventListener('mouseup', () => { dragging=false; });
+
+        // Show/hide controls on hover
+        el.addEventListener('mouseenter', () => { el.querySelector('.field-delete').style.display = 'flex'; const rh = el.querySelector('.field-resize'); if (rh) rh.style.display = 'block'; });
+        el.addEventListener('mouseleave', () => { el.querySelector('.field-delete').style.display = 'none'; const rh = el.querySelector('.field-resize'); if (rh) rh.style.display = 'none'; });
+
+        // Delete
+        el.querySelector('.field-delete').addEventListener('click', (e) => {
+            e.stopPropagation(); el.remove();
+            placedFields = placedFields.filter(f => f.id !== fid);
+            selectedFields = selectedFields.filter(f => f.id !== fid);
+            updateFieldsSummary();
+            updatePropertiesPanel();
+        });
+
+        // Select on click
+        el.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('field-delete') || e.target.classList.contains('field-resize')) return;
+            selectField(fd, e.ctrlKey || e.metaKey || e.shiftKey);
+        });
+
+        // Drag to move
+        makeDraggable(el, fd, overlay);
+
+        // Resize
+        makeResizable(el, fd, overlay);
+
         updateFieldsSummary();
+    }
+
+    function makeDraggable(el, fd, overlay) {
+        let isDragging = false, startX, startY, startLeft, startTop;
+        el.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('field-delete') || e.target.classList.contains('field-resize')) return;
+            isDragging = true;
+            startX = e.clientX; startY = e.clientY;
+            startLeft = parseFloat(el.style.left); startTop = parseFloat(el.style.top);
+            el.style.zIndex = 20;
+            e.preventDefault();
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = overlay.getBoundingClientRect();
+            const dx = ((e.clientX - startX) / rect.width) * 100;
+            const dy = ((e.clientY - startY) / rect.height) * 100;
+            fd.x = Math.max(0, Math.min(100 - fd.width, startLeft + dx));
+            fd.y = Math.max(0, Math.min(100 - fd.height, startTop + dy));
+            el.style.left = fd.x + '%'; el.style.top = fd.y + '%';
+        });
+        document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; el.style.zIndex = 10; } });
+    }
+
+    function makeResizable(el, fd, overlay) {
+        const handle = el.querySelector('.field-resize');
+        if (!handle) return;
+        let isResizing = false, startX, startY, startW, startH;
+        handle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startX = e.clientX; startY = e.clientY;
+            startW = parseFloat(el.style.width); startH = parseFloat(el.style.height);
+            e.preventDefault(); e.stopPropagation();
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const rect = overlay.getBoundingClientRect();
+            const dw = ((e.clientX - startX) / rect.width) * 100;
+            const dh = ((e.clientY - startY) / rect.height) * 100;
+            fd.width = Math.max(3, startW + dw);
+            fd.height = Math.max(2, startH + dh);
+            el.style.width = fd.width + '%'; el.style.height = fd.height + '%';
+            scaleFieldText(el, overlay);
+        });
+        document.addEventListener('mouseup', () => { if (isResizing) isResizing = false; });
     }
 
     function updateFieldsSummary() {
         const s = document.getElementById('fields-summary');
-        if (!placedFields.length) { s.innerHTML='<p>No fields placed yet.</p>'; return; }
-        s.innerHTML = `<p class="mb-1">${placedFields.length} field(s):</p><ul class="space-y-1">${placedFields.map(f=>`<li><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${getRoleColor(f.signer_role)}"></span>${FIELD_LABELS[f.type]} (p${f.page}) - ${f.signer_role}</li>`).join('')}</ul>`;
+        if (!placedFields.length) { s.innerHTML = '<p>No fields placed yet.</p>'; return; }
+        let html = `<p class="mb-1">${placedFields.length} field(s):</p><ul class="space-y-1">`;
+        placedFields.forEach(f => {
+            html += `<li class="flex items-center">
+                <span class="w-2 h-2 rounded-full mr-1" style="background:${getRoleColor(f.signer_role)}"></span>
+                ${FIELD_LABELS[f.type]} (p${f.page}) - ${f.signer_role}
+            </li>`;
+        });
+        html += '</ul>';
+        s.innerHTML = html;
     }
 
+    // Toolbar drag & click-to-place
     document.querySelectorAll('.field-tool').forEach(btn => {
+        btn.addEventListener('dragstart', (e) => { dragFieldType = btn.dataset.fieldType; e.dataTransfer.setData('text/plain', dragFieldType); });
+        btn.addEventListener('dragend', () => { dragFieldType = null; });
         btn.addEventListener('click', () => {
-            if (activeFieldType === btn.dataset.fieldType) { activeFieldType=null; document.querySelectorAll('.field-tool').forEach(b=>b.classList.remove('ring-2','ring-indigo-500')); }
-            else { activeFieldType=btn.dataset.fieldType; document.querySelectorAll('.field-tool').forEach(b=>b.classList.remove('ring-2','ring-indigo-500')); btn.classList.add('ring-2','ring-indigo-500'); }
+            if (dragFieldType === btn.dataset.fieldType) {
+                dragFieldType = null;
+                document.querySelectorAll('.field-tool').forEach(b => b.classList.remove('ring-2', 'ring-indigo-500'));
+            } else {
+                dragFieldType = btn.dataset.fieldType;
+                document.querySelectorAll('.field-tool').forEach(b => b.classList.remove('ring-2', 'ring-indigo-500'));
+                btn.classList.add('ring-2', 'ring-indigo-500');
+            }
         });
-        btn.setAttribute('draggable','true');
-        btn.addEventListener('dragstart', (e) => { activeFieldType=btn.dataset.fieldType; e.dataTransfer.setData('text/plain',activeFieldType); });
-        btn.addEventListener('dragend', () => { activeFieldType=null; });
     });
 
+    // Save
     window.saveAll = async function() {
         const btn = document.getElementById('save-btn');
-        btn.disabled=true; btn.textContent='Saving...';
-        await fetch(ROLES_URL, { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':CSRF}, body:JSON.stringify({roles}) });
-        await fetch(FIELDS_URL, { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':CSRF}, body:JSON.stringify({fields:placedFields.map(f=>({type:f.type,signer_role:f.signer_role,page:f.page,x:f.x,y:f.y,width:f.width,height:f.height,required:f.required}))}) });
-        btn.textContent='Saved!'; setTimeout(()=>{btn.textContent='Save Template';btn.disabled=false;},1500);
+        btn.disabled = true; btn.textContent = 'Saving...';
+        try {
+            await fetch(ROLES_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF }, body: JSON.stringify({ roles }) });
+            await fetch(FIELDS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF }, body: JSON.stringify({ fields: placedFields.map(f => ({ type: f.type, signer_role: f.signer_role, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height, required: f.required })) }) });
+            btn.textContent = 'Saved!';
+            setTimeout(() => { btn.textContent = 'Save Template'; btn.disabled = false; }, 1500);
+        } catch (err) {
+            btn.textContent = 'Error!'; btn.disabled = false;
+            console.error(err);
+        }
     };
 
     loadPDF();
 })();
 </script>
+
+<style>
+    .placed-field:hover { box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.5); }
+    .field-overlay { cursor: crosshair; }
+</style>
 {% endblock %}
