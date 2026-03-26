@@ -140,6 +140,25 @@
             {% endif %}
         </div>
 
+        <!-- Field Properties (shown when fields selected) -->
+        <div id="field-properties" class="bg-white rounded-lg shadow-sm border border-indigo-200 p-4 hidden">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Field Properties</h3>
+            <p id="prop-selection-info" class="text-xs text-gray-500 mb-3">1 field selected</p>
+            <div class="space-y-2">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="prop-required" checked
+                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm text-gray-700">Required</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="prop-readonly"
+                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm text-gray-700">Read-only</span>
+                    <span class="text-xs text-gray-400">(signer can't edit)</span>
+                </label>
+            </div>
+        </div>
+
         <!-- Placed Fields Summary -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <h3 class="text-sm font-semibold text-gray-900 mb-2">Placed Fields</h3>
@@ -170,6 +189,7 @@
     const CSRF_TOKEN = '{{ csrf_token }}';
     const SAVE_URL = '{% url "signatures:save_fields" document.pk %}';
     const SIGNER_COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+    const SOURCE_FILES = {{ source_files_json|safe }};
 
     // Build signers array from Django context
     const signers = [
@@ -186,6 +206,8 @@
             signer_id: {{ field.assigned_to_id }},
             type: '{{ field.field_type }}',
             label: '{{ field.label|escapejs }}',
+            prefill_value: '{{ field.prefill_value|escapejs }}',
+            read_only: {{ field.read_only|yesno:"true,false" }},
             page: {{ field.page }},
             x: {{ field.x }},
             y: {{ field.y }},
@@ -217,7 +239,7 @@
     let placedFields = [];
     let fieldCounter = 0;
     let dragFieldType = null;
-    let selectedField = null;
+    let selectedFields = [];  // multi-select support
     let pageScales = {};
 
     // Default field sizes (as percentage of page)
@@ -247,6 +269,22 @@
         container.innerHTML = '';
 
         for (let i = 1; i <= pdf.numPages; i++) {
+            // Insert document divider if this is the start of a new source file
+            if (SOURCE_FILES.length > 1) {
+                const sf = SOURCE_FILES.find(f => f.page_start === i);
+                if (sf) {
+                    const divider = document.createElement('div');
+                    divider.className = 'flex items-center gap-3 py-3 px-4 my-2 bg-indigo-50 border border-indigo-200 rounded-lg';
+                    divider.style.maxWidth = '800px';
+                    divider.innerHTML = `
+                        <svg class="w-5 h-5 text-indigo-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+                        <span class="text-sm font-semibold text-indigo-700">${sf.original_filename}</span>
+                        <span class="text-xs text-indigo-400">Pages ${sf.page_start}-${sf.page_end}</span>
+                    `;
+                    container.appendChild(divider);
+                }
+            }
+
             const page = await pdf.getPage(i);
             const scale = 1.5;
             const viewport = page.getViewport({ scale });
@@ -284,7 +322,7 @@
 
         // Load existing fields
         existingFields.forEach(f => {
-            addFieldToPage(f.page, f.x, f.y, f.type, f.signer_id, f.width, f.height);
+            addFieldToPage(f.page, f.x, f.y, f.type, f.signer_id, f.width, f.height, f.prefill_value, f.required, f.read_only);
         });
 
         updateFieldsSummary();
@@ -330,9 +368,95 @@
             addFieldToPage(pageNum, xPct, yPct, dragFieldType, signerId);
             updateFieldsSummary();
         });
+
+        // Drag-to-select (lasso) on empty area
+        let lassoActive = false;
+        let lassoStartX, lassoStartY;
+        let lassoRect = null;
+
+        overlay.addEventListener('mousedown', (e) => {
+            // Only start lasso if clicking on empty overlay (not on a field) and no field type active
+            if (e.target !== overlay || dragFieldType) return;
+            lassoActive = true;
+            const rect = overlay.getBoundingClientRect();
+            lassoStartX = e.clientX - rect.left;
+            lassoStartY = e.clientY - rect.top;
+
+            // Create selection rectangle
+            lassoRect = document.createElement('div');
+            lassoRect.className = 'lasso-rect';
+            lassoRect.style.cssText = 'position:absolute; border:2px dashed #6366f1; background:rgba(99,102,241,0.08); pointer-events:none; z-index:50;';
+            lassoRect.style.left = lassoStartX + 'px';
+            lassoRect.style.top = lassoStartY + 'px';
+            lassoRect.style.width = '0';
+            lassoRect.style.height = '0';
+            overlay.appendChild(lassoRect);
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!lassoActive || !lassoRect) return;
+            const rect = overlay.getBoundingClientRect();
+            const curX = e.clientX - rect.left;
+            const curY = e.clientY - rect.top;
+
+            const x = Math.min(lassoStartX, curX);
+            const y = Math.min(lassoStartY, curY);
+            const w = Math.abs(curX - lassoStartX);
+            const h = Math.abs(curY - lassoStartY);
+
+            lassoRect.style.left = x + 'px';
+            lassoRect.style.top = y + 'px';
+            lassoRect.style.width = w + 'px';
+            lassoRect.style.height = h + 'px';
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (!lassoActive || !lassoRect) return;
+            lassoActive = false;
+
+            const rect = overlay.getBoundingClientRect();
+            const curX = e.clientX - rect.left;
+            const curY = e.clientY - rect.top;
+
+            // Lasso bounds in percent
+            const lx1 = Math.min(lassoStartX, curX) / rect.width * 100;
+            const ly1 = Math.min(lassoStartY, curY) / rect.height * 100;
+            const lx2 = Math.max(lassoStartX, curX) / rect.width * 100;
+            const ly2 = Math.max(lassoStartY, curY) / rect.height * 100;
+
+            // Only select if dragged a meaningful distance (> 5px)
+            const dist = Math.hypot(curX - lassoStartX, curY - lassoStartY);
+            if (dist > 5) {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey) clearSelection();
+                // Select all fields on this page that intersect the lasso
+                placedFields.filter(f => f.page === pageNum).forEach(f => {
+                    const fx1 = f.x, fy1 = f.y;
+                    const fx2 = f.x + f.width, fy2 = f.y + f.height;
+                    // Check intersection
+                    if (fx1 < lx2 && fx2 > lx1 && fy1 < ly2 && fy2 > ly1) {
+                        selectField(f, true);
+                    }
+                });
+            }
+
+            lassoRect.remove();
+            lassoRect = null;
+        });
     }
 
-    function addFieldToPage(pageNum, xPct, yPct, fieldType, signerId, widthPct, heightPct) {
+    // Scale text inside a field based on its pixel height
+    function scaleFieldText(el, overlay) {
+        if (!overlay) return;
+        const overlayHeight = overlay.getBoundingClientRect().height;
+        const heightPct = parseFloat(el.style.height);
+        const fieldHeightPx = (heightPct / 100) * overlayHeight;
+        const fontSize = Math.max(8, Math.min(fieldHeightPx * 0.6, 32));
+        const span = el.querySelector('span:first-child');
+        if (span) span.style.fontSize = fontSize + 'px';
+    }
+
+    function addFieldToPage(pageNum, xPct, yPct, fieldType, signerId, widthPct, heightPct, prefillValue, isRequired, isReadOnly) {
         const overlay = document.querySelector(`.field-overlay[data-page="${pageNum}"]`);
         if (!overlay) return;
 
@@ -360,7 +484,6 @@
         el.style.display = 'flex';
         el.style.alignItems = 'center';
         el.style.justifyContent = 'center';
-        el.style.fontSize = '10px';
         el.style.color = color;
         el.style.fontWeight = '600';
         el.style.overflow = 'hidden';
@@ -394,14 +517,36 @@
             signer_id: signerId,
             type: fieldType,
             label: '',
+            prefill_value: prefillValue || '',
+            read_only: isReadOnly || false,
             page: pageNum,
             x: xPct,
             y: yPct,
             width: w,
             height: h,
-            required: true,
+            required: isRequired !== undefined ? isRequired : true,
             element: el,
         };
+
+        // Visual indicator for read-only fields
+        if (fieldData.read_only) {
+            el.style.borderStyle = 'dashed';
+            el.style.opacity = '0.8';
+        }
+
+        // Show prefill value if it exists
+        if (prefillValue && (fieldType === 'text' || fieldType === 'date' || fieldType === 'name')) {
+            const span = el.querySelector('span:not(.pointer-events-none):first-child') || el.querySelector('span');
+            if (span && !span.classList.contains('field-delete')) {
+                span.textContent = prefillValue;
+                span.style.color = '#111827';
+                span.classList.remove('pointer-events-none');
+            }
+        }
+
+        // Scale text to fit field height
+        scaleFieldText(el, overlay);
+
         placedFields.push(fieldData);
 
         // Show controls on hover
@@ -424,10 +569,10 @@
             updateFieldsSummary();
         });
 
-        // Select on click
+        // Select on click (Ctrl/Shift+click for multi-select)
         el.addEventListener('mousedown', (e) => {
             if (e.target.classList.contains('field-delete') || e.target.classList.contains('field-resize')) return;
-            selectField(fieldData);
+            selectField(fieldData, e.ctrlKey || e.metaKey || e.shiftKey);
         });
 
         // Drag to move
@@ -435,60 +580,174 @@
 
         // Resize
         makeResizable(el, fieldData, overlay);
+
+        // Double-click to prefill text/date/name fields
+        if (fieldType === 'text' || fieldType === 'date' || fieldType === 'name') {
+            el.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                const currentVal = fieldData.prefill_value || '';
+                const promptLabel = fieldType === 'date' ? 'Enter date value:' :
+                                    fieldType === 'name' ? 'Enter name value:' :
+                                    'Enter text value:';
+                const val = prompt(promptLabel, currentVal);
+                if (val !== null) {
+                    fieldData.prefill_value = val;
+                    const span = el.querySelector('span:first-child');
+                    if (span) {
+                        span.textContent = val || FIELD_LABELS[fieldType];
+                        span.style.color = val ? '#111827' : color;
+                    }
+                    triggerAutoSave();
+                }
+            });
+        }
     }
 
-    let clipboardField = null;
+    let clipboardFields = [];
 
-    function selectField(fieldData) {
-        // Deselect previous
-        if (selectedField && selectedField.element) {
-            selectedField.element.style.outline = '';
+    const propPanel = document.getElementById('field-properties');
+    const propRequired = document.getElementById('prop-required');
+    const propReadOnly = document.getElementById('prop-readonly');
+    const propInfo = document.getElementById('prop-selection-info');
+
+    function updatePropertiesPanel() {
+        if (selectedFields.length === 0) {
+            propPanel.classList.add('hidden');
+            return;
         }
-        selectedField = fieldData;
+        propPanel.classList.remove('hidden');
+        propInfo.textContent = selectedFields.length === 1
+            ? `1 field selected (${FIELD_LABELS[selectedFields[0].type]})`
+            : `${selectedFields.length} fields selected`;
+
+        // Show current values (if mixed, show indeterminate)
+        const allRequired = selectedFields.every(f => f.required);
+        const noneRequired = selectedFields.every(f => !f.required);
+        propRequired.checked = allRequired;
+        propRequired.indeterminate = !allRequired && !noneRequired;
+
+        const allReadOnly = selectedFields.every(f => f.read_only);
+        const noneReadOnly = selectedFields.every(f => !f.read_only);
+        propReadOnly.checked = allReadOnly;
+        propReadOnly.indeterminate = !allReadOnly && !noneReadOnly;
+    }
+
+    // Wire up property checkboxes
+    propRequired.addEventListener('change', () => {
+        selectedFields.forEach(f => { f.required = propRequired.checked; });
+        triggerAutoSave();
+    });
+
+    propReadOnly.addEventListener('change', () => {
+        selectedFields.forEach(f => {
+            f.read_only = propReadOnly.checked;
+            if (f.element) {
+                f.element.style.borderStyle = f.read_only ? 'dashed' : 'solid';
+                f.element.style.opacity = f.read_only ? '0.8' : '1';
+            }
+        });
+        triggerAutoSave();
+    });
+
+    function clearSelection() {
+        selectedFields.forEach(f => { if (f.element) f.element.style.outline = ''; });
+        selectedFields = [];
+        updatePropertiesPanel();
+    }
+
+    function selectField(fieldData, addToSelection) {
+        if (!addToSelection) {
+            clearSelection();
+        }
         if (fieldData && fieldData.element) {
-            fieldData.element.style.outline = '2px dashed #6366f1';
+            const idx = selectedFields.indexOf(fieldData);
+            if (idx >= 0 && addToSelection) {
+                selectedFields.splice(idx, 1);
+                fieldData.element.style.outline = '';
+            } else if (idx < 0) {
+                selectedFields.push(fieldData);
+                fieldData.element.style.outline = '2px dashed #6366f1';
+            }
         }
+        updatePropertiesPanel();
+    }
+
+    // Reassign selected fields when signer dropdown changes
+    if (signerSelect) {
+        signerSelect.addEventListener('change', () => {
+            if (selectedFields.length === 0) { updateSignerSelectColor(); return; }
+            const newSignerId = parseInt(signerSelect.value);
+            const newSigner = signers.find(s => s.id === newSignerId);
+            if (!newSigner) { updateSignerSelectColor(); return; }
+            selectedFields.forEach(f => {
+                f.signer_id = newSignerId;
+                if (f.element) {
+                    f.element.style.borderColor = newSigner.color;
+                    f.element.style.backgroundColor = newSigner.color + '20';
+                    f.element.style.color = newSigner.color;
+                    f.element.title = f.element.title.replace(/ - .*$/, ' - ' + newSigner.name);
+                    // Update resize handle color
+                    const rh = f.element.querySelector('.field-resize');
+                    if (rh) rh.style.background = newSigner.color;
+                }
+            });
+            updateSignerSelectColor();
+            triggerAutoSave();
+            updateFieldsSummary();
+        });
     }
 
     // Click on empty area deselects
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.placed-field') && !e.target.closest('.field-tool')) {
-            if (selectedField && selectedField.element) {
-                selectedField.element.style.outline = '';
-            }
-            selectedField = null;
+        if (!e.target.closest('.placed-field') && !e.target.closest('.field-tool') && !e.target.closest('#active-signer')) {
+            clearSelection();
         }
     });
 
-    // Ctrl+C / Ctrl+V
+    // Ctrl+C / Ctrl+V / Delete with multi-select
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'c' && (e.ctrlKey || e.metaKey) && selectedField) {
+        if (e.key === 'c' && (e.ctrlKey || e.metaKey) && selectedFields.length > 0) {
             e.preventDefault();
-            clipboardField = {
-                type: selectedField.type,
-                signer_id: selectedField.signer_id,
-                page: selectedField.page,
-                x: selectedField.x,
-                y: selectedField.y,
-                width: selectedField.width,
-                height: selectedField.height,
-            };
+            clipboardFields = selectedFields.map(f => ({
+                type: f.type,
+                signer_id: f.signer_id,
+                prefill_value: f.prefill_value || '',
+                read_only: f.read_only || false,
+                required: f.required,
+                page: f.page,
+                x: f.x,
+                y: f.y,
+                width: f.width,
+                height: f.height,
+            }));
         }
-        if (e.key === 'v' && (e.ctrlKey || e.metaKey) && clipboardField) {
+        if (e.key === 'v' && (e.ctrlKey || e.metaKey) && clipboardFields.length > 0) {
             e.preventDefault();
-            // Paste with a slight offset so it's visible
-            const newX = Math.min(clipboardField.x + 2, 100 - clipboardField.width);
-            const newY = Math.min(clipboardField.y + 2, 100 - clipboardField.height);
-            addFieldToPage(clipboardField.page, newX, newY, clipboardField.type, clipboardField.signer_id, clipboardField.width, clipboardField.height);
+            clearSelection();
+            clipboardFields.forEach(cf => {
+                const newX = Math.min(cf.x + 2, 100 - cf.width);
+                const newY = Math.min(cf.y + 2, 100 - cf.height);
+                addFieldToPage(cf.page, newX, newY, cf.type, cf.signer_id, cf.width, cf.height, cf.prefill_value, cf.required, cf.read_only);
+            });
+            // Select the newly pasted fields
+            const newFields = placedFields.slice(-clipboardFields.length);
+            newFields.forEach(f => selectField(f, true));
             updateFieldsSummary();
         }
-        // Delete selected field with Delete or Backspace
-        if ((e.key === 'Delete' || e.key === 'Backspace') && selectedField && !e.target.matches('input, textarea, select')) {
+        // Delete selected fields with Delete or Backspace
+        if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFields.length > 0 && !e.target.matches('input, textarea, select')) {
             e.preventDefault();
-            selectedField.element.remove();
-            placedFields = placedFields.filter(f => f.id !== selectedField.id);
-            selectedField = null;
+            const ids = selectedFields.map(f => f.id);
+            selectedFields.forEach(f => f.element.remove());
+            placedFields = placedFields.filter(f => !ids.includes(f.id));
+            selectedFields = [];
             updateFieldsSummary();
+        }
+        // Ctrl+A to select all
+        if (e.key === 'a' && (e.ctrlKey || e.metaKey) && !e.target.matches('input, textarea, select')) {
+            e.preventDefault();
+            clearSelection();
+            placedFields.forEach(f => selectField(f, true));
         }
     });
 
@@ -556,6 +815,7 @@
             el.style.height = Math.max(2, startH + dh) + '%';
             fieldData.width = Math.max(3, startW + dw);
             fieldData.height = Math.max(2, startH + dh);
+            scaleFieldText(el, overlay);
         });
 
         document.addEventListener('mouseup', () => { if (isResizing) { isResizing = false; triggerAutoSave(); } });
@@ -606,6 +866,8 @@
             signer_id: f.signer_id,
             type: f.type,
             label: f.label,
+            prefill_value: f.prefill_value || '',
+            read_only: f.read_only || false,
             page: f.page,
             x: f.x,
             y: f.y,
@@ -653,6 +915,8 @@
             signer_id: f.signer_id,
             type: f.type,
             label: f.label,
+            prefill_value: f.prefill_value || '',
+            read_only: f.read_only || false,
             page: f.page,
             x: f.x,
             y: f.y,
@@ -682,6 +946,8 @@
             signer_id: f.signer_id,
             type: f.type,
             label: f.label,
+            prefill_value: f.prefill_value || '',
+            read_only: f.read_only || false,
             page: f.page,
             x: f.x,
             y: f.y,

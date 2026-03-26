@@ -194,6 +194,7 @@
         const PDF_URL = '{{ document.pdf_file.url }}';
         const SUBMIT_URL = '/signatures/sign/{{ signer.access_token }}/submit/';
         const DECLINE_URL = '/signatures/sign/{{ signer.access_token }}/decline/';
+        const SOURCE_FILES = {{ source_files_json|safe }};
 
         const fields = [
             {% for field in fields %}
@@ -201,6 +202,8 @@
                 id: {{ field.pk }},
                 type: '{{ field.field_type }}',
                 label: '{{ field.label|default:field.get_field_type_display|escapejs }}',
+                prefill_value: '{{ field.prefill_value|escapejs }}',
+                read_only: {{ field.read_only|yesno:"true,false" }},
                 page: {{ field.page }},
                 x: {{ field.x }},
                 y: {{ field.y }},
@@ -301,6 +304,20 @@
             const containerWidth = container.clientWidth;
 
             for (let i = 1; i <= pdf.numPages; i++) {
+                // Insert document divider if multiple source files
+                if (SOURCE_FILES.length > 1) {
+                    const sf = SOURCE_FILES.find(f => f.page_start === i);
+                    if (sf) {
+                        const divider = document.createElement('div');
+                        divider.className = 'flex items-center gap-3 py-3 px-4 my-2 bg-blue-50 border border-blue-200 rounded-lg';
+                        divider.innerHTML = `
+                            <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+                            <span class="text-sm font-semibold text-blue-700">${sf.original_filename}</span>
+                        `;
+                        container.appendChild(divider);
+                    }
+                }
+
                 const page = await pdf.getPage(i);
                 const baseViewport = page.getViewport({ scale: 1 });
                 const scale = containerWidth / baseViewport.width;
@@ -331,6 +348,15 @@
             updateProgress();
         }
 
+        function scaleSignFieldText(el, overlay) {
+            const overlayHeight = overlay.getBoundingClientRect().height;
+            const heightPct = parseFloat(el.style.height);
+            const fieldHeightPx = (heightPct / 100) * overlayHeight;
+            const fontSize = Math.max(8, Math.min(fieldHeightPx * 0.6, 32));
+            const span = el.querySelector('span');
+            if (span) span.style.fontSize = fontSize + 'px';
+        }
+
         function placeSigningField(overlay, field) {
             const el = document.createElement('div');
             el.id = 'sign-field-' + field.id;
@@ -346,6 +372,38 @@
             el.style.alignItems = 'center';
             el.style.justifyContent = 'center';
             el.style.zIndex = 10;
+
+            // Read-only fields: show as plain text, no border, no interaction
+            if (field.read_only && field.prefill_value && (field.type === 'text' || field.type === 'date' || field.type === 'name')) {
+                field.value = field.prefill_value;
+                el.innerHTML = '<span class="text-gray-900 px-1">' + field.prefill_value + '</span>';
+                el.style.border = 'none';
+                el.style.backgroundColor = 'transparent';
+                el.style.cursor = 'default';
+                overlay.appendChild(el);
+                scaleSignFieldText(el, overlay);
+                return;
+            }
+
+            // Editable prefilled fields: show value but signer can click to change
+            if (field.prefill_value && !field.read_only && (field.type === 'text' || field.type === 'date' || field.type === 'name')) {
+                field.value = field.prefill_value;
+                el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + field.prefill_value + '</span>';
+                el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
+                el.style.borderColor = '#059669';
+                overlay.appendChild(el);
+                scaleSignFieldText(el, overlay);
+                el.addEventListener('click', () => {
+                    const val = prompt('Edit text:', field.value || '');
+                    if (val !== null) {
+                        field.value = val;
+                        el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + val + '</span>';
+                        scaleSignFieldText(el, overlay);
+                        updateProgress();
+                    }
+                });
+                return;
+            }
 
             if (field.type === 'checkbox') {
                 el.innerHTML = '<span class="text-gray-400 text-lg">&#9744;</span>';
@@ -365,31 +423,36 @@
                 });
             } else if (field.type === 'name') {
                 field.value = SIGNER_NAME;
-                el.innerHTML = '<span class="text-xs text-gray-900 px-1 truncate">' + SIGNER_NAME + '</span>';
+                el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + SIGNER_NAME + '</span>';
                 el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
                 el.style.borderColor = '#059669';
+                scaleSignFieldText(el, overlay);
             } else if (field.type === 'text') {
-                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.text + '</span>';
+                el.innerHTML = '<span class="text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.text + '</span>';
+                scaleSignFieldText(el, overlay);
                 el.addEventListener('click', () => {
                     const val = prompt('Enter text:', field.value || '');
                     if (val !== null) {
                         field.value = val;
-                        el.innerHTML = '<span class="text-xs text-gray-900 px-1 truncate">' + val + '</span>';
+                        el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + val + '</span>';
                         el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
                         el.style.borderColor = '#059669';
+                        scaleSignFieldText(el, overlay);
                         updateProgress();
                     }
                 });
             } else if (field.type === 'date') {
-                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.date + '</span>';
+                el.innerHTML = '<span class="text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.date + '</span>';
+                scaleSignFieldText(el, overlay);
                 el.addEventListener('click', () => {
                     const today = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
                     const val = prompt('Enter date:', field.value || today);
                     if (val !== null) {
                         field.value = val;
-                        el.innerHTML = '<span class="text-xs text-gray-900 px-1 truncate">' + val + '</span>';
+                        el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + val + '</span>';
                         el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
                         el.style.borderColor = '#059669';
+                        scaleSignFieldText(el, overlay);
                         updateProgress();
                     }
                 });

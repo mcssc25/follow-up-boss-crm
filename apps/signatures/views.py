@@ -1,11 +1,13 @@
 import hashlib
+import io
 import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.files.base import ContentFile
 from django.db.models import Q
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -13,9 +15,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, DetailView
 
+from PyPDF2 import PdfReader, PdfWriter
+
 from apps.contacts.models import Contact
 from apps.signatures.models import (
-    Document, DocumentSigner, DocumentField, AuditEvent, SignerFieldValue,
+    Document, DocumentSigner, DocumentField, DocumentFile, AuditEvent, SignerFieldValue,
     DocumentTemplate, TemplateField,
 )
 from apps.signatures.forms import DocumentCreateForm
@@ -32,18 +36,81 @@ class DocumentListView(LoginRequiredMixin, ListView):
         qs = Document.objects.filter(
             team=self.request.user.team
         ).select_related('created_by').prefetch_related('signers')
-        status = self.request.GET.get('status')
-        if status:
-            qs = qs.filter(status=status)
+
+        # Tab filter
+        tab = self.request.GET.get('tab', 'all')
+        if tab == 'action_needed':
+            qs = qs.filter(status__in=['sent', 'viewed'], is_archived=False)
+        elif tab == 'draft':
+            qs = qs.filter(status='draft', is_archived=False)
+        elif tab == 'sent':
+            qs = qs.filter(status__in=['sent', 'viewed'], is_archived=False)
+        elif tab == 'completed':
+            qs = qs.filter(status='completed', is_archived=False)
+        elif tab == 'archived':
+            qs = qs.filter(is_archived=True)
+        else:
+            # "all" tab — exclude archived
+            qs = qs.filter(is_archived=False)
+
+        # Search
         q = self.request.GET.get('q', '').strip()
         if q:
-            qs = qs.filter(title__icontains=q)
+            qs = qs.filter(
+                Q(title__icontains=q) |
+                Q(signers__name__icontains=q) |
+                Q(signers__email__icontains=q)
+            ).distinct()
+
+        # Tag filter
+        tag = self.request.GET.get('tag', '').strip()
+        if tag:
+            qs = qs.filter(tags__contains=[tag])
+
+        # Date range
+        date_from = self.request.GET.get('date_from', '').strip()
+        date_to = self.request.GET.get('date_to', '').strip()
+        if date_from:
+            qs = qs.filter(created_at__date__gte=date_from)
+        if date_to:
+            qs = qs.filter(created_at__date__lte=date_to)
+
+        # Sorting
+        sort = self.request.GET.get('sort', '-created_at')
+        allowed_sorts = {
+            'title', '-title', 'status', '-status',
+            'created_at', '-created_at', 'created_by__first_name', '-created_by__first_name',
+        }
+        if sort in allowed_sorts:
+            qs = qs.order_by(sort)
+
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['status_filter'] = self.request.GET.get('status', '')
+        ctx['current_tab'] = self.request.GET.get('tab', 'all')
         ctx['search_query'] = self.request.GET.get('q', '')
+        ctx['current_sort'] = self.request.GET.get('sort', '-created_at')
+        ctx['date_from'] = self.request.GET.get('date_from', '')
+        ctx['date_to'] = self.request.GET.get('date_to', '')
+        ctx['tag_filter'] = self.request.GET.get('tag', '')
+
+        # Tab counts
+        base_qs = Document.objects.filter(team=self.request.user.team)
+        ctx['count_all'] = base_qs.filter(is_archived=False).count()
+        ctx['count_action'] = base_qs.filter(status__in=['sent', 'viewed'], is_archived=False).count()
+        ctx['count_draft'] = base_qs.filter(status='draft', is_archived=False).count()
+        ctx['count_sent'] = base_qs.filter(status__in=['sent', 'viewed'], is_archived=False).count()
+        ctx['count_completed'] = base_qs.filter(status='completed', is_archived=False).count()
+        ctx['count_archived'] = base_qs.filter(is_archived=True).count()
+
+        # All unique tags for the filter dropdown
+        all_tags = set()
+        for doc in base_qs.exclude(tags=[]).values_list('tags', flat=True):
+            if doc:
+                all_tags.update(doc)
+        ctx['all_tags'] = sorted(all_tags)
+
         return ctx
 
 
@@ -52,17 +119,97 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
     form_class = DocumentCreateForm
     template_name = 'signatures/document_create.html'
 
+    def post(self, request, *args, **kwargs):
+        pdf_files = request.FILES.getlist('pdf_files')
+        if not pdf_files:
+            form = self.get_form()
+            form.is_valid()
+            form.add_error(None, 'Please upload at least one PDF file.')
+            return self.form_invalid(form)
+        for f in pdf_files:
+            if not f.name.lower().endswith('.pdf'):
+                form = self.get_form()
+                form.is_valid()
+                form.add_error(None, f'"{f.name}" is not a PDF file.')
+                return self.form_invalid(form)
+            if f.size > 50 * 1024 * 1024:
+                form = self.get_form()
+                form.is_valid()
+                form.add_error(None, f'"{f.name}" exceeds the 50MB limit.')
+                return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
         form.instance.team = self.request.user.team
         form.instance.created_by = self.request.user
-        response = super().form_valid(form)
+
+        pdf_files = self.request.FILES.getlist('pdf_files')
+
+        if len(pdf_files) == 1:
+            # Single file — save directly as before
+            form.instance.pdf_file = pdf_files[0]
+            response = super().form_valid(form)
+            # Track as a DocumentFile too
+            reader = PdfReader(pdf_files[0])
+            pdf_files[0].seek(0)
+            DocumentFile.objects.create(
+                document=self.object,
+                original_filename=pdf_files[0].name,
+                pdf_file=pdf_files[0],
+                page_start=1,
+                page_end=len(reader.pages),
+                order=0,
+            )
+        else:
+            # Multiple files — merge into one combined PDF
+            writer = PdfWriter()
+            file_info = []  # [(filename, original_file, page_start, page_end)]
+            current_page = 1
+
+            for i, uploaded_file in enumerate(pdf_files):
+                reader = PdfReader(uploaded_file)
+                num_pages = len(reader.pages)
+                for page in reader.pages:
+                    writer.add_page(page)
+                file_info.append({
+                    'filename': uploaded_file.name,
+                    'file': uploaded_file,
+                    'page_start': current_page,
+                    'page_end': current_page + num_pages - 1,
+                    'order': i,
+                })
+                current_page += num_pages
+
+            # Save merged PDF
+            merged_buffer = io.BytesIO()
+            writer.write(merged_buffer)
+            merged_buffer.seek(0)
+            merged_content = ContentFile(merged_buffer.read(), name=f"{form.cleaned_data['title']}.pdf")
+
+            form.instance.pdf_file = merged_content
+            response = super().form_valid(form)
+
+            # Create DocumentFile records for each original
+            for info in file_info:
+                info['file'].seek(0)
+                DocumentFile.objects.create(
+                    document=self.object,
+                    original_filename=info['filename'],
+                    pdf_file=info['file'],
+                    page_start=info['page_start'],
+                    page_end=info['page_end'],
+                    order=info['order'],
+                )
+
         AuditEvent.objects.create(
             document=self.object,
             event_type='created',
+            detail=f'Uploaded {len(pdf_files)} file(s).',
             ip_address=self.request.META.get('REMOTE_ADDR'),
             user_agent=self.request.META.get('HTTP_USER_AGENT', ''),
         )
-        messages.success(self.request, 'Document uploaded. Now add signers and place fields.')
+        file_word = 'file' if len(pdf_files) == 1 else 'files'
+        messages.success(self.request, f'{len(pdf_files)} {file_word} uploaded. Now add signers and place fields.')
         return response
 
     def get_success_url(self):
@@ -82,6 +229,11 @@ class DocumentPrepareView(LoginRequiredMixin, DetailView):
         ctx['signers'] = self.object.signers.all()
         ctx['fields'] = self.object.fields.select_related('assigned_to').all()
         ctx['signer_colors'] = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+        # Source files for document dividers
+        source_files = list(self.object.source_files.all().values(
+            'original_filename', 'page_start', 'page_end', 'order'
+        ))
+        ctx['source_files_json'] = json.dumps(source_files)
         return ctx
 
 
@@ -142,6 +294,8 @@ def save_fields(request, pk):
             assigned_to_id=f['signer_id'],
             field_type=f['type'],
             label=f.get('label', ''),
+            prefill_value=f.get('prefill_value', ''),
+            read_only=f.get('read_only', False),
             page=f['page'],
             x=f['x'], y=f['y'],
             width=f['width'], height=f['height'],
@@ -199,6 +353,7 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
         ctx = super().get_context_data(**kwargs)
         ctx['signers'] = self.object.signers.all()
         ctx['audit_events'] = self.object.audit_events.all()
+        ctx['source_files'] = self.object.source_files.all()
         ctx['signer_colors'] = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
         return ctx
 
@@ -239,10 +394,15 @@ def sign_document(request, token):
         document=doc, assigned_to=signer
     ).order_by('page', 'y')
 
+    source_files = list(doc.source_files.all().values(
+        'original_filename', 'page_start', 'page_end', 'order'
+    ))
+
     return render(request, 'signatures/sign.html', {
         'signer': signer,
         'document': doc,
         'fields': fields,
+        'source_files_json': json.dumps(source_files),
     })
 
 
@@ -353,6 +513,32 @@ def download_signed(request, pk):
     )
     response = FileResponse(doc.signed_pdf.open('rb'), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{doc.title} - Signed.pdf"'
+    return response
+
+
+@login_required
+def download_individual_file(request, pk, file_pk):
+    """Download a single file from a multi-file document, with signed field values stamped."""
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='completed')
+    doc_file = get_object_or_404(DocumentFile, pk=file_pk, document=doc)
+    if not doc.signed_pdf:
+        messages.error(request, 'Signed PDF not yet available.')
+        return redirect('signatures:detail', pk=pk)
+
+    # Extract pages from the signed PDF for this file's range
+    reader = PdfReader(doc.signed_pdf)
+    writer = PdfWriter()
+    for page_num in range(doc_file.page_start - 1, doc_file.page_end):
+        if page_num < len(reader.pages):
+            writer.add_page(reader.pages[page_num])
+
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    buffer.seek(0)
+
+    filename = doc_file.original_filename.replace('.pdf', '') + ' - Signed.pdf'
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
 
@@ -527,8 +713,8 @@ def delete_template(request, pk):
 @require_POST
 def delete_document(request, pk):
     doc = get_object_or_404(Document, pk=pk, team=request.user.team)
-    if doc.status not in ('draft', 'declined', 'expired'):
-        messages.error(request, 'Cannot delete a document that is in progress.')
+    if doc.status == 'completed':
+        messages.error(request, 'Cannot delete a completed document.')
         return redirect('signatures:detail', pk=pk)
     doc.delete()
     messages.success(request, 'Document deleted.')
@@ -590,3 +776,86 @@ def search_contacts(request):
         for c in contacts
     ]
     return JsonResponse(results, safe=False)
+
+
+# ---------------------------------------------------------------------------
+# Archive / Bulk Actions / Tags
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def archive_document(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    doc.is_archived = True
+    doc.save(update_fields=['is_archived'])
+    messages.success(request, f'"{doc.title}" archived.')
+    return redirect('signatures:list')
+
+
+@login_required
+@require_POST
+def unarchive_document(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    doc.is_archived = False
+    doc.save(update_fields=['is_archived'])
+    messages.success(request, f'"{doc.title}" restored.')
+    return redirect(request.META.get('HTTP_REFERER', reverse_lazy('signatures:list')))
+
+
+@login_required
+@require_POST
+def bulk_action(request):
+    action = request.POST.get('action', '')
+    doc_ids = request.POST.getlist('doc_ids')
+    if not doc_ids:
+        messages.warning(request, 'No documents selected.')
+        return redirect('signatures:list')
+
+    docs = Document.objects.filter(pk__in=doc_ids, team=request.user.team)
+
+    if action == 'archive':
+        count = docs.update(is_archived=True)
+        messages.success(request, f'{count} document(s) archived.')
+    elif action == 'unarchive':
+        count = docs.update(is_archived=False)
+        messages.success(request, f'{count} document(s) restored.')
+    elif action == 'delete':
+        non_deletable = docs.filter(status='completed').count()
+        deletable = docs.exclude(status='completed')
+        count = deletable.count()
+        deletable.delete()
+        if count:
+            messages.success(request, f'{count} document(s) deleted.')
+        if non_deletable:
+            messages.warning(request, f'{non_deletable} completed document(s) cannot be deleted.')
+    elif action == 'resend':
+        count = 0
+        for doc in docs.filter(status__in=['sent', 'viewed']):
+            for signer in doc.signers.exclude(status='completed'):
+                send_signing_request(doc, signer)
+                count += 1
+        messages.success(request, f'Resent to {count} signer(s).')
+
+    return redirect(request.META.get('HTTP_REFERER', reverse_lazy('signatures:list')))
+
+
+@login_required
+@require_POST
+def add_tag(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    tag = request.POST.get('tag', '').strip()
+    if tag and tag not in doc.tags:
+        doc.tags.append(tag)
+        doc.save(update_fields=['tags'])
+    return JsonResponse({'tags': doc.tags})
+
+
+@login_required
+@require_POST
+def remove_tag(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    tag = request.POST.get('tag', '').strip()
+    if tag in doc.tags:
+        doc.tags.remove(tag)
+        doc.save(update_fields=['tags'])
+    return JsonResponse({'tags': doc.tags})

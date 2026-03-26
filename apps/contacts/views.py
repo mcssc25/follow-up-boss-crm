@@ -74,6 +74,17 @@ class ContactDetailView(LoginRequiredMixin, DetailView):
         ctx['notes'] = contact.notes.select_related('author').all()[:20]
         ctx['note_form'] = ContactNoteForm()
         ctx['activity_form'] = LogActivityForm()
+
+        # Documents: find signature documents where a signer's email matches this contact
+        if contact.email:
+            from apps.signatures.models import Document
+            ctx['documents'] = Document.objects.filter(
+                team=self.request.user.team,
+                signers__email__iexact=contact.email,
+            ).distinct().select_related('created_by').order_by('-created_at')
+        else:
+            ctx['documents'] = []
+
         return ctx
 
 

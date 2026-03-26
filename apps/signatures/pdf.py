@@ -29,6 +29,18 @@ def generate_signed_pdf(document):
             pages_fields[page_num] = []
         pages_fields[page_num].append(fv)
 
+    # Also collect prefilled fields that have no signer value
+    from apps.signatures.models import DocumentField
+    prefilled_fields = DocumentField.objects.filter(
+        document=document
+    ).exclude(prefill_value='').exclude(
+        pk__in=[fv.field_id for fv in field_values]
+    )
+    for pf in prefilled_fields:
+        if pf.page not in pages_fields:
+            pages_fields[pf.page] = []
+        pages_fields[pf.page].append(pf)
+
     for page_idx, page in enumerate(reader.pages):
         page_num = page_idx + 1  # fields use 1-indexed pages
         page_width = float(page.mediabox.width)
@@ -39,8 +51,15 @@ def generate_signed_pdf(document):
             overlay_buffer = io.BytesIO()
             c = pdf_canvas.Canvas(overlay_buffer, pagesize=(page_width, page_height))
 
-            for fv in pages_fields[page_num]:
-                field = fv.field
+            for item in pages_fields[page_num]:
+                # item is either a SignerFieldValue or a DocumentField (prefilled)
+                if isinstance(item, DocumentField):
+                    field = item
+                    value = item.prefill_value
+                else:
+                    field = item.field
+                    value = item.value
+
                 x = field.x / 100 * page_width
                 # PDF coordinates are from bottom-left, field positions from top-left
                 y = page_height - (field.y / 100 * page_height) - (field.height / 100 * page_height)
@@ -51,14 +70,14 @@ def generate_signed_pdf(document):
                     # Name field - render as text
                     font_size = min(h * 0.7, 12)
                     c.setFont('Helvetica', font_size)
-                    c.drawString(x + 2, y + h * 0.25, str(fv.value))
-                elif field.field_type in ('signature', 'initials') and fv.value.startswith('data:image'):
+                    c.drawString(x + 2, y + h * 0.25, str(value))
+                elif field.field_type in ('signature', 'initials') and value.startswith('data:image'):
                     # Base64 image
-                    img_data = base64.b64decode(fv.value.split(',')[1])
+                    img_data = base64.b64decode(value.split(',')[1])
                     img = ImageReader(io.BytesIO(img_data))
                     c.drawImage(img, x, y, w, h, preserveAspectRatio=True, mask='auto')
                 elif field.field_type == 'checkbox':
-                    if fv.value == 'true':
+                    if value == 'true':
                         font_size = min(h * 0.8, 14)
                         c.setFont('Helvetica-Bold', font_size)
                         c.drawString(x + 2, y + h * 0.2, '✓')
@@ -66,7 +85,7 @@ def generate_signed_pdf(document):
                     # Text, date
                     font_size = min(h * 0.7, 12)
                     c.setFont('Helvetica', font_size)
-                    c.drawString(x + 2, y + h * 0.25, str(fv.value))
+                    c.drawString(x + 2, y + h * 0.25, str(value))
 
             c.save()
             overlay_buffer.seek(0)

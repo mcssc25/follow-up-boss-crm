@@ -100,6 +100,8 @@ class Document(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     pdf_hash = models.CharField(max_length=64, blank=True, help_text='SHA-256 hash of signed PDF')
+    is_archived = models.BooleanField(default=False)
+    tags = models.JSONField(default=list, blank=True, help_text='List of tag strings')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -121,6 +123,22 @@ class Document(models.Model):
     @property
     def all_signed(self):
         return self.signers.exists() and not self.signers.exclude(status='completed').exists()
+
+
+class DocumentFile(models.Model):
+    """Tracks individual uploaded PDFs within a Document (for multi-file uploads)."""
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='source_files')
+    original_filename = models.CharField(max_length=255)
+    pdf_file = models.FileField(upload_to='signatures/originals/')
+    page_start = models.PositiveIntegerField(help_text='First page number in the merged PDF (1-based)')
+    page_end = models.PositiveIntegerField(help_text='Last page number in the merged PDF (1-based)')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.original_filename} (pages {self.page_start}-{self.page_end})"
 
 
 class DocumentSigner(models.Model):
@@ -166,6 +184,8 @@ class DocumentField(models.Model):
     assigned_to = models.ForeignKey(DocumentSigner, on_delete=models.CASCADE, related_name='fields')
     field_type = models.CharField(max_length=20, choices=FIELD_TYPES)
     label = models.CharField(max_length=100, blank=True)
+    prefill_value = models.TextField(blank=True, help_text='Pre-filled value set by sender on the prepare page')
+    read_only = models.BooleanField(default=False, help_text='If true, signer sees the value but cannot edit it')
     page = models.PositiveIntegerField()
     x = models.FloatField()
     y = models.FloatField()

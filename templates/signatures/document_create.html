@@ -8,13 +8,13 @@
 </div>
 
 <div class="max-w-2xl">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Upload Document for Signing</h1>
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Upload Documents for Signing</h1>
 
     <form method="post" enctype="multipart/form-data" class="bg-white shadow-sm border border-gray-200 rounded-lg p-6 space-y-6">
         {% csrf_token %}
 
         <div>
-            <label for="id_title" class="block text-sm font-medium text-gray-700">Document Title</label>
+            <label for="id_title" class="block text-sm font-medium text-gray-700">Package Title</label>
             {{ form.title }}
             {% if form.title.errors %}
             <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
@@ -22,20 +22,26 @@
         </div>
 
         <div>
-            <label for="id_pdf_file" class="block text-sm font-medium text-gray-700">PDF File</label>
-            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                <div class="space-y-1 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l10.172-10.172a4 4 0 015.656 0L28 26m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <div class="text-sm text-gray-600">
-                        {{ form.pdf_file }}
-                    </div>
-                    <p class="text-xs text-gray-500">PDF up to 50MB</p>
-                </div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">PDF Files</label>
+            <div id="drop-zone"
+                 class="mt-1 flex flex-col items-center justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l10.172-10.172a4 4 0 015.656 0L28 26m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p class="mt-2 text-sm text-gray-600">Drag & drop PDF files here, or <span class="text-indigo-600 font-medium">click to browse</span></p>
+                <p class="mt-1 text-xs text-gray-500">Upload one or more PDFs (up to 50MB each)</p>
+                <input type="file" name="pdf_files" id="id_pdf_files" multiple accept=".pdf"
+                       class="hidden">
             </div>
-            {% if form.pdf_file.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ form.pdf_file.errors.0 }}</p>
+
+            <!-- File list preview -->
+            <div id="file-list" class="mt-3 space-y-2 hidden">
+                <p class="text-xs font-medium text-gray-500 uppercase">Selected files:</p>
+                <div id="file-items"></div>
+            </div>
+
+            {% if form.pdf_files.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.pdf_files.errors.0 }}</p>
             {% endif %}
         </div>
 
@@ -53,11 +59,88 @@
                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                 Cancel
             </a>
-            <button type="submit"
+            <button type="submit" id="upload-btn"
                     class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 Upload & Continue
             </button>
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('id_pdf_files');
+    const fileList = document.getElementById('file-list');
+    const fileItems = document.getElementById('file-items');
+
+    // Click to browse
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // Drag & drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-indigo-500', 'bg-indigo-50');
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+        const dt = new DataTransfer();
+        // Keep existing files
+        if (fileInput.files) {
+            for (const f of fileInput.files) dt.items.add(f);
+        }
+        // Add new dropped files
+        for (const f of e.dataTransfer.files) {
+            if (f.name.toLowerCase().endsWith('.pdf')) dt.items.add(f);
+        }
+        fileInput.files = dt.files;
+        updateFileList();
+    });
+
+    fileInput.addEventListener('change', updateFileList);
+
+    function updateFileList() {
+        fileItems.innerHTML = '';
+        if (fileInput.files.length === 0) {
+            fileList.classList.add('hidden');
+            return;
+        }
+        fileList.classList.remove('hidden');
+        for (let i = 0; i < fileInput.files.length; i++) {
+            const f = fileInput.files[i];
+            const size = (f.size / 1024 / 1024).toFixed(1);
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between px-3 py-2 bg-gray-50 rounded-md border border-gray-200';
+            div.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+                    <span class="text-sm text-gray-700">${f.name}</span>
+                    <span class="text-xs text-gray-400">${size} MB</span>
+                </div>
+                <button type="button" class="text-gray-400 hover:text-red-500 remove-file" data-index="${i}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            `;
+            fileItems.appendChild(div);
+        }
+
+        // Remove file buttons
+        document.querySelectorAll('.remove-file').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(this.dataset.index);
+                const dt = new DataTransfer();
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    if (i !== idx) dt.items.add(fileInput.files[i]);
+                }
+                fileInput.files = dt.files;
+                updateFileList();
+            });
+        });
+    }
+});
+</script>
 {% endblock %}
