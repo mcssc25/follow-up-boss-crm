@@ -18,9 +18,11 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('agent', 'Agent'),
+        ('student', 'Student'),
     ]
 
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='agent')
+    stripe_customer_id = models.CharField(max_length=255, blank=True, help_text='For future payment integration')
     team = models.ForeignKey(
         Team,
         on_delete=models.SET_NULL,
@@ -37,6 +39,10 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         return self.role == 'admin'
+
+    @property
+    def is_student(self):
+        return self.role == 'student'
 
     def __str__(self):
         return self.get_full_name() or self.username
