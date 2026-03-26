@@ -76,6 +76,7 @@ PROJECT_APPS = [
     'apps.signatures',
     'apps.scheduling',
     'apps.courses',
+    'apps.pwa',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
@@ -318,6 +319,14 @@ if not DEBUG:
         SECURE_HSTS_INCLUDE_SUBDOMAINS = True
         SECURE_HSTS_PRELOAD = True
     X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# ---------------------------------------------------------------------------
+# Push Notifications (Web Push / VAPID)
+# ---------------------------------------------------------------------------
+
+VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')
+VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
+VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'admin@bigbeachal.com')
 
 # ---------------------------------------------------------------------------
 # Logging

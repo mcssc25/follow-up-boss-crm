@@ -28,6 +28,7 @@ urlpatterns = [
     path('', include('apps.scheduling.urls')),
     path('courses/', include('apps.courses.urls_admin')),
     path('portal/', include('apps.courses.urls_portal')),
+    path('pwa/', include('apps.pwa.urls')),
 ]
 
 if settings.DEBUG:
