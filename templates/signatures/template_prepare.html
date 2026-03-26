@@ -148,6 +148,7 @@
     let dragFieldType = null;
     let selectedFields = [];
     let clipboardFields = [];
+    let skipNextClick = false;
 
     const existingFields = [
         {% for field in template_fields %}
@@ -280,8 +281,9 @@
         updateFieldsSummary();
     });
 
-    // Click empty area deselects
+    // Click empty area deselects (but skip after lasso)
     document.addEventListener('click', (e) => {
+        if (skipNextClick) { skipNextClick = false; return; }
         if (!e.target.closest('.placed-field') && !e.target.closest('.field-tool') && !e.target.closest('#active-role')) {
             clearSelection();
         }
@@ -414,6 +416,7 @@
                 placedFields.filter(f => f.page === pageNum).forEach(f => {
                     if (f.x < lx2 && f.x + f.width > lx1 && f.y < ly2 && f.y + f.height > ly1) selectField(f, true);
                 });
+                skipNextClick = true;
             }
             lassoRect.remove(); lassoRect = null;
         });
