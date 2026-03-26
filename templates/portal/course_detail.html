@@ -1,0 +1,105 @@
+{% extends "portal/portal_base.html" %}
+
+{% block title %}{{ course.title }} - BigBeachAL Academy{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Hero -->
+    <div class="mb-8">
+        {% if course.thumbnail %}
+        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-64 object-cover rounded-lg mb-6">
+        {% endif %}
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">{{ course.title }}</h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    By {{ course.instructor.get_full_name|default:course.instructor.username }}
+                    &middot; {{ course.total_modules }} modules &middot; {{ course.total_lessons }} lessons
+                </p>
+            </div>
+            <span class="text-sm font-medium px-3 py-1 rounded-full
+                {% if course.is_free %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                {% if course.is_free %}Free{% else %}${{ course.price }}{% endif %}
+            </span>
+        </div>
+        {% if course.description %}
+        <p class="mt-4 text-gray-600 leading-relaxed">{{ course.description }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Enroll / Progress -->
+    {% if enrollment %}
+    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-8">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-700">Your progress</span>
+            <span class="text-sm text-gray-500">{{ enrollment.progress_percent }}% complete</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-3">
+            <div class="bg-blue-600 h-3 rounded-full transition-all" style="width: {{ enrollment.progress_percent }}%"></div>
+        </div>
+    </div>
+    {% else %}
+    <form method="post" action="{% url 'portal:course_enroll' slug=course.slug %}" class="mb-8">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full py-3 px-6 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition text-lg">
+            Enroll Now {% if not course.is_free %}&mdash; ${{ course.price }}{% endif %}
+        </button>
+    </form>
+    {% endif %}
+
+    <!-- Module List -->
+    <div class="space-y-4">
+        {% for module in modules %}
+        {% with module_num=forloop.counter %}
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div class="px-6 py-4 flex items-center justify-between
+                {% if enrollment and enrollment.is_module_unlocked == module_num %}{% else %}{% if enrollment %}bg-gray-50{% endif %}{% endif %}">
+                <div class="flex items-center space-x-3">
+                    {% if enrollment and module.order <= enrollment.current_module_unlocked %}
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-bold">{{ module_num }}</span>
+                    {% else %}
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-400 text-sm font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </span>
+                    {% endif %}
+                    <div>
+                        <h3 class="font-semibold text-gray-900">{{ module.title }}</h3>
+                        <p class="text-xs text-gray-500">{{ module.total_lessons }} lessons</p>
+                    </div>
+                </div>
+                {% if enrollment and module.order > enrollment.current_module_unlocked %}
+                    {% if course.unlock_mode == 'time_drip' and enrollment.next_unlock_date %}
+                    <span class="text-xs text-gray-400">Unlocks {{ enrollment.next_unlock_date|date:"M d" }}</span>
+                    {% else %}
+                    <span class="text-xs text-gray-400">Complete previous module to unlock</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            {% if not enrollment or module.order <= enrollment.current_module_unlocked %}
+            <div class="border-t border-gray-100">
+                {% for lesson in module.lessons.all %}
+                <a href="{% if enrollment %}{% url 'portal:lesson_view' slug=course.slug module_order=module.order lesson_order=lesson.order %}{% else %}#{% endif %}"
+                   class="flex items-center px-6 py-3 hover:bg-gray-50 transition {% if not enrollment %}opacity-50 cursor-default{% endif %}">
+                    <svg class="w-5 h-5 mr-3 {% if lesson.id in completed_ids %}text-green-500{% else %}text-gray-300{% endif %}"
+                         fill="{% if lesson.id in completed_ids %}currentColor{% else %}none{% endif %}"
+                         stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm text-gray-700">{{ lesson.title }}</span>
+                    {% if lesson.duration_minutes %}
+                    <span class="ml-auto text-xs text-gray-400">{{ lesson.duration_minutes }} min</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
