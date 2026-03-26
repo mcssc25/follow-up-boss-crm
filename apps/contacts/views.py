@@ -10,6 +10,7 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from apps.accounts.models import User
 from apps.contacts.forms import ContactForm, ContactNoteForm, LogActivityForm, SmartListForm
 from apps.contacts.models import Contact, ContactActivity, ContactNote, SmartList
+from apps.pwa.push import send_push_notification
 
 
 class ContactListView(LoginRequiredMixin, ListView):
@@ -100,8 +101,16 @@ class ContactCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.team = self.request.user.team
+        response = super().form_valid(form)
+        contact = self.object
+        send_push_notification(
+            user=self.request.user,
+            title='New Contact Added',
+            body=f'{contact.first_name} {contact.last_name} has been added',
+            url=f'/contacts/{contact.pk}/',
+        )
         messages.success(self.request, 'Contact created successfully.')
-        return super().form_valid(form)
+        return response
 
     def get_success_url(self):
         return self.object.get_absolute_url()

@@ -5,6 +5,7 @@ from celery import shared_task
 from django.utils import timezone
 
 from apps.accounts.notifications import notify_overdue_digest, notify_task_reminder
+from apps.pwa.push import send_push_notification
 
 from .models import Task
 
@@ -27,6 +28,12 @@ def send_due_reminders():
     count = 0
     for task in upcoming:
         notify_task_reminder(task)
+        send_push_notification(
+            user=task.assigned_to,
+            title='Task Due Soon',
+            body=f'{task.title} is due in less than an hour',
+            url='/tasks/',
+        )
         count += 1
 
     logger.info("Sent %d task due reminders", count)
