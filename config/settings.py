@@ -96,6 +96,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
+    'apps.courses.middleware.SubdomainMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -288,6 +289,13 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=8, minute=0),  # Daily at 8 AM
     },
 }
+
+# ---------------------------------------------------------------------------
+# Course Portal
+# ---------------------------------------------------------------------------
+
+PORTAL_SUBDOMAIN = os.getenv('PORTAL_SUBDOMAIN', 'courses')
+PORTAL_URL = os.getenv('PORTAL_URL', 'http://courses.localhost:8000')
 
 # ---------------------------------------------------------------------------
 # Security (production hardening — active when DEBUG is False)
