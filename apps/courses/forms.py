@@ -35,7 +35,7 @@ class StudentSignupForm(UserCreationForm):
 
 class CourseForm(forms.Form):
     title = forms.CharField(max_length=200)
-    slug = forms.SlugField(max_length=100)
+    slug = forms.SlugField(max_length=100, required=False, help_text='Leave blank to auto-generate from title')
     description = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}), required=False)
     thumbnail = forms.ImageField(required=False)
     unlock_mode = forms.ChoiceField(choices=[
