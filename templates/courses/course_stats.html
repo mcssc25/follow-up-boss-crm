@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.title }} - Statistics - CRM{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'courses:course_edit' course.pk %}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to {{ course.title }}</a>
+</div>
+
+<h1 class="text-2xl font-bold text-gray-900 mb-6">{{ course.title }} - Statistics</h1>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+        <p class="text-sm font-medium text-gray-500">Total Enrolled</p>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_enrolled }}</p>
+    </div>
+    <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+        <p class="text-sm font-medium text-gray-500">Average Progress</p>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ avg_progress }}%</p>
+    </div>
+</div>
+
+<!-- Module Completion -->
+<div class="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">Module Completion</h2>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Module</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for stat in module_stats %}
+            <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ stat.module.title }}</td>
+                <td class="px-4 py-3 text-sm">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-32 bg-gray-200 rounded-full h-2">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ stat.completion_pct }}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600">{{ stat.completion_pct }}%</span>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2" class="px-4 py-8 text-center text-sm text-gray-500">No modules yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Lesson Engagement -->
+<div class="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">Lesson Engagement</h2>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lesson</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Module</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for stat in lesson_stats %}
+            <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ stat.lesson.title }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ stat.module.title }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ stat.views }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ stat.completions }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">No lesson data yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

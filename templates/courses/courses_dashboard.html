@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Course Dashboard - CRM{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Course Dashboard</h1>
+    <a href="{% url 'courses:course_list' %}"
+       class="inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50">
+        &larr; All Courses
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+        <p class="text-sm font-medium text-gray-500">Total Students</p>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_students }}</p>
+    </div>
+    <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+        <p class="text-sm font-medium text-gray-500">Active Students (7d)</p>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ active_students }}</p>
+    </div>
+    <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+        <p class="text-sm font-medium text-gray-500">Total Courses</p>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_courses }}</p>
+    </div>
+    <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+        <p class="text-sm font-medium text-gray-500">Published Courses</p>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ published_courses }}</p>
+    </div>
+</div>
+
+<!-- Per-Course Stats -->
+<div class="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">Course Overview</h2>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrolled</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Completion</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for stat in course_stats %}
+            <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-indigo-50">
+                <td class="px-4 py-3 text-sm">
+                    <a href="{% url 'courses:course_edit' stat.course.pk %}" class="font-medium text-indigo-600 hover:text-indigo-800">{{ stat.course.title }}</a>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ stat.enrollment_count }}</td>
+                <td class="px-4 py-3 text-sm">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-24 bg-gray-200 rounded-full h-2">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ stat.avg_completion }}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600">{{ stat.avg_completion }}%</span>
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-sm">
+                    {% if stat.course.is_published %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Published</span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Draft</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">
+                    No courses yet. <a href="{% url 'courses:course_create' %}" class="text-indigo-600 hover:underline">Create your first course</a>.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
