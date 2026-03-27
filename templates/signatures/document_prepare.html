@@ -278,7 +278,9 @@
         const loadingTask = pdfjsLib.getDocument(PDF_URL);
         const pdf = await loadingTask.promise;
         const container = document.getElementById('pdf-pages');
+        const pdfContainer = document.getElementById('pdf-container');
         container.innerHTML = '';
+        const maxWidth = pdfContainer.clientWidth - 48; // padding
 
         for (let i = 1; i <= pdf.numPages; i++) {
             // Insert document divider if this is the start of a new source file
@@ -298,7 +300,8 @@
             }
 
             const page = await pdf.getPage(i);
-            const scale = 1.5;
+            const defaultVp = page.getViewport({ scale: 1 });
+            const scale = Math.min(maxWidth / defaultVp.width, 1.5);
             const viewport = page.getViewport({ scale });
 
             // Page wrapper

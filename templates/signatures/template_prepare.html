@@ -328,10 +328,14 @@
     async function loadPDF() {
         const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
         const container = document.getElementById('pdf-pages');
+        const pdfContainer = document.getElementById('pdf-container');
         container.innerHTML = '';
+        const maxWidth = pdfContainer.clientWidth - 48; // padding
         for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
-            const vp = page.getViewport({ scale: 1.5 });
+            const defaultVp = page.getViewport({ scale: 1 });
+            const scale = Math.min(maxWidth / defaultVp.width, 1.5);
+            const vp = page.getViewport({ scale });
             const wrap = document.createElement('div');
             wrap.className = 'pdf-page-wrapper relative bg-white shadow-lg';
             wrap.dataset.page = i;
