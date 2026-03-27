@@ -1,6 +1,7 @@
 import hashlib
 import io
 import json
+import threading
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -470,56 +471,87 @@ def submit_signing(request, token):
         return JsonResponse({'error': 'Cannot sign this document.'}, status=400)
 
     data = json.loads(request.body)
+    ip_address = request.META.get('REMOTE_ADDR')
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
 
+    # Prefetch all fields for this signer in one query
+    field_ids = [fd['field_id'] for fd in data.get('fields', [])]
+    fields_by_id = {
+        f.pk: f for f in DocumentField.objects.filter(
+            pk__in=field_ids, assigned_to=signer,
+        )
+    }
+
+    audit_events = []
     for field_data in data.get('fields', []):
-        field = get_object_or_404(DocumentField, pk=field_data['field_id'], assigned_to=signer)
+        field = fields_by_id.get(field_data['field_id'])
+        if not field:
+            continue
         SignerFieldValue.objects.update_or_create(
             field=field, signer=signer,
             defaults={'value': field_data['value']},
         )
-        AuditEvent.objects.create(
+        audit_events.append(AuditEvent(
             document=doc, signer=signer, event_type='field_signed',
             detail=f"Signed {field.get_field_type_display()} on page {field.page}",
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-        )
+            ip_address=ip_address, user_agent=user_agent,
+        ))
+
+    # Bulk create field audit events
+    if audit_events:
+        AuditEvent.objects.bulk_create(audit_events)
 
     signer.status = 'completed'
     signer.signed_at = timezone.now()
-    signer.ip_address = request.META.get('REMOTE_ADDR')
-    signer.user_agent = request.META.get('HTTP_USER_AGENT', '')
+    signer.ip_address = ip_address
+    signer.user_agent = user_agent
     signer.save()
 
     AuditEvent.objects.create(
         document=doc, signer=signer, event_type='completed',
-        ip_address=request.META.get('REMOTE_ADDR'),
-        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+        ip_address=ip_address, user_agent=user_agent,
     )
 
-    # Send confirmation to signer
-    from apps.signatures.email import (
-        send_signer_confirmation, send_completion_notification, send_completed_copy_to_signers,
-    )
-    send_signer_confirmation(signer)
+    all_signed = doc.all_signed
 
-    # Check if all signers are done
-    if doc.all_signed:
-        from apps.signatures.pdf import generate_signed_pdf
-        generate_signed_pdf(doc)
-        doc.status = 'completed'
-        doc.completed_at = timezone.now()
-        doc.save()
-        send_completion_notification(doc)
-        send_completed_copy_to_signers(doc)
-        if doc.contact:
-            from apps.contacts.models import ContactActivity
-            ContactActivity.objects.create(
-                contact=doc.contact, team=doc.team,
-                activity_type='document_signed',
-                description=f'Document fully signed: {doc.title}',
-            )
+    # Run emails and PDF generation in background thread
+    def _post_signing_tasks(signer_pk, doc_pk, is_all_signed):
+        import django
+        django.db.connection.close()
+        from apps.signatures.models import DocumentSigner as DS, Document as Doc
+        from apps.signatures.email import (
+            send_signer_confirmation, send_completion_notification, send_completed_copy_to_signers,
+        )
+        try:
+            s = DS.objects.get(pk=signer_pk)
+            send_signer_confirmation(s)
+            if is_all_signed:
+                d = Doc.objects.get(pk=doc_pk)
+                from apps.signatures.pdf import generate_signed_pdf
+                generate_signed_pdf(d)
+                d.status = 'completed'
+                d.completed_at = timezone.now()
+                d.save()
+                send_completion_notification(d)
+                send_completed_copy_to_signers(d)
+                if d.contact:
+                    from apps.contacts.models import ContactActivity
+                    ContactActivity.objects.create(
+                        contact=d.contact, team=d.team,
+                        activity_type='document_signed',
+                        description=f'Document fully signed: {d.title}',
+                    )
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Post-signing tasks failed')
 
-    return JsonResponse({'status': 'ok', 'all_complete': doc.all_signed})
+    threading.Thread(
+        target=_post_signing_tasks,
+        args=(signer.pk, doc.pk, all_signed),
+        daemon=True,
+    ).start()
+
+    return JsonResponse({'status': 'ok', 'all_complete': all_signed})
 
 
 @csrf_exempt
