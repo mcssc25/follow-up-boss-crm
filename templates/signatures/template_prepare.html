@@ -126,12 +126,12 @@
     const FIELDS_URL = '{% url "signatures:template_save_fields" template.pk %}';
     const ROLE_COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
     const FIELD_DEFAULTS = {
-        signature: { width: 20, height: 5 },
-        initials: { width: 10, height: 5 },
-        name: { width: 25, height: 3 },
-        text: { width: 25, height: 3 },
-        date: { width: 15, height: 3 },
-        checkbox: { width: 3, height: 3 },
+        signature: { width: 22, height: 6 },
+        initials: { width: 12, height: 5 },
+        name: { width: 25, height: 4 },
+        text: { width: 25, height: 4 },
+        date: { width: 16, height: 4 },
+        checkbox: { width: 3.5, height: 3.5 },
     };
     const FIELD_LABELS = {
         signature: 'Signature',
@@ -431,7 +431,7 @@
         const overlayHeight = overlay.getBoundingClientRect().height;
         const heightPct = parseFloat(el.style.height);
         const fieldHeightPx = (heightPct / 100) * overlayHeight;
-        const fontSize = Math.max(8, Math.min(fieldHeightPx * 0.6, 32));
+        const fontSize = Math.max(10, Math.min(fieldHeightPx * 0.7, 32));
         const span = el.querySelector('span:first-child');
         if (span) span.style.fontSize = fontSize + 'px';
     }
