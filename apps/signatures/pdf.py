@@ -148,24 +148,26 @@ def generate_signed_pdf(document):
                 w = field.width / 100 * page_width
                 h = field.height / 100 * page_height
 
+                # Ensure minimum usable dimensions
+                w = max(w, page_width * 0.12)
+                h = max(h, page_height * 0.025)
+
                 if field.field_type == 'name':
-                    # Name field - render as text
-                    font_size = min(h * 0.7, 12)
+                    font_size = max(10, min(h * 0.7, 16))
                     c.setFont('Helvetica', font_size)
                     c.drawString(x + 2, y + h * 0.25, str(value))
                 elif field.field_type in ('signature', 'initials') and value.startswith('data:image'):
-                    # Base64 image
                     img_data = base64.b64decode(value.split(',')[1])
                     img = ImageReader(io.BytesIO(img_data))
                     c.drawImage(img, x, y, w, h, preserveAspectRatio=True, mask='auto')
                 elif field.field_type == 'checkbox':
                     if value == 'true':
-                        font_size = min(h * 0.8, 14)
+                        font_size = max(10, min(h * 0.8, 16))
                         c.setFont('Helvetica-Bold', font_size)
                         c.drawString(x + 2, y + h * 0.2, '✓')
                 else:
                     # Text, date
-                    font_size = min(h * 0.7, 12)
+                    font_size = max(10, min(h * 0.7, 16))
                     c.setFont('Helvetica', font_size)
                     c.drawString(x + 2, y + h * 0.25, str(value))
 
