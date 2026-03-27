@@ -352,7 +352,7 @@
             const overlayHeight = overlay.getBoundingClientRect().height;
             const heightPct = parseFloat(el.style.height);
             const fieldHeightPx = (heightPct / 100) * overlayHeight;
-            const fontSize = Math.max(8, Math.min(fieldHeightPx * 0.6, 32));
+            const fontSize = Math.max(11, Math.min(fieldHeightPx * 0.75, 32));
             const span = el.querySelector('span');
             if (span) span.style.fontSize = fontSize + 'px';
         }
@@ -363,8 +363,9 @@
             el.className = 'absolute cursor-pointer transition-all';
             el.style.left = field.x + '%';
             el.style.top = field.y + '%';
-            el.style.width = field.width + '%';
-            el.style.height = field.height + '%';
+            el.style.width = Math.max(field.width, 12) + '%';
+            el.style.height = Math.max(field.height, 3.5) + '%';
+            el.style.minHeight = '28px';
             el.style.border = '2px solid #4f46e5';
             el.style.backgroundColor = 'rgba(79, 70, 229, 0.08)';
             el.style.borderRadius = '4px';
