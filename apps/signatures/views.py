@@ -147,20 +147,23 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
         pdf_files = self.request.FILES.getlist('pdf_files')
 
         if len(pdf_files) == 1:
-            # Single file — save directly as before
+            # Read page count before Django consumes the temp file on save
+            reader = PdfReader(pdf_files[0])
+            num_pages = len(reader.pages)
+            original_name = pdf_files[0].name
+            pdf_files[0].seek(0)
             form.instance.pdf_file = pdf_files[0]
             response = super().form_valid(form)
-            # Track as a DocumentFile too
-            reader = PdfReader(pdf_files[0])
-            pdf_files[0].seek(0)
-            DocumentFile.objects.create(
+            # Track as a DocumentFile — point to the same saved file
+            doc_file = DocumentFile(
                 document=self.object,
-                original_filename=pdf_files[0].name,
-                pdf_file=pdf_files[0],
+                original_filename=original_name,
                 page_start=1,
-                page_end=len(reader.pages),
+                page_end=num_pages,
                 order=0,
             )
+            doc_file.pdf_file.name = self.object.pdf_file.name
+            doc_file.save()
         else:
             # Multiple files — merge into one combined PDF
             writer = PdfWriter()
