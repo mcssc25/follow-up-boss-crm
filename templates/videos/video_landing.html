@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ video.title }} - Big Beach AL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="max-w-3xl mx-auto py-8 px-4">
+        <!-- Logo / Branding -->
+        <div class="text-center mb-6">
+            <h2 class="text-lg font-bold text-gray-800">Big Beach AL</h2>
+        </div>
+
+        <!-- Video Player -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="aspect-video bg-black">
+                {% if video.storage_type == 'youtube' and video.youtube_id %}
+                    <iframe id="yt-player"
+                            src="https://www.youtube.com/embed/{{ video.youtube_id }}?enablejsapi=1"
+                            class="w-full h-full" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                {% elif video.video_file %}
+                    <video id="video-player" controls class="w-full h-full">
+                        <source src="{{ video.video_file.url }}" type="video/mp4">
+                    </video>
+                {% endif %}
+            </div>
+            <div class="p-6">
+                <h1 class="text-xl font-bold text-gray-900">{{ video.title }}</h1>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-sm text-gray-400">
+            Sent with Big Beach AL CRM
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const token = '{{ tracking_token }}';
+        const trackUrl = '/v/{{ video.uuid }}/track/';
+        let lastReported = 0;
+
+        function sendProgress(duration) {
+            if (duration <= lastReported) return;
+            lastReported = duration;
+            navigator.sendBeacon(trackUrl, JSON.stringify({
+                duration: Math.round(duration),
+                token: token || null,
+            }));
+        }
+
+        // HTML5 video tracking
+        const player = document.getElementById('video-player');
+        if (player) {
+            let interval;
+            player.addEventListener('play', () => {
+                interval = setInterval(() => sendProgress(player.currentTime), 10000);
+            });
+            player.addEventListener('pause', () => {
+                clearInterval(interval);
+                sendProgress(player.currentTime);
+            });
+            player.addEventListener('ended', () => {
+                clearInterval(interval);
+                sendProgress(player.duration);
+            });
+        }
+    })();
+    </script>
+</body>
+</html>
