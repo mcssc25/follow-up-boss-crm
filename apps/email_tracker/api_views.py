@@ -72,11 +72,11 @@ def register_email(request):
 @require_POST
 @require_api_key
 def get_status(request):
-    """Get tracking status for a list of Gmail message IDs.
+    """Get tracking status for a list of tracked email IDs.
 
     POST body (JSON):
     {
-        "gmail_message_ids": ["msg-abc123", "msg-def456"]
+        "email_ids": ["uuid-1", "uuid-2"]
     }
     """
     try:
@@ -84,12 +84,12 @@ def get_status(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-    message_ids = data.get('gmail_message_ids', [])
-    if not message_ids:
+    email_ids = data.get('email_ids', [])
+    if not email_ids:
         return JsonResponse({})
 
     emails = TrackedEmail.objects.filter(
-        gmail_message_id__in=message_ids
+        id__in=email_ids
     ).prefetch_related(
         'recipients__opens',
         'recipients__clicks__link',
@@ -116,6 +116,6 @@ def get_status(request):
                 ],
             })
 
-        result[email.gmail_message_id] = {'recipients': recipients_data}
+        result[str(email.id)] = {'recipients': recipients_data}
 
     return JsonResponse(result)
