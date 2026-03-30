@@ -32,3 +32,18 @@ def upload_to_youtube(video_path, title, credentials_dict):
     request = youtube.videos().insert(part='snippet,status', body=body, media_body=media)
     response = request.execute()
     return response['id']
+
+
+def delete_from_youtube(youtube_id, credentials_dict):
+    """Delete a video from YouTube."""
+    creds = Credentials(
+        token=credentials_dict['access_token'],
+        refresh_token=credentials_dict.get('refresh_token'),
+        token_uri='https://oauth2.googleapis.com/token',
+        client_id=credentials_dict['client_id'],
+        client_secret=credentials_dict['client_secret'],
+        scopes=['https://www.googleapis.com/auth/youtube'],
+    )
+
+    youtube = build('youtube', 'v3', credentials=creds)
+    youtube.videos().delete(id=youtube_id).execute()

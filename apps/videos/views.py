@@ -107,6 +107,21 @@ def video_edit(request, pk):
 @require_POST
 def video_delete(request, pk):
     video = get_object_or_404(Video, pk=pk, team=request.user.team)
+    # Delete from YouTube if applicable
+    if video.storage_type == Video.STORAGE_YOUTUBE and video.youtube_id:
+        try:
+            from .youtube import delete_from_youtube
+            from django.conf import settings as django_settings
+            user = request.user
+            if user.gmail_access_token and user.gmail_refresh_token:
+                delete_from_youtube(video.youtube_id, {
+                    'access_token': user.gmail_access_token,
+                    'refresh_token': user.gmail_refresh_token,
+                    'client_id': django_settings.GOOGLE_CLIENT_ID,
+                    'client_secret': django_settings.GOOGLE_CLIENT_SECRET,
+                })
+        except Exception:
+            pass  # Still delete from CRM even if YouTube delete fails
     video.delete()
     messages.success(request, 'Video deleted.')
     return redirect('videos:list')
