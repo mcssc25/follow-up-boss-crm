@@ -34,6 +34,7 @@ urlpatterns = [
     path('pwa/', include('apps.pwa.urls')),
     path('videos/', include('apps.videos.urls')),
     path('v/', include('apps.videos.urls_public')),
+    path('t/', include('apps.email_tracker.urls')),
 ]
 
 if settings.DEBUG:
