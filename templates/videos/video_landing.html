@@ -18,7 +18,7 @@
             <div class="aspect-video bg-black">
                 {% if video.storage_type == 'youtube' and video.youtube_id %}
                     <iframe id="yt-player"
-                            src="https://www.youtube.com/embed/{{ video.youtube_id }}?enablejsapi=1"
+                            src="https://www.youtube-nocookie.com/embed/{{ video.youtube_id }}?enablejsapi=1"
                             class="w-full h-full" frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen></iframe>
