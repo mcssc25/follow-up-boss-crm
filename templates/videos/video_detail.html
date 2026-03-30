@@ -21,9 +21,10 @@
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div class="aspect-video bg-black">
                     {% if video.storage_type == 'youtube' and video.youtube_id %}
-                        <iframe src="https://www.youtube-nocookie.com/embed/{{ video.youtube_id }}"
+                        <iframe src="https://www.youtube-nocookie.com/embed/{{ video.youtube_id }}?origin=https://crm.bigbeachal.com&rel=0"
                                 class="w-full h-full" frameborder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerpolicy="strict-origin-when-cross-origin"
                                 allowfullscreen></iframe>
                     {% elif video.video_file %}
                         <video controls class="w-full h-full">
