@@ -162,6 +162,20 @@ def video_landing(request, uuid):
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
         )
 
+    # Send push notification to video creator
+    if video.created_by:
+        from apps.pwa.push import send_push_notification
+        if contact:
+            body = f'{contact} watched your video "{video.title}"'
+        else:
+            body = f'Someone watched your video "{video.title}"'
+        send_push_notification(
+            video.created_by,
+            'Video Viewed',
+            body,
+            url=video.get_absolute_url(),
+        )
+
     return render(request, 'videos/video_landing.html', {
         'video': video,
         'tracking_token': tracking_token or '',
