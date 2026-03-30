@@ -24,6 +24,7 @@ def upload_to_youtube(video_path, title, credentials_dict):
         },
         'status': {
             'privacyStatus': 'unlisted',
+            'embeddable': True,
         },
     }
 
