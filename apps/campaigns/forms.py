@@ -45,7 +45,7 @@ class CampaignForm(forms.ModelForm):
 class CampaignStepForm(forms.ModelForm):
     class Meta:
         model = CampaignStep
-        fields = ['order', 'delay_days', 'delay_hours', 'subject', 'body', 'video_file']
+        fields = ['order', 'delay_days', 'delay_hours', 'subject', 'body', 'video_file', 'video']
         widgets = {
             'order': forms.NumberInput(attrs={
                 'class': INPUT_CSS,
@@ -71,9 +71,24 @@ class CampaignStepForm(forms.ModelForm):
             'video_file': forms.ClearableFileInput(attrs={
                 'class': INPUT_CSS,
             }),
+            'video': forms.Select(attrs={
+                'class': INPUT_CSS,
+            }),
         }
         labels = {
             'delay_days': 'Delay (days)',
             'delay_hours': 'Delay (hours)',
             'video_file': 'Video attachment',
+            'video': 'Video from library',
         }
+
+    def __init__(self, *args, team=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['video'].required = False
+        if team:
+            from apps.videos.models import Video
+            self.fields['video'].queryset = Video.objects.filter(
+                team=team, status=Video.STATUS_READY,
+            )
+        else:
+            self.fields['video'].queryset = self.fields['video'].queryset.none()

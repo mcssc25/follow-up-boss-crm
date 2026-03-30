@@ -74,7 +74,7 @@ def send_campaign_email(enrollment_id):
     rendered_subject = render_campaign_email(step.subject, contact, agent)
 
     # Append video thumbnail/play button if step has a video
-    if step.video_file:
+    if step.video or step.video_file:
         base_url = getattr(settings, 'BASE_URL', 'https://crm.yourdomain.com').rstrip('/')
         rendered_body += get_video_html(step, contact, base_url)
 

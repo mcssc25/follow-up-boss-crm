@@ -56,6 +56,7 @@ class Campaign(models.Model):
                 subject=step.subject,
                 body=step.body,
                 video_file=step.video_file if step.video_file else None,
+                video=step.video,
             )
         return new_campaign
 
@@ -75,6 +76,13 @@ class CampaignStep(models.Model):
     )
     video_file = models.FileField(upload_to='campaign_videos/', blank=True, null=True)
     video_thumbnail = models.ImageField(upload_to='campaign_thumbnails/', blank=True, null=True)
+    video = models.ForeignKey(
+        'videos.Video',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='campaign_steps',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
