@@ -78,6 +78,7 @@ PROJECT_APPS = [
     'apps.courses',
     'apps.pwa',
     'apps.videos',
+    'apps.email_tracker',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
@@ -328,6 +329,12 @@ if not DEBUG:
 VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')
 VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
 VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'admin@bigbeachal.com')
+
+# ---------------------------------------------------------------------------
+# Email Tracker
+# ---------------------------------------------------------------------------
+
+EMAIL_TRACKER_API_KEY = os.getenv('EMAIL_TRACKER_API_KEY', '')
 
 # ---------------------------------------------------------------------------
 # Logging
