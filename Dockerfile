@@ -1,9 +1,10 @@
 FROM python:3.12-slim
 
-# Install system dependencies for psycopg2
+# Install system dependencies for psycopg2 and video processing
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
