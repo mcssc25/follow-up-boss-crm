@@ -52,10 +52,11 @@ class GoogleCalendarService:
     def create_event(self, booking):
         """Create a Google Calendar event for a booking.
 
-        Returns the Google event ID or empty string on failure.
+        Returns a dict with 'id' and optionally 'meet_url', or empty dict on failure.
         """
+        is_meet = booking.event_type.location_type == 'google_meet'
         event = {
-            'summary': f"Call: {booking.first_name} {booking.last_name}",
+            'summary': f"{'Meeting' if is_meet else 'Call'}: {booking.first_name} {booking.last_name}",
             'description': (
                 f"Phone: {booking.phone_number}\n"
                 f"Email: {booking.email}\n"
@@ -70,14 +71,31 @@ class GoogleCalendarService:
                 'dateTime': booking.end_time.isoformat(),
                 'timeZone': booking.event_type.timezone,
             },
+            'attendees': [{'email': booking.email}],
         }
+        if is_meet:
+            event['conferenceData'] = {
+                'createRequest': {
+                    'requestId': f"booking-{booking.pk}",
+                    'conferenceSolutionKey': {'type': 'hangoutsMeet'},
+                },
+            }
         try:
             result = self.service.events().insert(
-                calendarId='primary', body=event
+                calendarId='primary',
+                body=event,
+                conferenceDataVersion=1 if is_meet else 0,
+                sendUpdates='all',
             ).execute()
-            return result.get('id', '')
+            out = {'id': result.get('id', '')}
+            entry_points = result.get('conferenceData', {}).get('entryPoints', [])
+            for ep in entry_points:
+                if ep.get('entryPointType') == 'video':
+                    out['meet_url'] = ep['uri']
+                    break
+            return out
         except Exception:
-            return ''
+            return {}
 
     def delete_event(self, google_event_id):
         """Delete a Google Calendar event."""

@@ -3,11 +3,14 @@
 <head><meta charset="utf-8"></head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
     <div style="text-align: center; padding: 30px 0; border-bottom: 1px solid #e5e7eb;">
-        <h1 style="font-size: 24px; margin: 0; color: #111;">Your Appointment is Confirmed!</h1>
+        <h1 style="font-size: 24px; margin: 0; color: #111;">
+            {% if hours_before >= 24 %}Reminder: Your Appointment is Tomorrow{% else %}Your Appointment Starts in 1 Hour{% endif %}
+        </h1>
     </div>
     <div style="padding: 30px 0;">
         <p>Hi {{ booking.first_name }},</p>
-        <p>Your <strong>{{ event_type.name }}</strong> has been scheduled.</p>
+        <p>{% if hours_before >= 24 %}This is a friendly reminder that your{% else %}Just a heads-up &mdash; your{% endif %}
+           <strong>{{ event_type.name }}</strong> with {{ owner.get_full_name|default:owner.email }} is coming up.</p>
 
         <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0;">
             <table style="width: 100%; border-collapse: collapse;">
@@ -25,29 +28,21 @@
                 </tr>
                 <tr>
                     <td style="padding: 6px 0; color: #6b7280;">Duration</td>
-                    <td style="padding: 6px 0; font-weight: 600;">{{ event_type.duration }} minutes</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{ event_type.duration_minutes }} minutes</td>
                 </tr>
             </table>
         </div>
 
         {% if meet_url %}
-        <p>Join the meeting via Google Meet:</p>
-        <div style="text-align: center; margin: 20px 0;">
+        <div style="text-align: center; margin: 30px 0;">
             <a href="{{ meet_url }}"
-               style="display: inline-block; padding: 12px 28px; background-color: #1a73e8; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+               style="display: inline-block; padding: 14px 32px; background-color: #1a73e8; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
                 Join Google Meet
             </a>
         </div>
         {% else %}
         <p>You'll receive a call from <strong>{{ owner.get_full_name|default:owner.email }}</strong> at the scheduled time.</p>
         {% endif %}
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="{{ gcal_url }}"
-               style="display: inline-block; padding: 14px 32px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
-                Add to Google Calendar
-            </a>
-        </div>
 
         <p style="text-align: center; font-size: 14px; color: #6b7280;">
             Need to make changes?
@@ -57,7 +52,7 @@
         </p>
     </div>
     <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; font-size: 12px; color: #9ca3af; text-align: center;">
-        <p>This confirmation was sent by {{ owner.get_full_name|default:owner.email }}.</p>
+        <p>This reminder was sent by {{ owner.get_full_name|default:owner.email }}.</p>
     </div>
 </body>
 </html>

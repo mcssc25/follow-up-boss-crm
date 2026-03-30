@@ -298,6 +298,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.courses.tasks.process_drip_unlocks',
         'schedule': crontab(hour=0, minute=30),  # Daily at 12:30 AM
     },
+    'send-booking-reminders': {
+        'task': 'apps.scheduling.tasks.send_booking_reminders',
+        'schedule': 900.0,  # Every 15 minutes
+    },
 }
 
 # ---------------------------------------------------------------------------

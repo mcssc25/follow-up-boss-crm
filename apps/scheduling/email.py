@@ -36,6 +36,7 @@ def send_booking_confirmation(booking, base_url):
         'owner': owner,
         'local_start': local_start,
         'gcal_url': gcal_url,
+        'meet_url': booking.google_meet_url or '',
         'cancel_url': f"{base_url}{booking.get_cancel_url()}",
         'reschedule_url': f"{base_url}{booking.get_reschedule_url()}",
     }
@@ -62,6 +63,7 @@ def send_owner_notification(booking, base_url):
         'booking': booking,
         'event_type': booking.event_type,
         'local_start': local_start,
+        'meet_url': booking.google_meet_url or '',
         'contact_url': f"{base_url}{booking.contact.get_absolute_url()}" if booking.contact else '',
     }
     html = render_to_string('scheduling/emails/owner_notification.html', context)
@@ -90,6 +92,41 @@ def send_booking_cancellation(booking, base_url):
     gmail.send_email(
         to=booking.email,
         subject=f"Cancelled: {booking.event_type.name}",
+        body_html=html,
+        from_email=owner.email,
+    )
+
+
+def send_booking_reminder(booking, base_url, hours_before):
+    """Send reminder email to the prospect before their appointment."""
+    owner = booking.event_type.owner
+    if not owner.gmail_connected:
+        return
+
+    tz = pytz.timezone(booking.event_type.timezone)
+    local_start = booking.start_time.astimezone(tz)
+
+    context = {
+        'booking': booking,
+        'event_type': booking.event_type,
+        'owner': owner,
+        'local_start': local_start,
+        'meet_url': booking.google_meet_url or '',
+        'hours_before': hours_before,
+        'cancel_url': f"{base_url}{booking.get_cancel_url()}",
+        'reschedule_url': f"{base_url}{booking.get_reschedule_url()}",
+    }
+    html = render_to_string('scheduling/emails/booking_reminder.html', context)
+
+    if hours_before >= 24:
+        time_label = "tomorrow"
+    else:
+        time_label = "in 1 hour"
+
+    gmail = _get_gmail_service(owner)
+    gmail.send_email(
+        to=booking.email,
+        subject=f"Reminder: {booking.event_type.name} {time_label} - {local_start.strftime('%B %d at %I:%M %p')}",
         body_html=html,
         from_email=owner.email,
     )

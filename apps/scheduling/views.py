@@ -154,9 +154,12 @@ def confirm_booking(request, slug):
     if owner.gmail_connected:
         try:
             cal = GoogleCalendarService(owner)
-            google_event_id = cal.create_event(booking)
-            if google_event_id:
-                booking.google_event_id = google_event_id
+            result = cal.create_event(booking)
+            if result.get('id'):
+                booking.google_event_id = result['id']
+            if result.get('meet_url'):
+                booking.google_meet_url = result['meet_url']
+            if result:
                 booking.save()
         except Exception:
             pass

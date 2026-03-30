@@ -18,8 +18,8 @@ class EventTypeForm(forms.ModelForm):
         model = EventType
         fields = [
             'name', 'slug', 'description', 'duration_minutes',
-            'color', 'is_active', 'min_advance_hours', 'buffer_minutes',
-            'timezone',
+            'location_type', 'color', 'is_active', 'min_advance_hours',
+            'buffer_minutes', 'timezone',
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),

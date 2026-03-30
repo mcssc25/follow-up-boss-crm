@@ -6,8 +6,14 @@ from django.urls import reverse
 
 
 class EventType(models.Model):
+    LOCATION_CHOICES = [
+        ('phone', 'Phone Call'),
+        ('google_meet', 'Google Meet'),
+    ]
+
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=100, unique=True)
+    location_type = models.CharField(max_length=20, choices=LOCATION_CHOICES, default='phone')
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField(default=30)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='event_types')
@@ -70,6 +76,9 @@ class Booking(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
     cancel_token = models.UUIDField(default=uuid.uuid4, unique=True)
     google_event_id = models.CharField(max_length=255, blank=True)
+    google_meet_url = models.URLField(max_length=500, blank=True)
+    reminder_24h_sent = models.BooleanField(default=False)
+    reminder_1h_sent = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
