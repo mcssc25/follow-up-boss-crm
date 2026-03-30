@@ -12,6 +12,7 @@ def process_video(video_id):
     from .processing import (
         convert_webm_to_mp4,
         extract_thumbnail,
+        generate_preview_gif,
         get_video_duration,
         overlay_play_button,
     )
@@ -47,6 +48,18 @@ def process_video(video_id):
             video.thumbnail.save(thumb_name, File(f), save=False)
 
         os.unlink(tmp_path)
+
+        # Generate animated preview GIF (first 3 seconds)
+        with tempfile.NamedTemporaryFile(suffix='.gif', delete=False) as tmp_gif:
+            gif_path = tmp_gif.name
+
+        generate_preview_gif(video_path, gif_path, duration=3)
+
+        gif_name = f"{video.uuid}.gif"
+        with open(gif_path, 'rb') as f:
+            video.preview_gif.save(gif_name, File(f), save=False)
+
+        os.unlink(gif_path)
 
         if video.storage_type == Video.STORAGE_YOUTUBE:
             from .youtube import upload_to_youtube

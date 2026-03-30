@@ -28,6 +28,7 @@ class Video(models.Model):
     storage_type = models.CharField(max_length=10, choices=STORAGE_CHOICES, default=STORAGE_LOCAL)
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default=STATUS_PROCESSING)
     thumbnail = models.ImageField(upload_to='video_thumbnails/', blank=True, null=True)
+    preview_gif = models.FileField(upload_to='video_thumbnails/', blank=True, null=True)
     duration = models.PositiveIntegerField(default=0, help_text='Duration in seconds')
     team = models.ForeignKey('accounts.Team', on_delete=models.CASCADE, related_name='videos')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='videos')
@@ -54,12 +55,18 @@ class Video(models.Model):
             return f"https://crm.bigbeachal.com{self.thumbnail.url}"
         return ''
 
+    def get_preview_gif_url(self):
+        if self.preview_gif:
+            return f"https://crm.bigbeachal.com{self.preview_gif.url}"
+        return ''
+
     def get_email_snippet(self):
         landing = self.get_full_landing_url()
-        thumb = self.get_thumbnail_url()
+        # Use animated GIF if available, fall back to static thumbnail
+        preview = self.get_preview_gif_url() or self.get_thumbnail_url()
         return (
             f'<a href="{landing}">'
-            f'<img src="{thumb}" alt="Click to watch video" '
+            f'<img src="{preview}" alt="Click to watch video" '
             f'style="max-width:100%;border-radius:8px;">'
             f'</a>'
         )

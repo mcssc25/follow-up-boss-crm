@@ -1,3 +1,4 @@
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -65,6 +66,43 @@ def get_video_duration(video_path):
         return int(float(result.stdout.strip()))
     except (ValueError, AttributeError):
         return 0
+
+
+def generate_preview_gif(video_path, output_path, duration=3):
+    """Generate an animated GIF from the first few seconds of a video.
+
+    Uses a two-pass approach: first generates a palette for better colors,
+    then creates the GIF. Output is ~640px wide, 10fps, optimized for email.
+    """
+    palette_path = output_path + '.palette.png'
+    filters = f'fps=10,scale=480:-1:flags=lanczos'
+    try:
+        # Pass 1: generate palette
+        subprocess.run(
+            [
+                'ffmpeg', '-y', '-i', str(video_path),
+                '-t', str(duration),
+                '-vf', f'{filters},palettegen=stats_mode=diff',
+                str(palette_path),
+            ],
+            capture_output=True,
+            check=True,
+        )
+        # Pass 2: create GIF using palette
+        subprocess.run(
+            [
+                'ffmpeg', '-y', '-i', str(video_path),
+                '-i', str(palette_path),
+                '-t', str(duration),
+                '-lavfi', f'{filters} [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=3',
+                str(output_path),
+            ],
+            capture_output=True,
+            check=True,
+        )
+    finally:
+        if os.path.exists(palette_path):
+            os.remove(palette_path)
 
 
 def convert_webm_to_mp4(webm_path, mp4_path):
