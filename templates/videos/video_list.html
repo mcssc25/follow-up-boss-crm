@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Videos{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Videos</h1>
+        <div class="flex space-x-3">
+            <a href="{% url 'videos:record' %}"
+               class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="4" fill="currentColor"/>
+                </svg>
+                Record
+            </a>
+            <a href="{% url 'videos:upload' %}"
+               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                Upload
+            </a>
+        </div>
+    </div>
+
+    {% if videos %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for video in videos %}
+        <a href="{% url 'videos:detail' video.pk %}"
+           class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            <div class="aspect-video bg-gray-100 relative">
+                {% if video.thumbnail %}
+                    <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}"
+                         class="w-full h-full object-cover">
+                {% else %}
+                    <div class="flex items-center justify-center h-full text-gray-400">
+                        {% if video.status == 'processing' %}
+                            <svg class="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                            </svg>
+                        {% else %}
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="p-3">
+                <h3 class="text-sm font-medium text-gray-900 truncate">{{ video.title }}</h3>
+                <div class="flex items-center justify-between mt-1">
+                    <span class="text-xs text-gray-500">{{ video.created_at|timesince }} ago</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                        {% if video.status == 'ready' %}bg-green-100 text-green-800
+                        {% elif video.status == 'processing' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ video.get_status_display }}
+                    </span>
+                </div>
+                {% if video.storage_type == 'youtube' %}
+                <span class="text-xs text-red-600 mt-1 inline-block">YouTube</span>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No videos yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Record or upload your first video to get started.</p>
+        <div class="mt-4 flex justify-center space-x-3">
+            <a href="{% url 'videos:record' %}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700">Record</a>
+            <a href="{% url 'videos:upload' %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">Upload</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ video.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'videos:detail' video.pk %}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Back to Video</a>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h1 class="text-xl font-bold text-gray-900 mb-6">Edit Video</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label for="id_title" class="block text-sm font-medium text-gray-700">Title</label>
+                    {{ form.title }}
+                </div>
+            </div>
+            <div class="mt-6">
+                <button type="submit"
+                        class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
