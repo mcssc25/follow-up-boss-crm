@@ -12,4 +12,5 @@ urlpatterns = [
     path('<int:pk>/edit/', views.video_edit, name='edit'),
     path('<int:pk>/delete/', views.video_delete, name='delete'),
     path('<int:pk>/snippet/', views.video_snippet, name='snippet'),
+    path('<int:pk>/push-to-youtube/', views.video_push_to_youtube, name='push_to_youtube'),
 ]

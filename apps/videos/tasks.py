@@ -85,3 +85,36 @@ def process_video(video_id):
         video.status = Video.STATUS_FAILED
         video.save()
         raise
+
+
+@shared_task
+def push_to_youtube_task(video_id, user_id):
+    """Push an existing local video to YouTube."""
+    import os
+    from .models import Video
+    from .youtube import upload_to_youtube
+    from django.conf import settings as django_settings
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    video = Video.objects.get(pk=video_id)
+    user = User.objects.get(pk=user_id)
+
+    if not video.video_file:
+        return
+
+    creds = {
+        'access_token': user.gmail_access_token,
+        'refresh_token': user.gmail_refresh_token,
+        'client_id': django_settings.GOOGLE_CLIENT_ID,
+        'client_secret': django_settings.GOOGLE_CLIENT_SECRET,
+    }
+
+    video.youtube_id = upload_to_youtube(video.video_file.path, video.title, creds)
+    video.storage_type = Video.STORAGE_YOUTUBE
+    # Remove local video file to save space
+    video_path = video.video_file.path
+    video.video_file = None
+    video.save()
+    if os.path.exists(video_path):
+        os.remove(video_path)

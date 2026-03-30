@@ -134,6 +134,20 @@ def video_snippet(request, pk):
     return JsonResponse({'snippet': video.get_email_snippet()})
 
 
+@login_required
+@require_POST
+def video_push_to_youtube(request, pk):
+    """Push a local video to YouTube."""
+    video = get_object_or_404(Video, pk=pk, team=request.user.team)
+    if video.storage_type != Video.STORAGE_LOCAL or not video.video_file:
+        messages.error(request, 'This video is not stored locally.')
+        return redirect('videos:detail', pk=video.pk)
+    from .tasks import push_to_youtube_task
+    push_to_youtube_task.delay(video.id, request.user.id)
+    messages.success(request, 'Uploading to YouTube in the background. This may take a minute.')
+    return redirect('videos:detail', pk=video.pk)
+
+
 # --- Public views (no login required) ---
 
 def video_landing(request, uuid):
