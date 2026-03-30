@@ -32,6 +32,8 @@ urlpatterns = [
     path('courses/', include('apps.courses.urls_admin')),
     path('portal/', include('apps.courses.urls_portal')),
     path('pwa/', include('apps.pwa.urls')),
+    path('videos/', include('apps.videos.urls')),
+    path('v/', include('apps.videos.urls_public')),
 ]
 
 if settings.DEBUG:
