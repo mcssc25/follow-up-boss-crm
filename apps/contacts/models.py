@@ -53,6 +53,12 @@ class Contact(models.Model):
         blank=True,
         related_name='contacts',
     )
+    collaborators = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name='collaborated_contacts',
+        help_text='Team members who can also view and interact with this contact.',
+    )
     team = models.ForeignKey(
         'accounts.Team',
         on_delete=models.CASCADE,

@@ -53,6 +53,11 @@ class TemplateField(models.Model):
     width = models.FloatField(help_text='Width as percentage of page width')
     height = models.FloatField(help_text='Height as percentage of page height')
     required = models.BooleanField(default=True)
+    prefill_value = models.CharField(max_length=500, blank=True, default='', help_text='Pre-filled text value')
+    read_only = models.BooleanField(default=False, help_text='If true, signer sees the value but cannot edit it')
+    font_size = models.PositiveIntegerField(default=0, help_text='Font size in pt (0 = auto)')
+    bold = models.BooleanField(default=False)
+    italic = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['page', 'y', 'x']
@@ -194,6 +199,9 @@ class DocumentField(models.Model):
     width = models.FloatField()
     height = models.FloatField()
     required = models.BooleanField(default=True)
+    font_size = models.PositiveIntegerField(default=0, help_text='Font size in pt (0 = auto)')
+    bold = models.BooleanField(default=False)
+    italic = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['page', 'y', 'x']

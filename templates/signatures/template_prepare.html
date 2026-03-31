@@ -97,6 +97,37 @@
                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                     <span class="text-sm text-gray-700">Required</span>
                 </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="prop-readonly"
+                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm text-gray-700">Read-only</span>
+                    <span class="text-xs text-gray-400">(signer can't edit)</span>
+                </label>
+            </div>
+            <hr class="my-3 border-gray-200">
+            <h4 class="text-xs font-semibold text-gray-700 mb-2">Text Formatting</h4>
+            <div class="space-y-2">
+                <div>
+                    <label class="text-xs text-gray-600">Font Size (pt)</label>
+                    <select id="prop-font-size" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="0">Auto</option>
+                        <option value="8">8</option>
+                        <option value="10">10</option>
+                        <option value="12">12</option>
+                        <option value="14">14</option>
+                        <option value="16">16</option>
+                        <option value="18">18</option>
+                        <option value="20">20</option>
+                        <option value="24">24</option>
+                        <option value="28">28</option>
+                        <option value="32">32</option>
+                        <option value="36">36</option>
+                    </select>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="prop-bold" type="button" class="px-3 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-100" title="Bold">B</button>
+                    <button id="prop-italic" type="button" class="px-3 py-1 border border-gray-300 rounded text-sm italic hover:bg-gray-100" title="Italic">I</button>
+                </div>
             </div>
         </div>
 
@@ -152,7 +183,7 @@
 
     const existingFields = [
         {% for field in template_fields %}
-        { type:'{{ field.field_type }}', signer_role:'{{ field.signer_role|escapejs }}', page:{{ field.page }}, x:{{ field.x }}, y:{{ field.y }}, width:{{ field.width }}, height:{{ field.height }}, required:{{ field.required|yesno:"true,false" }} },
+        { type:'{{ field.field_type }}', signer_role:'{{ field.signer_role|escapejs }}', page:{{ field.page }}, x:{{ field.x }}, y:{{ field.y }}, width:{{ field.width }}, height:{{ field.height }}, required:{{ field.required|yesno:"true,false" }}, read_only:{{ field.read_only|yesno:"true,false" }}, prefill_value:'{{ field.prefill_value|escapejs }}', font_size:{{ field.font_size }}, bold:{{ field.bold|yesno:"true,false" }}, italic:{{ field.italic|yesno:"true,false" }} },
         {% endfor %}
     ];
 
@@ -220,7 +251,19 @@
     // --- Properties Panel ---
     const propPanel = document.getElementById('field-properties');
     const propRequired = document.getElementById('prop-required');
+    const propReadOnly = document.getElementById('prop-readonly');
+    const propFontSize = document.getElementById('prop-font-size');
+    const propBold = document.getElementById('prop-bold');
+    const propItalic = document.getElementById('prop-italic');
     const propInfo = document.getElementById('prop-selection-info');
+
+    function applyFieldFormatting(el, fd) {
+        const span = el.querySelector('span:first-child');
+        if (!span) return;
+        span.style.fontWeight = fd.bold ? '700' : '600';
+        span.style.fontStyle = fd.italic ? 'italic' : 'normal';
+        if (fd.font_size > 0) span.style.fontSize = fd.font_size + 'px';
+    }
 
     function updatePropertiesPanel() {
         if (selectedFields.length === 0) { propPanel.classList.add('hidden'); return; }
@@ -232,10 +275,51 @@
         const noneReq = selectedFields.every(f => !f.required);
         propRequired.checked = allReq;
         propRequired.indeterminate = !allReq && !noneReq;
+
+        const allRO = selectedFields.every(f => f.read_only);
+        const noneRO = selectedFields.every(f => !f.read_only);
+        propReadOnly.checked = allRO;
+        propReadOnly.indeterminate = !allRO && !noneRO;
+
+        const fontSizes = [...new Set(selectedFields.map(f => f.font_size || 0))];
+        propFontSize.value = fontSizes.length === 1 ? fontSizes[0] : '0';
+        const allBold = selectedFields.every(f => f.bold);
+        propBold.classList.toggle('bg-indigo-100', allBold);
+        propBold.classList.toggle('border-indigo-500', allBold);
+        const allItalic = selectedFields.every(f => f.italic);
+        propItalic.classList.toggle('bg-indigo-100', allItalic);
+        propItalic.classList.toggle('border-indigo-500', allItalic);
     }
 
     propRequired.addEventListener('change', () => {
         selectedFields.forEach(f => f.required = propRequired.checked);
+    });
+
+    propReadOnly.addEventListener('change', () => {
+        selectedFields.forEach(f => {
+            f.read_only = propReadOnly.checked;
+            if (f.element) {
+                f.element.style.borderStyle = f.read_only ? 'dashed' : 'solid';
+                f.element.style.opacity = f.read_only ? '0.8' : '1';
+            }
+        });
+    });
+
+    propFontSize.addEventListener('change', () => {
+        const val = parseInt(propFontSize.value) || 0;
+        selectedFields.forEach(f => { f.font_size = val; if (f.element) applyFieldFormatting(f.element, f); });
+    });
+
+    propBold.addEventListener('click', () => {
+        const newVal = !selectedFields.every(f => f.bold);
+        selectedFields.forEach(f => { f.bold = newVal; if (f.element) applyFieldFormatting(f.element, f); });
+        updatePropertiesPanel();
+    });
+
+    propItalic.addEventListener('click', () => {
+        const newVal = !selectedFields.every(f => f.italic);
+        selectedFields.forEach(f => { f.italic = newVal; if (f.element) applyFieldFormatting(f.element, f); });
+        updatePropertiesPanel();
     });
 
     function clearSelection() {
@@ -294,15 +378,16 @@
         if (e.key === 'c' && (e.ctrlKey || e.metaKey) && selectedFields.length > 0) {
             e.preventDefault();
             clipboardFields = selectedFields.map(f => ({
-                type: f.type, signer_role: f.signer_role, required: f.required,
+                type: f.type, signer_role: f.signer_role, required: f.required, read_only: f.read_only || false, prefill_value: f.prefill_value || '',
                 page: f.page, x: f.x, y: f.y, width: f.width, height: f.height,
+                font_size: f.font_size || 0, bold: f.bold || false, italic: f.italic || false,
             }));
         }
         if (e.key === 'v' && (e.ctrlKey || e.metaKey) && clipboardFields.length > 0) {
             e.preventDefault();
             clearSelection();
             clipboardFields.forEach(cf => {
-                addField(cf.page, Math.min(cf.x + 2, 100 - cf.width), Math.min(cf.y + 2, 100 - cf.height), cf.type, cf.signer_role, cf.width, cf.height, cf.required);
+                addField(cf.page, Math.min(cf.x + 2, 100 - cf.width), Math.min(cf.y + 2, 100 - cf.height), cf.type, cf.signer_role, cf.width, cf.height, cf.required, cf.font_size, cf.bold, cf.italic, cf.read_only, cf.prefill_value);
             });
             const newFields = placedFields.slice(-clipboardFields.length);
             newFields.forEach(f => selectField(f, true));
@@ -355,7 +440,7 @@
         // Load existing fields
         existingFields.forEach(f => {
             const overlay = document.querySelector(`.field-overlay[data-page="${f.page}"]`);
-            if (overlay) addField(f.page, f.x, f.y, f.type, f.signer_role, f.width, f.height, f.required);
+            if (overlay) addField(f.page, f.x, f.y, f.type, f.signer_role, f.width, f.height, f.required, f.font_size, f.bold, f.italic, f.read_only, f.prefill_value);
         });
         updateFieldsSummary();
     }
@@ -436,7 +521,7 @@
         if (span) span.style.fontSize = fontSize + 'px';
     }
 
-    function addField(pageNum, xPct, yPct, type, role, w, h, isRequired) {
+    function addField(pageNum, xPct, yPct, type, role, w, h, isRequired, fontSize, isBold, isItalic, isReadOnly, prefillValue) {
         const overlay = document.querySelector(`.field-overlay[data-page="${pageNum}"]`);
         if (!overlay) return;
         const defaults = FIELD_DEFAULTS[type];
@@ -467,12 +552,32 @@
                 <span class="pointer-events-none">${FIELD_LABELS[type]}<br><span style="font-size:8px;opacity:0.7">${role}</span></span>
                 <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px;line-height:1;display:none;">X</button>
                 <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background:${color};opacity:0.5;display:none;"></div>`;
+            if (type === 'text' || type === 'date' || type === 'name') {
+                el.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    const val = prompt('Pre-fill value (leave empty to clear):', fd.prefill_value || '');
+                    if (val !== null) {
+                        fd.prefill_value = val;
+                        const span = el.querySelector('span:first-child');
+                        if (span) {
+                            span.textContent = val || (FIELD_LABELS[type] + '\n' + role);
+                            span.style.color = val ? '#111827' : color;
+                        }
+                    }
+                });
+            }
         }
 
         overlay.appendChild(el);
         scaleFieldText(el, overlay);
 
-        const fd = { id: fid, signer_role: role, type, page: pageNum, x: xPct, y: yPct, width: w, height: h, required: isRequired !== undefined ? isRequired : true, element: el };
+        const fd = { id: fid, signer_role: role, type, page: pageNum, x: xPct, y: yPct, width: w, height: h, required: isRequired !== undefined ? isRequired : true, read_only: isReadOnly || false, prefill_value: prefillValue || '', font_size: fontSize || 0, bold: isBold || false, italic: isItalic || false, element: el };
+        applyFieldFormatting(el, fd);
+        if (fd.read_only) { el.style.borderStyle = 'dashed'; el.style.opacity = '0.8'; }
+        if (fd.prefill_value && (type === 'text' || type === 'date' || type === 'name')) {
+            const span = el.querySelector('span:first-child');
+            if (span) { span.textContent = fd.prefill_value; span.style.color = '#111827'; }
+        }
         placedFields.push(fd);
 
         // Show/hide controls on hover
@@ -544,6 +649,7 @@
             fd.height = Math.max(2, startH + dh);
             el.style.width = fd.width + '%'; el.style.height = fd.height + '%';
             scaleFieldText(el, overlay);
+            applyFieldFormatting(el, fd);
         });
         document.addEventListener('mouseup', () => { if (isResizing) isResizing = false; });
     }
@@ -584,7 +690,7 @@
         btn.disabled = true; btn.textContent = 'Saving...';
         try {
             await fetch(ROLES_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF }, body: JSON.stringify({ roles }) });
-            await fetch(FIELDS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF }, body: JSON.stringify({ fields: placedFields.map(f => ({ type: f.type, signer_role: f.signer_role, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height, required: f.required })) }) });
+            await fetch(FIELDS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF }, body: JSON.stringify({ fields: placedFields.map(f => ({ type: f.type, signer_role: f.signer_role, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height, required: f.required, read_only: f.read_only || false, prefill_value: f.prefill_value || '', font_size: f.font_size || 0, bold: f.bold || false, italic: f.italic || false })) }) });
             btn.textContent = 'Saved!';
             setTimeout(() => { btn.textContent = 'Save Template'; btn.disabled = false; }, 1500);
         } catch (err) {

@@ -245,6 +245,9 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
                             x=tf.x, y=tf.y,
                             width=tf.width, height=tf.height,
                             required=tf.required,
+                            font_size=tf.font_size,
+                            bold=tf.bold,
+                            italic=tf.italic,
                         )
                 pct = int(confidence * 100)
                 messages.success(
@@ -349,6 +352,9 @@ def save_fields(request, pk):
             x=f['x'], y=f['y'],
             width=f['width'], height=f['height'],
             required=f.get('required', True),
+            font_size=f.get('font_size', 0),
+            bold=f.get('bold', False),
+            italic=f.get('italic', False),
         )
     return JsonResponse({'status': 'ok', 'count': len(data.get('fields', []))})
 
@@ -732,6 +738,11 @@ def template_save_fields(request, pk):
             x=f['x'], y=f['y'],
             width=f['width'], height=f['height'],
             required=f.get('required', True),
+            read_only=f.get('read_only', False),
+            prefill_value=f.get('prefill_value', ''),
+            font_size=f.get('font_size', 0),
+            bold=f.get('bold', False),
+            italic=f.get('italic', False),
         )
     return JsonResponse({'status': 'ok', 'count': len(data.get('fields', []))})
 
@@ -769,10 +780,15 @@ def use_template(request, pk):
                     assigned_to=signer,
                     field_type=tf.field_type,
                     label=tf.label,
+                    prefill_value=tf.prefill_value,
+                    read_only=tf.read_only,
                     page=tf.page,
                     x=tf.x, y=tf.y,
                     width=tf.width, height=tf.height,
                     required=tf.required,
+                    font_size=tf.font_size,
+                    bold=tf.bold,
+                    italic=tf.italic,
                 )
 
         AuditEvent.objects.create(

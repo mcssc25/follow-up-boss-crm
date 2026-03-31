@@ -2,11 +2,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.http import HttpResponseNotAllowed
+from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
+from apps.accounts.gmail import GmailService
 from apps.accounts.models import User
 from apps.contacts.forms import ContactForm, ContactNoteForm, LogActivityForm, SmartListForm
 from apps.contacts.models import Contact, ContactActivity, ContactNote, SmartList
@@ -20,7 +21,14 @@ class ContactListView(LoginRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
-        qs = Contact.objects.filter(team=self.request.user.team).select_related('assigned_to')
+        user = self.request.user
+        qs = Contact.objects.filter(team=user.team).select_related('assigned_to')
+
+        # Agents only see contacts assigned to them or where they collaborate
+        if user.role == 'agent':
+            qs = qs.filter(
+                Q(assigned_to=user) | Q(collaborators=user)
+            ).distinct()
 
         # Search
         q = self.request.GET.get('q', '').strip()
@@ -66,7 +74,11 @@ class ContactDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'contact'
 
     def get_queryset(self):
-        return Contact.objects.filter(team=self.request.user.team).select_related('assigned_to')
+        user = self.request.user
+        qs = Contact.objects.filter(team=user.team).select_related('assigned_to')
+        if user.role == 'agent':
+            qs = qs.filter(Q(assigned_to=user) | Q(collaborators=user)).distinct()
+        return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -235,6 +247,79 @@ def bulk_action(request):
         messages.error(request, 'Unknown action.')
 
     return redirect('contacts:list')
+
+
+# ---------------------------------------------------------------------------
+# Email History (Gmail API)
+# ---------------------------------------------------------------------------
+
+
+@login_required
+def contact_emails(request, pk):
+    """Fetch email history with a contact from Gmail."""
+    contact = get_object_or_404(Contact, pk=pk, team=request.user.team)
+    if not contact.email:
+        return JsonResponse({'emails': [], 'error': 'Contact has no email address.'})
+
+    user = request.user
+    if not user.gmail_connected:
+        return JsonResponse({'emails': [], 'error': 'Gmail not connected. Connect Gmail in Settings.'})
+
+    service = GmailService(user.gmail_access_token, user.gmail_refresh_token)
+    result = service.get_emails_for_contact(contact.email)
+    return JsonResponse(result)
+
+
+@login_required
+def contact_email_detail(request, pk, message_id):
+    """Fetch the body of a single email."""
+    get_object_or_404(Contact, pk=pk, team=request.user.team)
+    user = request.user
+    if not user.gmail_connected:
+        return JsonResponse({'error': 'Gmail not connected.'}, status=400)
+
+    service = GmailService(user.gmail_access_token, user.gmail_refresh_token)
+    result = service.get_email_body(message_id)
+    return JsonResponse(result)
+
+
+# ---------------------------------------------------------------------------
+# Collaborators
+# ---------------------------------------------------------------------------
+
+
+@login_required
+def manage_collaborators(request, pk):
+    """Add or remove collaborators on a contact."""
+    contact = get_object_or_404(Contact, pk=pk, team=request.user.team)
+
+    if request.method == 'GET':
+        collabs = contact.collaborators.values_list('id', 'first_name', 'last_name', 'username')
+        team_members = User.objects.filter(team=request.user.team).exclude(
+            pk=request.user.pk
+        ).values_list('id', 'first_name', 'last_name', 'username')
+        return JsonResponse({
+            'collaborators': [{'id': c[0], 'name': f'{c[1]} {c[2]}'.strip() or c[3]} for c in collabs],
+            'team_members': [{'id': m[0], 'name': f'{m[1]} {m[2]}'.strip() or m[3]} for m in team_members],
+        })
+
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        action = data.get('action')
+        user_id = data.get('user_id')
+        target_user = get_object_or_404(User, pk=user_id, team=request.user.team)
+
+        if action == 'add':
+            contact.collaborators.add(target_user)
+            return JsonResponse({'status': 'ok', 'message': f'{target_user} added as collaborator.'})
+        elif action == 'remove':
+            contact.collaborators.remove(target_user)
+            return JsonResponse({'status': 'ok', 'message': f'{target_user} removed as collaborator.'})
+
+        return JsonResponse({'error': 'Invalid action.'}, status=400)
+
+    return HttpResponseNotAllowed(['GET', 'POST'])
 
 
 # ---------------------------------------------------------------------------

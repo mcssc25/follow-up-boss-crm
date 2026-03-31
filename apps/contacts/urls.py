@@ -11,6 +11,9 @@ urlpatterns = [
     path('<int:pk>/edit/', views.ContactUpdateView.as_view(), name='edit'),
     path('<int:pk>/note/', views.add_note, name='add_note'),
     path('<int:pk>/log-activity/', views.log_activity, name='log_activity'),
+    path('<int:pk>/emails/', views.contact_emails, name='contact_emails'),
+    path('<int:pk>/email/<str:message_id>/', views.contact_email_detail, name='contact_email_detail'),
+    path('<int:pk>/collaborators/', views.manage_collaborators, name='manage_collaborators'),
     path('bulk-action/', views.bulk_action, name='bulk_action'),
 
     # Smart Lists

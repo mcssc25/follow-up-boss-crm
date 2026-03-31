@@ -10,6 +10,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' if not getattr(settings, 'SECURE
 
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/youtube',
 ]

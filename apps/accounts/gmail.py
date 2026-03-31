@@ -51,3 +51,66 @@ class GmailService:
             return {'success': True, 'message_id': result.get('id')}
         except Exception as e:
             return {'success': False, 'error': str(e)}
+
+    def get_emails_for_contact(self, contact_email, max_results=25):
+        """Fetch email threads involving a contact email address."""
+        try:
+            query = f'from:{contact_email} OR to:{contact_email}'
+            results = (
+                self.service.users()
+                .messages()
+                .list(userId='me', q=query, maxResults=max_results)
+                .execute()
+            )
+            messages = results.get('messages', [])
+            emails = []
+            for msg_ref in messages:
+                msg = (
+                    self.service.users()
+                    .messages()
+                    .get(userId='me', id=msg_ref['id'], format='metadata',
+                         metadataHeaders=['From', 'To', 'Subject', 'Date'])
+                    .execute()
+                )
+                headers = {h['name']: h['value'] for h in msg.get('payload', {}).get('headers', [])}
+                emails.append({
+                    'id': msg['id'],
+                    'thread_id': msg.get('threadId', ''),
+                    'snippet': msg.get('snippet', ''),
+                    'from': headers.get('From', ''),
+                    'to': headers.get('To', ''),
+                    'subject': headers.get('Subject', '(no subject)'),
+                    'date': headers.get('Date', ''),
+                    'label_ids': msg.get('labelIds', []),
+                })
+            return {'success': True, 'emails': emails}
+        except Exception as e:
+            return {'success': False, 'error': str(e), 'emails': []}
+
+    def get_email_body(self, message_id):
+        """Fetch the full body of a single email."""
+        try:
+            msg = (
+                self.service.users()
+                .messages()
+                .get(userId='me', id=message_id, format='full')
+                .execute()
+            )
+            payload = msg.get('payload', {})
+            body_html = ''
+            body_text = ''
+
+            def extract_parts(part):
+                nonlocal body_html, body_text
+                mime = part.get('mimeType', '')
+                if mime == 'text/html' and part.get('body', {}).get('data'):
+                    body_html = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8', errors='replace')
+                elif mime == 'text/plain' and part.get('body', {}).get('data'):
+                    body_text = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8', errors='replace')
+                for sub in part.get('parts', []):
+                    extract_parts(sub)
+
+            extract_parts(payload)
+            return {'success': True, 'html': body_html, 'text': body_text}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}

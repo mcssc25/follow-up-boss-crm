@@ -10,11 +10,41 @@
         </a>
         <h1 class="text-2xl font-bold text-gray-900">{{ contact.first_name }} {{ contact.last_name }}</h1>
     </div>
-    <a href="{% url 'contacts:edit' contact.pk %}"
-       class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-        Edit Contact
-    </a>
+    <div class="flex items-center space-x-2">
+        {% if contact.email %}
+        <a href="mailto:{{ contact.email }}"
+           class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+           title="Email {{ contact.first_name }}">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            Email
+        </a>
+        {% endif %}
+        {% if contact.phone %}
+        <a href="tel:{{ contact.phone }}"
+           class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700"
+           title="Call {{ contact.first_name }}">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            Call
+        </a>
+        <a href="sms:{{ contact.phone }}"
+           class="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700"
+           title="Text {{ contact.first_name }}">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Text
+        </a>
+        {% endif %}
+        <button onclick="openCollabModal()"
+           class="inline-flex items-center px-3 py-2 bg-amber-500 text-white text-sm font-medium rounded-md hover:bg-amber-600"
+           title="Manage collaborators">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Collab
+        </button>
+        <a href="{% url 'contacts:edit' contact.pk %}"
+           class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Edit
+        </a>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -59,6 +89,16 @@
                     <dt class="text-gray-500 font-medium">Assigned To</dt>
                     <dd class="text-gray-900">{{ contact.assigned_to|default:"Unassigned" }}</dd>
                 </div>
+                {% if contact.collaborators.all %}
+                <div>
+                    <dt class="text-gray-500 font-medium">Collaborators</dt>
+                    <dd class="text-gray-900">
+                        {% for collab in contact.collaborators.all %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mr-1">{{ collab.get_full_name|default:collab.username }}</span>
+                        {% endfor %}
+                    </dd>
+                </div>
+                {% endif %}
                 <div>
                     <dt class="text-gray-500 font-medium">Created</dt>
                     <dd class="text-gray-900">{{ contact.created_at|date:"M d, Y g:i A" }}</dd>
@@ -209,6 +249,39 @@
             {% endif %}
         </div>
 
+        <!-- Email History (loaded via Gmail API) -->
+        {% if contact.email %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Email History</h3>
+                <button onclick="loadEmails()" id="load-emails-btn"
+                        class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                    Load Emails
+                </button>
+            </div>
+            <div id="email-list">
+                <p class="text-sm text-gray-400 text-center py-4">Click "Load Emails" to fetch conversation history from Gmail.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Email Detail Modal -->
+        <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] flex flex-col">
+                <div class="flex items-center justify-between p-4 border-b">
+                    <h3 id="email-modal-subject" class="text-lg font-semibold text-gray-900 truncate"></h3>
+                    <button onclick="closeEmailModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div class="p-4 text-xs text-gray-500">
+                    <span id="email-modal-from"></span> &rarr; <span id="email-modal-to"></span>
+                    <span class="ml-2" id="email-modal-date"></span>
+                </div>
+                <div id="email-modal-body" class="p-4 overflow-y-auto flex-1 text-sm text-gray-800 border-t"></div>
+            </div>
+        </div>
+
         <!-- Notes -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
@@ -267,4 +340,180 @@
         </div>
     </div>
 </div>
+
+<!-- Collaborator Modal -->
+<div id="collab-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 class="text-lg font-semibold text-gray-900">Manage Collaborators</h3>
+            <button onclick="closeCollabModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="p-4">
+            <div id="collab-current" class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Current Collaborators</h4>
+                <div id="collab-list" class="space-y-2">
+                    <p class="text-sm text-gray-400">Loading...</p>
+                </div>
+            </div>
+            <hr class="my-3">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Add Collaborator</h4>
+            <div id="collab-add-list" class="space-y-2">
+                <p class="text-sm text-gray-400">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const CSRF = '{{ csrf_token }}';
+const CONTACT_PK = {{ contact.pk }};
+
+// --- Email History ---
+async function loadEmails() {
+    const btn = document.getElementById('load-emails-btn');
+    const container = document.getElementById('email-list');
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+    try {
+        const resp = await fetch(`/contacts/${CONTACT_PK}/emails/`);
+        const data = await resp.json();
+        if (data.error) {
+            container.innerHTML = `<p class="text-sm text-red-500 text-center py-4">${data.error}</p>`;
+            btn.textContent = 'Retry';
+            btn.disabled = false;
+            return;
+        }
+        if (!data.emails || data.emails.length === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">No emails found with this contact.</p>';
+            btn.textContent = 'Refresh';
+            btn.disabled = false;
+            return;
+        }
+        container.innerHTML = data.emails.map(em => `
+            <div class="border-l-4 ${em.label_ids && em.label_ids.includes('SENT') ? 'border-blue-400' : 'border-green-400'} pl-3 py-2 cursor-pointer hover:bg-gray-50 rounded-r-md"
+                 onclick="openEmail('${em.id}', '${escHtml(em.subject)}', '${escHtml(em.from)}', '${escHtml(em.to)}', '${escHtml(em.date)}')">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium text-gray-900 truncate">${escHtml(em.subject)}</p>
+                    <span class="text-xs text-gray-400 ml-2 flex-shrink-0">${em.label_ids && em.label_ids.includes('SENT') ? 'Sent' : 'Received'}</span>
+                </div>
+                <p class="text-xs text-gray-500 truncate mt-0.5">${escHtml(em.snippet)}</p>
+                <p class="text-xs text-gray-400 mt-0.5">${escHtml(em.from)} &mdash; ${escHtml(em.date)}</p>
+            </div>
+        `).join('<hr class="my-1 border-gray-100">');
+        btn.textContent = 'Refresh';
+        btn.disabled = false;
+    } catch (err) {
+        container.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Error loading emails.</p>`;
+        btn.textContent = 'Retry';
+        btn.disabled = false;
+    }
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function openEmail(messageId, subject, from, to, date) {
+    const modal = document.getElementById('email-modal');
+    document.getElementById('email-modal-subject').textContent = subject;
+    document.getElementById('email-modal-from').textContent = from;
+    document.getElementById('email-modal-to').textContent = to;
+    document.getElementById('email-modal-date').textContent = date;
+    document.getElementById('email-modal-body').innerHTML = '<p class="text-gray-400 text-center py-8">Loading...</p>';
+    modal.classList.remove('hidden');
+    try {
+        const resp = await fetch(`/contacts/${CONTACT_PK}/email/${messageId}/`);
+        const data = await resp.json();
+        if (data.html) {
+            document.getElementById('email-modal-body').innerHTML = `<div class="prose prose-sm max-w-none">${data.html}</div>`;
+        } else if (data.text) {
+            document.getElementById('email-modal-body').innerHTML = `<pre class="whitespace-pre-wrap text-sm">${escHtml(data.text)}</pre>`;
+        } else {
+            document.getElementById('email-modal-body').innerHTML = '<p class="text-gray-400 text-center">No content available.</p>';
+        }
+    } catch (err) {
+        document.getElementById('email-modal-body').innerHTML = '<p class="text-red-500 text-center">Error loading email.</p>';
+    }
+}
+
+function closeEmailModal() {
+    document.getElementById('email-modal').classList.add('hidden');
+}
+
+// --- Collaborator Management ---
+async function openCollabModal() {
+    document.getElementById('collab-modal').classList.remove('hidden');
+    try {
+        const resp = await fetch(`/contacts/${CONTACT_PK}/collaborators/`);
+        const data = await resp.json();
+
+        const collabList = document.getElementById('collab-list');
+        if (data.collaborators.length === 0) {
+            collabList.innerHTML = '<p class="text-sm text-gray-400">No collaborators yet.</p>';
+        } else {
+            collabList.innerHTML = data.collaborators.map(c => `
+                <div class="flex items-center justify-between py-1">
+                    <span class="text-sm text-gray-800">${escHtml(c.name)}</span>
+                    <button onclick="removeCollab(${c.id})" class="text-xs text-red-500 hover:text-red-700">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        const addList = document.getElementById('collab-add-list');
+        const collabIds = data.collaborators.map(c => c.id);
+        const available = data.team_members.filter(m => !collabIds.includes(m.id));
+        if (available.length === 0) {
+            addList.innerHTML = '<p class="text-sm text-gray-400">All team members are collaborators.</p>';
+        } else {
+            addList.innerHTML = available.map(m => `
+                <div class="flex items-center justify-between py-1">
+                    <span class="text-sm text-gray-800">${escHtml(m.name)}</span>
+                    <button onclick="addCollab(${m.id})" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Add</button>
+                </div>
+            `).join('');
+        }
+    } catch (err) {
+        document.getElementById('collab-list').innerHTML = '<p class="text-sm text-red-500">Error loading collaborators.</p>';
+    }
+}
+
+function closeCollabModal() {
+    document.getElementById('collab-modal').classList.add('hidden');
+}
+
+async function addCollab(userId) {
+    await fetch(`/contacts/${CONTACT_PK}/collaborators/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+        body: JSON.stringify({action: 'add', user_id: userId})
+    });
+    openCollabModal();
+}
+
+async function removeCollab(userId) {
+    await fetch(`/contacts/${CONTACT_PK}/collaborators/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+        body: JSON.stringify({action: 'remove', user_id: userId})
+    });
+    openCollabModal();
+}
+
+// Close modals on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeEmailModal();
+        closeCollabModal();
+    }
+});
+document.getElementById('email-modal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeEmailModal();
+});
+document.getElementById('collab-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeCollabModal();
+});
+</script>
 {% endblock %}
