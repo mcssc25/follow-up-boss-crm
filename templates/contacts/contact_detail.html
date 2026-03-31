@@ -262,7 +262,7 @@
                 </button>
             </div>
             <div id="email-list">
-                <p class="text-sm text-gray-400 text-center py-4">Click "Load Emails" to fetch conversation history from Gmail.</p>
+                <p class="text-sm text-gray-400 text-center py-4">Click "Load Emails" to fetch conversation history from your team's Gmail accounts.</p>
             </div>
         </div>
         {% endif %}
@@ -412,15 +412,23 @@ async function loadEmails() {
             btn.disabled = false;
             return;
         }
-        container.innerHTML = data.emails.map(em => `
+        if (data.warnings && data.warnings.length > 0) {
+            container.innerHTML = `<div class="text-xs text-amber-600 bg-amber-50 rounded p-2 mb-3">${data.warnings.join('<br>')}</div>`;
+        } else {
+            container.innerHTML = '';
+        }
+        container.innerHTML += data.emails.map(em => `
             <div class="border-l-4 ${em.label_ids && em.label_ids.includes('SENT') ? 'border-blue-400' : 'border-green-400'} pl-3 py-2 cursor-pointer hover:bg-gray-50 rounded-r-md"
-                 onclick="openEmail('${em.id}', '${escHtml(em.subject)}', '${escHtml(em.from)}', '${escHtml(em.to)}', '${escHtml(em.date)}')">
+                 onclick="openEmail('${em.id}', '${escHtml(em.subject)}', '${escHtml(em.from)}', '${escHtml(em.to)}', '${escHtml(em.date)}', ${em.fetched_by_id || 0})">
                 <div class="flex items-center justify-between">
                     <p class="text-sm font-medium text-gray-900 truncate">${escHtml(em.subject)}</p>
                     <span class="text-xs text-gray-400 ml-2 flex-shrink-0">${em.label_ids && em.label_ids.includes('SENT') ? 'Sent' : 'Received'}</span>
                 </div>
                 <p class="text-xs text-gray-500 truncate mt-0.5">${escHtml(em.snippet)}</p>
-                <p class="text-xs text-gray-400 mt-0.5">${escHtml(em.from)} &mdash; ${escHtml(em.date)}</p>
+                <div class="flex items-center justify-between mt-0.5">
+                    <p class="text-xs text-gray-400">${escHtml(em.from)} &mdash; ${escHtml(em.date)}</p>
+                    ${em.fetched_by ? `<span class="text-xs text-indigo-400">${escHtml(em.fetched_by)}</span>` : ''}
+                </div>
             </div>
         `).join('<hr class="my-1 border-gray-100">');
         btn.textContent = 'Refresh';
@@ -437,7 +445,7 @@ function escHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-async function openEmail(messageId, subject, from, to, date) {
+async function openEmail(messageId, subject, from, to, date, fetchedByUid) {
     const modal = document.getElementById('email-modal');
     document.getElementById('email-modal-subject').textContent = subject;
     document.getElementById('email-modal-from').textContent = from;
@@ -446,7 +454,8 @@ async function openEmail(messageId, subject, from, to, date) {
     document.getElementById('email-modal-body').innerHTML = '<p class="text-gray-400 text-center py-8">Loading...</p>';
     modal.classList.remove('hidden');
     try {
-        const resp = await fetch(`/contacts/${CONTACT_PK}/email/${messageId}/`);
+        const uidParam = fetchedByUid ? `?uid=${fetchedByUid}` : '';
+        const resp = await fetch(`/contacts/${CONTACT_PK}/email/${messageId}/${uidParam}`);
         const data = await resp.json();
         if (data.html) {
             document.getElementById('email-modal-body').innerHTML = `<div class="prose prose-sm max-w-none">${data.html}</div>`;

@@ -254,33 +254,77 @@ def bulk_action(request):
 # ---------------------------------------------------------------------------
 
 
+def _get_email_team_members(contact, current_user):
+    """Get all team members whose Gmail should be searched for this contact:
+    the current user, the assigned agent, and all collaborators."""
+    users = {current_user.pk: current_user}
+    if contact.assigned_to and contact.assigned_to.gmail_connected:
+        users[contact.assigned_to.pk] = contact.assigned_to
+    for collab in contact.collaborators.filter(gmail_connected=True):
+        users[collab.pk] = collab
+    return list(users.values())
+
+
 @login_required
 def contact_emails(request, pk):
-    """Fetch email history with a contact from Gmail."""
+    """Fetch merged email history with a contact from all relevant team members' Gmail."""
     contact = get_object_or_404(Contact, pk=pk, team=request.user.team)
     if not contact.email:
         return JsonResponse({'emails': [], 'error': 'Contact has no email address.'})
 
-    user = request.user
-    if not user.gmail_connected:
-        return JsonResponse({'emails': [], 'error': 'Gmail not connected. Connect Gmail in Settings.'})
+    team_members = _get_email_team_members(contact, request.user)
+    connected = [u for u in team_members if u.gmail_connected]
+    if not connected:
+        return JsonResponse({'emails': [], 'error': 'No team members have Gmail connected.'})
 
-    service = GmailService(user.gmail_access_token, user.gmail_refresh_token)
-    result = service.get_emails_for_contact(contact.email)
-    return JsonResponse(result)
+    all_emails = []
+    seen_ids = set()
+    errors = []
+
+    for user in connected:
+        service = GmailService(user.gmail_access_token, user.gmail_refresh_token)
+        result = service.get_emails_for_contact(contact.email)
+        if not result.get('success'):
+            errors.append(f'{user.get_full_name() or user.username}: {result.get("error", "unknown error")}')
+            continue
+        for em in result.get('emails', []):
+            if em['id'] not in seen_ids:
+                seen_ids.add(em['id'])
+                em['fetched_by'] = user.get_full_name() or user.username
+                em['fetched_by_id'] = user.pk
+                all_emails.append(em)
+
+    # Sort by date (Gmail returns newest first per user, re-sort the merged list)
+    all_emails.sort(key=lambda e: e.get('date', ''), reverse=True)
+    all_emails = all_emails[:50]  # Cap at 50
+
+    resp = {'success': True, 'emails': all_emails}
+    if errors:
+        resp['warnings'] = errors
+    return JsonResponse(resp)
 
 
 @login_required
 def contact_email_detail(request, pk, message_id):
-    """Fetch the body of a single email."""
-    get_object_or_404(Contact, pk=pk, team=request.user.team)
-    user = request.user
-    if not user.gmail_connected:
-        return JsonResponse({'error': 'Gmail not connected.'}, status=400)
+    """Fetch the body of a single email. Try the requesting user first, then other team members."""
+    contact = get_object_or_404(Contact, pk=pk, team=request.user.team)
 
-    service = GmailService(user.gmail_access_token, user.gmail_refresh_token)
-    result = service.get_email_body(message_id)
-    return JsonResponse(result)
+    # Try the user specified in the query param first (the one who fetched it)
+    fetched_by_id = request.GET.get('uid')
+    team_members = _get_email_team_members(contact, request.user)
+    connected = [u for u in team_members if u.gmail_connected]
+
+    # Put the fetched_by user first in the list to try
+    if fetched_by_id:
+        connected.sort(key=lambda u: (0 if str(u.pk) == fetched_by_id else 1))
+
+    for user in connected:
+        service = GmailService(user.gmail_access_token, user.gmail_refresh_token)
+        result = service.get_email_body(message_id)
+        if result.get('success'):
+            return JsonResponse(result)
+
+    return JsonResponse({'error': 'Could not retrieve email from any connected account.'}, status=400)
 
 
 # ---------------------------------------------------------------------------
