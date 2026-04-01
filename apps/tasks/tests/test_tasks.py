@@ -69,3 +69,52 @@ class CreateTaskNotificationsTest(TestCase):
     def test_handles_missing_task(self, mock_push):
         create_task_notifications(99999)
         mock_push.assert_not_called()
+
+
+class DailyTaskRemindersTest(TestCase):
+    def setUp(self):
+        self.team = Team.objects.create(name='Test Team')
+        self.user = User.objects.create_user(
+            username='agent1', email='a@test.com', password='testpass123', team=self.team,
+        )
+
+    @patch('apps.tasks.tasks.send_push_notification')
+    def test_sends_reminder_for_pending_future_tasks(self, mock_push):
+        from apps.tasks.tasks import send_daily_task_reminders
+        Task.objects.create(
+            title='Future task',
+            assigned_to=self.user,
+            team=self.team,
+            due_date=timezone.now() + timedelta(days=2),
+        )
+        count = send_daily_task_reminders()
+        self.assertEqual(count, 1)
+        mock_push.assert_called_once()
+        self.assertIn('Future task', mock_push.call_args[1]['body'])
+
+    @patch('apps.tasks.tasks.send_push_notification')
+    def test_skips_completed_tasks(self, mock_push):
+        from apps.tasks.tasks import send_daily_task_reminders
+        Task.objects.create(
+            title='Done task',
+            assigned_to=self.user,
+            team=self.team,
+            due_date=timezone.now() + timedelta(days=2),
+            status='completed',
+        )
+        count = send_daily_task_reminders()
+        self.assertEqual(count, 0)
+        mock_push.assert_not_called()
+
+    @patch('apps.tasks.tasks.send_push_notification')
+    def test_skips_overdue_tasks(self, mock_push):
+        from apps.tasks.tasks import send_daily_task_reminders
+        Task.objects.create(
+            title='Overdue task',
+            assigned_to=self.user,
+            team=self.team,
+            due_date=timezone.now() - timedelta(days=1),
+        )
+        count = send_daily_task_reminders()
+        self.assertEqual(count, 0)
+        mock_push.assert_not_called()

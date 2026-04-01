@@ -302,6 +302,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.scheduling.tasks.send_booking_reminders',
         'schedule': 900.0,  # Every 15 minutes
     },
+    'send-daily-task-reminders': {
+        'task': 'apps.tasks.tasks.send_daily_task_reminders',
+        'schedule': crontab(hour=9, minute=0),  # Daily at 9 AM CT
+    },
 }
 
 # ---------------------------------------------------------------------------

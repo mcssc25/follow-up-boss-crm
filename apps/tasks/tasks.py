@@ -69,6 +69,30 @@ def send_overdue_digest():
 
 
 @shared_task
+def send_daily_task_reminders():
+    """Daily 9 AM push reminder for all pending tasks with future deadlines."""
+    now = timezone.now()
+    pending_tasks = (
+        Task.objects.filter(status='pending', due_date__gt=now)
+        .select_related('assigned_to')
+    )
+
+    count = 0
+    for task in pending_tasks:
+        due_str = task.due_date.strftime('%b %d at %I:%M %p')
+        send_push_notification(
+            user=task.assigned_to,
+            title='Task Reminder',
+            body=f'{task.title} — due {due_str}',
+            url='/tasks/',
+        )
+        count += 1
+
+    logger.info("Sent %d daily task reminders", count)
+    return count
+
+
+@shared_task
 def create_task_notifications(task_id):
     """Send push notification and create calendar event when a task is created."""
     try:
