@@ -31,6 +31,7 @@ class Task(models.Model):
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    google_event_id = models.CharField(max_length=255, blank=True, default='')
 
     class Meta:
         ordering = ['due_date']
