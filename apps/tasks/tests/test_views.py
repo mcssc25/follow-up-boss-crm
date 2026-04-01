@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -145,3 +146,50 @@ class TaskViewTest(TestCase):
         )
         response = self.client.get(reverse('tasks:list'))
         self.assertNotContains(response, 'Other Team Task')
+
+
+class TaskCompleteCalendarTest(TestCase):
+    def setUp(self):
+        self.team = Team.objects.create(name='Test Team')
+        self.user = User.objects.create_user(
+            username='agent1', email='a@test.com', password='testpass123', team=self.team,
+            gmail_connected=True,
+        )
+        self.client.login(username='agent1', password='testpass123')
+
+    @patch('apps.tasks.views.GoogleCalendarService')
+    def test_complete_deletes_calendar_event(self, mock_cal_cls):
+        task = Task.objects.create(
+            title='Task with event',
+            assigned_to=self.user,
+            team=self.team,
+            due_date=timezone.now() + timedelta(days=1),
+            google_event_id='gcal_123',
+        )
+        mock_service = MagicMock()
+        mock_cal_cls.return_value = mock_service
+
+        response = self.client.post(f'/tasks/{task.pk}/complete/')
+        self.assertEqual(response.status_code, 302)
+
+        mock_cal_cls.assert_called_once_with(self.user)
+        mock_service.delete_event.assert_called_once_with('gcal_123')
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, 'completed')
+
+    @patch('apps.tasks.views.GoogleCalendarService')
+    def test_complete_skips_calendar_when_no_event_id(self, mock_cal_cls):
+        task = Task.objects.create(
+            title='Task without event',
+            assigned_to=self.user,
+            team=self.team,
+            due_date=timezone.now() + timedelta(days=1),
+        )
+
+        response = self.client.post(f'/tasks/{task.pk}/complete/')
+        self.assertEqual(response.status_code, 302)
+
+        mock_cal_cls.assert_not_called()
+        task.refresh_from_db()
+        self.assertEqual(task.status, 'completed')

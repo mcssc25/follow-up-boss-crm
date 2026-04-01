@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from django.contrib import messages
@@ -12,6 +13,9 @@ from apps.accounts.models import User
 from apps.tasks.forms import TaskForm
 from apps.tasks.models import Task
 from apps.tasks.tasks import create_task_notifications
+from apps.scheduling.calendar import GoogleCalendarService
+
+logger = logging.getLogger(__name__)
 
 
 class TaskListView(LoginRequiredMixin, ListView):
@@ -114,6 +118,17 @@ def task_complete(request, pk):
         return HttpResponseNotAllowed(['POST'])
 
     task = get_object_or_404(Task, pk=pk, team=request.user.team)
+
+    # Delete calendar event if one exists
+    if task.google_event_id and task.assigned_to.gmail_connected:
+        try:
+            cal = GoogleCalendarService(task.assigned_to)
+            cal.delete_event(task.google_event_id)
+        except Exception:
+            logger.exception(
+                "Failed to delete calendar event for task %s", task.pk
+            )
+
     task.complete()
     messages.success(request, f'Task "{task.title}" marked as completed.')
     return redirect('tasks:list')
