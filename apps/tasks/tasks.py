@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.accounts.notifications import notify_overdue_digest, notify_task_reminder
 from apps.pwa.push import send_push_notification
+from apps.scheduling.calendar import GoogleCalendarService
 
 from .models import Task
 
@@ -65,3 +66,57 @@ def send_overdue_digest():
 
     logger.info("Sent overdue digest to %d agents", count)
     return count
+
+
+@shared_task
+def create_task_notifications(task_id):
+    """Send push notification and create calendar event when a task is created."""
+    try:
+        task = Task.objects.select_related('assigned_to').get(pk=task_id)
+    except Task.DoesNotExist:
+        logger.warning("Task %s not found for notification", task_id)
+        return
+
+    agent = task.assigned_to
+    due_str = task.due_date.strftime('%b %d at %I:%M %p')
+
+    # Push notification
+    send_push_notification(
+        user=agent,
+        title=f'New Task: {task.title}',
+        body=f'Due {due_str} — Priority: {task.get_priority_display()}',
+        url='/tasks/',
+    )
+
+    # Google Calendar event
+    if not agent.gmail_connected:
+        logger.info("Skipping calendar for task %s — agent Gmail not connected", task_id)
+        return
+
+    try:
+        cal = GoogleCalendarService(agent)
+        event = {
+            'summary': task.title,
+            'description': (
+                f"Priority: {task.get_priority_display()}\n"
+                f"{task.description}"
+            ).strip(),
+            'start': {
+                'dateTime': task.due_date.isoformat(),
+                'timeZone': 'America/Chicago',
+            },
+            'end': {
+                'dateTime': (task.due_date + timedelta(minutes=30)).isoformat(),
+                'timeZone': 'America/Chicago',
+            },
+        }
+        result = cal.service.events().insert(
+            calendarId='primary', body=event, sendUpdates='none',
+        ).execute()
+        event_id = result.get('id', '')
+        if event_id:
+            task.google_event_id = event_id
+            task.save(update_fields=['google_event_id'])
+            logger.info("Created calendar event %s for task %s", event_id, task_id)
+    except Exception:
+        logger.exception("Failed to create calendar event for task %s", task_id)
