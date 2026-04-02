@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotAllowed
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import CreateView, ListView, UpdateView
 
@@ -159,3 +159,52 @@ def task_delete(request, pk):
     task.delete()
     messages.success(request, 'Task deleted.')
     return redirect('tasks:list')
+
+
+@login_required
+def task_attachments(request, pk):
+    """HTMX partial: render attachment list for a task."""
+    task = get_object_or_404(Task, pk=pk, team=request.user.team)
+    attachments = task.attachments.all()
+    return render(request, 'tasks/_attachments.html', {
+        'task': task,
+        'attachments': attachments,
+    })
+
+
+@login_required
+def task_attachment_upload(request, pk):
+    """HTMX: upload files to a task."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+    task = get_object_or_404(Task, pk=pk, team=request.user.team)
+    for f in request.FILES.getlist('attachments'):
+        if f.size > 50 * 1024 * 1024:
+            continue  # skip oversized files
+        TaskAttachment.objects.create(
+            task=task,
+            file=f,
+            filename=f.name,
+            uploaded_by=request.user,
+        )
+    attachments = task.attachments.all()
+    return render(request, 'tasks/_attachments.html', {
+        'task': task,
+        'attachments': attachments,
+    })
+
+
+@login_required
+def task_attachment_delete(request, pk, att_pk):
+    """HTMX: delete an attachment."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+    task = get_object_or_404(Task, pk=pk, team=request.user.team)
+    attachment = get_object_or_404(TaskAttachment, pk=att_pk, task=task)
+    attachment.file.delete()
+    attachment.delete()
+    attachments = task.attachments.all()
+    return render(request, 'tasks/_attachments.html', {
+        'task': task,
+        'attachments': attachments,
+    })
