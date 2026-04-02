@@ -11,7 +11,7 @@ from django.views.generic import CreateView, ListView, UpdateView
 
 from apps.accounts.models import User
 from apps.tasks.forms import TaskForm
-from apps.tasks.models import Task
+from apps.tasks.models import Task, TaskAttachment
 from apps.tasks.tasks import create_task_notifications
 from apps.scheduling.calendar import GoogleCalendarService
 
@@ -73,6 +73,14 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.team = self.request.user.team
         response = super().form_valid(form)
+        # Save attachments
+        for f in self.request.FILES.getlist('attachments'):
+            TaskAttachment.objects.create(
+                task=self.object,
+                file=f,
+                filename=f.name,
+                uploaded_by=self.request.user,
+            )
         create_task_notifications.delay(self.object.pk)
         messages.success(self.request, 'Task created successfully.')
         return response
@@ -100,8 +108,16 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
 
     def form_valid(self, form):
+        response = super().form_valid(form)
+        for f in self.request.FILES.getlist('attachments'):
+            TaskAttachment.objects.create(
+                task=self.object,
+                file=f,
+                filename=f.name,
+                uploaded_by=self.request.user,
+            )
         messages.success(self.request, 'Task updated successfully.')
-        return super().form_valid(form)
+        return response
 
     def get_success_url(self):
         return '/tasks/'
