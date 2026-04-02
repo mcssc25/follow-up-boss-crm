@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -47,3 +48,44 @@ class Task(models.Model):
         self.status = 'completed'
         self.completed_at = timezone.now()
         self.save()
+
+
+def validate_file_size(value):
+    limit = 50 * 1024 * 1024  # 50MB
+    if value.size > limit:
+        raise ValidationError('File size must be under 50 MB.')
+
+
+class TaskAttachment(models.Model):
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name='attachments',
+    )
+    file = models.FileField(
+        upload_to='task_attachments/',
+        validators=[validate_file_size],
+    )
+    filename = models.CharField(max_length=255)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.filename
+
+    @property
+    def size_display(self):
+        size = self.file.size
+        if size < 1024:
+            return f"{size} B"
+        elif size < 1024 * 1024:
+            return f"{size / 1024:.1f} KB"
+        else:
+            return f"{size / (1024 * 1024):.1f} MB"
