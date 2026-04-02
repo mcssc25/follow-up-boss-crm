@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.db.models import Count
 from django.views.generic import CreateView, ListView, UpdateView
 
 from apps.accounts.models import User
@@ -27,7 +28,7 @@ class TaskListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         qs = Task.objects.filter(team=self.request.user.team).select_related(
             'assigned_to', 'contact',
-        )
+        ).annotate(attachment_count=Count('attachments'))
 
         filter_type = self.request.GET.get('filter', '')
         now = timezone.now()

@@ -104,6 +104,21 @@
                         {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <!-- Attachments toggle -->
+                        <button hx-get="{% url 'tasks:attachments' task.pk %}"
+                                hx-target="#att-row-{{ task.pk }}"
+                                hx-swap="innerHTML"
+                                class="text-gray-400 hover:text-gray-600 relative"
+                                title="Attachments">
+                            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                            </svg>
+                            {% if task.attachment_count %}
+                            <span class="absolute -top-1 -right-2 bg-indigo-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                                {{ task.attachment_count }}
+                            </span>
+                            {% endif %}
+                        </button>
                         {% if task.status == 'pending' %}
                         <form method="post" action="{% url 'tasks:complete' task.pk %}" class="inline">
                             {% csrf_token %}
@@ -121,6 +136,8 @@
                             <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
                         </form>
                     </td>
+                </tr>
+                <tr id="att-row-{{ task.pk }}">
                 </tr>
                 {% endfor %}
             </tbody>
