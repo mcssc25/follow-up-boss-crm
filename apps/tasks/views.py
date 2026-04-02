@@ -76,6 +76,8 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         response = super().form_valid(form)
         # Save attachments
         for f in self.request.FILES.getlist('attachments'):
+            if f.size > 50 * 1024 * 1024:
+                continue
             TaskAttachment.objects.create(
                 task=self.object,
                 file=f,
@@ -111,6 +113,8 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         for f in self.request.FILES.getlist('attachments'):
+            if f.size > 50 * 1024 * 1024:
+                continue
             TaskAttachment.objects.create(
                 task=self.object,
                 file=f,

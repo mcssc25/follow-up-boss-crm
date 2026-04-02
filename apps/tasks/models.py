@@ -82,7 +82,10 @@ class TaskAttachment(models.Model):
 
     @property
     def size_display(self):
-        size = self.file.size
+        try:
+            size = self.file.size
+        except (FileNotFoundError, OSError):
+            return "N/A"
         if size < 1024:
             return f"{size} B"
         elif size < 1024 * 1024:
