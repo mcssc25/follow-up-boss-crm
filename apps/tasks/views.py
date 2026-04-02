@@ -12,7 +12,7 @@ from django.views.generic import CreateView, ListView, UpdateView
 
 from apps.accounts.models import User
 from apps.tasks.forms import TaskForm
-from apps.tasks.models import Task, TaskAttachment
+from apps.tasks.models import Task, TaskAssignment, TaskAttachment
 from apps.tasks.tasks import create_task_notifications
 from apps.scheduling.calendar import GoogleCalendarService
 
@@ -27,8 +27,8 @@ class TaskListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         qs = Task.objects.filter(team=self.request.user.team).select_related(
-            'assigned_to', 'contact',
-        ).annotate(attachment_count=Count('attachments'))
+            'contact',
+        ).prefetch_related('assigned_to').annotate(attachment_count=Count('attachments'))
 
         filter_type = self.request.GET.get('filter', '')
         now = timezone.now()
@@ -49,7 +49,7 @@ class TaskListView(LoginRequiredMixin, ListView):
 
         agent = self.request.GET.get('agent', '').strip()
         if agent:
-            qs = qs.filter(assigned_to_id=agent)
+            qs = qs.filter(assigned_to=agent)
 
         return qs
 
@@ -74,6 +74,9 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.team = self.request.user.team
         response = super().form_valid(form)
+        # Save M2M assignments
+        for user in form.cleaned_data['assigned_to']:
+            TaskAssignment.objects.get_or_create(task=self.object, user=user)
         # Save attachments
         for f in self.request.FILES.getlist('attachments'):
             if f.size > 50 * 1024 * 1024:
@@ -112,6 +115,16 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        # Update M2M assignments: remove old, add new
+        selected_users = set(form.cleaned_data['assigned_to'])
+        current_users = set(self.object.assigned_to.all())
+        # Remove unselected
+        for user in current_users - selected_users:
+            TaskAssignment.objects.filter(task=self.object, user=user).delete()
+        # Add newly selected
+        for user in selected_users - current_users:
+            TaskAssignment.objects.get_or_create(task=self.object, user=user)
+        # Save attachments
         for f in self.request.FILES.getlist('attachments'):
             if f.size > 50 * 1024 * 1024:
                 continue
@@ -140,15 +153,17 @@ def task_complete(request, pk):
 
     task = get_object_or_404(Task, pk=pk, team=request.user.team)
 
-    # Delete calendar event if one exists
-    if task.google_event_id and task.assigned_to.gmail_connected:
-        try:
-            cal = GoogleCalendarService(task.assigned_to)
-            cal.delete_event(task.google_event_id)
-        except Exception:
-            logger.exception(
-                "Failed to delete calendar event for task %s", task.pk
-            )
+    # Delete calendar events for all assignees
+    for assignment in task.assignments.select_related('user').all():
+        if assignment.google_event_id and assignment.user.gmail_connected:
+            try:
+                cal = GoogleCalendarService(assignment.user)
+                cal.delete_event(assignment.google_event_id)
+            except Exception:
+                logger.exception(
+                    "Failed to delete calendar event for task %s, user %s",
+                    task.pk, assignment.user_id,
+                )
 
     task.complete()
     messages.success(request, f'Task "{task.title}" marked as completed.')

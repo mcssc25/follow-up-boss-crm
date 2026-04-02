@@ -11,11 +11,19 @@ INPUT_CLASS = (
 
 
 class TaskForm(forms.ModelForm):
+    assigned_to = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(),
+        widget=forms.SelectMultiple(attrs={
+            'class': INPUT_CLASS,
+            'size': '4',
+        }),
+    )
+
     class Meta:
         model = Task
         fields = [
             'title', 'description', 'due_date', 'priority',
-            'contact', 'assigned_to',
+            'contact',
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': INPUT_CLASS}),
@@ -29,7 +37,6 @@ class TaskForm(forms.ModelForm):
             }),
             'priority': forms.Select(attrs={'class': INPUT_CLASS}),
             'contact': forms.Select(attrs={'class': INPUT_CLASS}),
-            'assigned_to': forms.Select(attrs={'class': INPUT_CLASS}),
         }
 
     def __init__(self, *args, team=None, **kwargs):
@@ -43,3 +50,6 @@ class TaskForm(forms.ModelForm):
             self.fields['contact'].queryset = Contact.objects.none()
         self.fields['contact'].required = False
         self.fields['contact'].empty_label = '-- No Contact --'
+        # Pre-populate assigned_to for edit
+        if self.instance.pk:
+            self.fields['assigned_to'].initial = self.instance.assigned_to.all()

@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from apps.tasks.models import Task, TaskAttachment
+from apps.tasks.models import Task, TaskAssignment, TaskAttachment
+
+
+class TaskAssignmentInline(admin.TabularInline):
+    model = TaskAssignment
+    extra = 1
+    raw_id_fields = ['user']
 
 
 class TaskAttachmentInline(admin.TabularInline):
@@ -11,8 +17,8 @@ class TaskAttachmentInline(admin.TabularInline):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ['title', 'assigned_to', 'due_date', 'status', 'priority', 'team']
+    list_display = ['title', 'due_date', 'status', 'priority', 'team']
     list_filter = ['status', 'priority', 'team']
     search_fields = ['title', 'description']
-    raw_id_fields = ['assigned_to', 'contact']
-    inlines = [TaskAttachmentInline]
+    raw_id_fields = ['contact']
+    inlines = [TaskAssignmentInline, TaskAttachmentInline]

@@ -10,10 +10,11 @@ class Task(models.Model):
 
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    assigned_to = models.ForeignKey(
+    assigned_to = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        through='TaskAssignment',
         related_name='assigned_tasks',
+        blank=True,
     )
     contact = models.ForeignKey(
         'contacts.Contact',
@@ -32,7 +33,6 @@ class Task(models.Model):
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    google_event_id = models.CharField(max_length=255, blank=True, default='')
 
     class Meta:
         ordering = ['due_date']
@@ -48,6 +48,22 @@ class Task(models.Model):
         self.status = 'completed'
         self.completed_at = timezone.now()
         self.save()
+
+
+class TaskAssignment(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='assignments')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='task_assignments',
+    )
+    google_event_id = models.CharField(max_length=255, blank=True, default='')
+
+    class Meta:
+        unique_together = ['task', 'user']
+
+    def __str__(self):
+        return f"{self.user} -> {self.task}"
 
 
 def validate_file_size(value):

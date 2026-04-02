@@ -100,8 +100,12 @@
                         --
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        {% for agent in task.assigned_to.all %}
+                            {{ agent.get_full_name|default:agent.username }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            --
+                        {% endfor %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                         <!-- Attachments toggle -->
