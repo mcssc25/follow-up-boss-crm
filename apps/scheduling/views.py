@@ -260,7 +260,7 @@ def event_type_create(request):
         form = EventTypeForm(request.POST, team=request.user.team)
         if form.is_valid():
             event_type = form.save(commit=False)
-            event_type.owner = request.user
+            event_type.owner = form.cleaned_data['owner']
             event_type.team = request.user.team
             event_type.save()
             event_type.tags.set(form.cleaned_data.get('tag_ids', []))
@@ -268,7 +268,7 @@ def event_type_create(request):
             messages.success(request, f'Event type "{event_type.name}" created.')
             return redirect('scheduling:event_type_list')
     else:
-        form = EventTypeForm(team=request.user.team)
+        form = EventTypeForm(team=request.user.team, initial={'owner': request.user})
     return render(request, 'scheduling/event_type_form.html', {
         'form': form,
         'is_edit': False,
@@ -284,7 +284,9 @@ def event_type_edit(request, pk):
     if request.method == 'POST':
         form = EventTypeForm(request.POST, instance=event_type, team=request.user.team)
         if form.is_valid():
-            event_type = form.save()
+            event_type = form.save(commit=False)
+            event_type.owner = form.cleaned_data['owner']
+            event_type.save()
             event_type.tags.set(form.cleaned_data.get('tag_ids', []))
             _save_availability(request, event_type)
             messages.success(request, f'Event type "{event_type.name}" updated.')
@@ -292,6 +294,7 @@ def event_type_edit(request, pk):
     else:
         form = EventTypeForm(instance=event_type, team=request.user.team)
         form.fields['tag_ids'].initial = event_type.tags.all()
+        form.fields['owner'].initial = event_type.owner
     return render(request, 'scheduling/event_type_form.html', {
         'form': form,
         'event_type': event_type,

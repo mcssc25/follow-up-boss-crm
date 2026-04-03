@@ -17,6 +17,7 @@
         <thead class="bg-gray-50">
             <tr>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -33,6 +34,7 @@
                         {{ et.name }}
                     </a>
                 </td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ et.owner.get_full_name }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600">{{ et.duration_minutes }} min</td>
                 <td class="px-4 py-3 text-sm">
                     {% for tag in et.tags.all %}
@@ -73,7 +75,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="px-4 py-8 text-center text-sm text-gray-500">
+                <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">
                     No event types yet. <a href="{% url 'scheduling:event_type_create' %}" class="text-indigo-600 hover:underline">Create your first event type</a>.
                 </td>
             </tr>

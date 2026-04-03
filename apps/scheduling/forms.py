@@ -10,6 +10,7 @@ class BookingForm(forms.Form):
 
 
 from .models import EventType
+from apps.accounts.models import User
 from apps.contacts.models import Tag
 
 
@@ -25,6 +26,12 @@ class EventTypeForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 3}),
         }
 
+    owner = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=True,
+        label='Assigned To',
+    )
+
     tag_ids = forms.ModelMultipleChoiceField(
         queryset=Tag.objects.none(),
         required=False,
@@ -35,3 +42,4 @@ class EventTypeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if team:
             self.fields['tag_ids'].queryset = Tag.objects.filter(team=team)
+            self.fields['owner'].queryset = User.objects.filter(team=team)
