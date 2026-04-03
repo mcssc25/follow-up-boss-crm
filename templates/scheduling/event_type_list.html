@@ -34,7 +34,16 @@
                         {{ et.name }}
                     </a>
                 </td>
-                <td class="px-4 py-3 text-sm text-gray-600">{{ et.owner.get_full_name }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">
+                    <div class="flex items-center gap-2">
+                        {% if et.owner.avatar %}
+                        <img src="{{ et.owner.avatar.url }}" alt="" class="w-6 h-6 rounded-full object-cover">
+                        {% else %}
+                        <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">{{ et.owner.first_name|first }}{{ et.owner.last_name|first }}</div>
+                        {% endif %}
+                        {{ et.owner.get_full_name }}
+                    </div>
+                </td>
                 <td class="px-4 py-3 text-sm text-gray-600">{{ et.duration_minutes }} min</td>
                 <td class="px-4 py-3 text-sm">
                     {% for tag in et.tags.all %}

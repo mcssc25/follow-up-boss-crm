@@ -48,10 +48,15 @@
                 </h2>
             </div>
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold ring-2 ring-sky-400/30"
+                {% if event_type.owner.avatar %}
+                <img src="{{ event_type.owner.avatar.url }}" alt="{{ event_type.owner.get_full_name }}"
+                     class="w-10 h-10 rounded-full object-cover ring-2 ring-sky-400/30">
+                {% else %}
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ring-2 ring-sky-400/30"
                      style="background: linear-gradient(135deg, {{ event_type.color }}, {{ event_type.color }}dd);">
                     {{ event_type.owner.first_name|first }}{{ event_type.owner.last_name|first }}
                 </div>
+                {% endif %}
                 <div>
                     <p class="text-sm font-semibold text-white">{{ event_type.owner.get_full_name }}</p>
                     <p class="text-xs text-slate-400">{{ event_type.owner.email }}</p>
