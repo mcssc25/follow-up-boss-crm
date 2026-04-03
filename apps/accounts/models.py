@@ -31,6 +31,7 @@ class User(AbstractUser):
         related_name='members',
     )
     phone = models.CharField(max_length=20, blank=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True)
     gmail_access_token = models.TextField(blank=True)
     gmail_refresh_token = models.TextField(blank=True)
     gmail_token_expiry = models.DateTimeField(null=True, blank=True)
