@@ -13,9 +13,8 @@ INPUT_CLASS = (
 class TaskForm(forms.ModelForm):
     assigned_to = forms.ModelMultipleChoiceField(
         queryset=User.objects.none(),
-        widget=forms.SelectMultiple(attrs={
-            'class': INPUT_CLASS,
-            'size': '4',
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500',
         }),
     )
 

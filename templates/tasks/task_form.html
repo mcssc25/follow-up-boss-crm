@@ -2,17 +2,26 @@
 {% block title %}{{ form_title }} - Tasks{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div class="max-w-3xl mx-auto">
+    <!-- Header with breadcrumb -->
     <div class="mb-6">
+        <nav class="text-sm text-gray-500 mb-2">
+            <a href="{% url 'tasks:list' %}" class="hover:text-indigo-600">Tasks</a>
+            <span class="mx-2">/</span>
+            <span class="text-gray-700">{{ form_title }}</span>
+        </nav>
         <h1 class="text-2xl font-bold text-gray-900">{{ form_title }}</h1>
     </div>
 
-    <div class="bg-white shadow rounded-lg p-6">
-        <form method="post" enctype="multipart/form-data" class="space-y-6">
-            {% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-            {% if form.errors %}
-            <div class="rounded-md bg-red-50 p-4">
+        {% if form.errors %}
+        <div class="rounded-lg bg-red-50 border border-red-200 p-4 mb-6">
+            <div class="flex">
+                <svg class="h-5 w-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
                 <div class="text-sm text-red-700">
                     <ul class="list-disc pl-5 space-y-1">
                         {% for field, errors in form.errors.items %}
@@ -23,77 +32,142 @@
                     </ul>
                 </div>
             </div>
-            {% endif %}
+        </div>
+        {% endif %}
 
-            <div>
-                <label for="id_title" class="block text-sm font-medium text-gray-700">Title</label>
-                {{ form.title }}
+        <!-- Task Details Card -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-base font-semibold text-gray-800 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Task Details
+                </h2>
             </div>
-
-            <div>
-                <label for="id_description" class="block text-sm font-medium text-gray-700">Description</label>
-                {{ form.description }}
-            </div>
-
-            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div class="p-6 space-y-5">
                 <div>
-                    <label for="id_due_date" class="block text-sm font-medium text-gray-700">Due Date</label>
-                    {{ form.due_date }}
+                    <label for="id_title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    {{ form.title }}
                 </div>
 
                 <div>
-                    <label for="id_priority" class="block text-sm font-medium text-gray-700">Priority</label>
-                    {{ form.priority }}
+                    <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    {{ form.description }}
                 </div>
             </div>
+        </div>
 
-            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                    <label for="id_assigned_to" class="block text-sm font-medium text-gray-700">Assigned To</label>
-                    {{ form.assigned_to }}
-                    <p class="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to select multiple.</p>
+        <!-- Schedule & Priority Card -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-base font-semibold text-gray-800 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Schedule & Priority
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div>
+                        <label for="id_due_date" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        {{ form.due_date }}
+                    </div>
+
+                    <div>
+                        <label for="id_priority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        {{ form.priority }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Card -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-base font-semibold text-gray-800 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Assignment
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
+                        <div class="space-y-1">
+                            {{ form.assigned_to }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="id_contact" class="block text-sm font-medium text-gray-700 mb-1">Contact <span class="text-gray-400 font-normal">(optional)</span></label>
+                        {{ form.contact }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attachments Card -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-base font-semibold text-gray-800 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                    </svg>
+                    Attachments
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                    <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <div class="mt-3">
+                        <label for="file-upload" class="cursor-pointer">
+                            <span class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Choose files</span>
+                            <span class="text-sm text-gray-500"> or drag and drop</span>
+                            <input id="file-upload" name="attachments" type="file" multiple class="sr-only"
+                                   accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.csv,.txt">
+                        </label>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-400">PDF, images, Word, Excel, CSV, TXT — max 50 MB per file</p>
                 </div>
 
-                <div>
-                    <label for="id_contact" class="block text-sm font-medium text-gray-700">Contact (optional)</label>
-                    {{ form.contact }}
+                {% if form.instance.pk and form.instance.attachments.exists %}
+                <div class="mt-4">
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Current Attachments</h3>
+                    <ul class="space-y-2">
+                        {% for att in form.instance.attachments.all %}
+                        <li class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
+                            <div class="flex items-center min-w-0">
+                                <svg class="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                </svg>
+                                <a href="{{ att.file.url }}" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-900 truncate">
+                                    {{ att.filename }}
+                                </a>
+                            </div>
+                            <span class="text-xs text-gray-400 ml-4 flex-shrink-0">{{ att.size_display }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
+                {% endif %}
             </div>
+        </div>
 
-            <!-- Attachments -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Attachments</label>
-                <input type="file" name="attachments" multiple
-                       class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                       accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.csv,.txt">
-                <p class="mt-1 text-xs text-gray-500">Max 50 MB per file. PDF, images, Word, Excel, CSV, TXT.</p>
-            </div>
-
-            {% if form.instance.pk and form.instance.attachments.exists %}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Current Attachments</label>
-                <ul class="space-y-1">
-                    {% for att in form.instance.attachments.all %}
-                    <li class="flex items-center justify-between text-sm text-gray-600 bg-gray-50 rounded px-3 py-2">
-                        <a href="{{ att.file.url }}" target="_blank" class="text-indigo-600 hover:text-indigo-900 truncate">
-                            {{ att.filename }}
-                        </a>
-                        <span class="text-xs text-gray-400 ml-2">{{ att.size_display }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-                <a href="{% url 'tasks:list' %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                    Cancel
-                </a>
-                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Save Task
-                </button>
-            </div>
-        </form>
-    </div>
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-end space-x-3 pb-8">
+            <a href="{% url 'tasks:list' %}" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
+                Save Task
+            </button>
+        </div>
+    </form>
 </div>
 {% endblock %}
