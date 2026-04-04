@@ -35,6 +35,7 @@ urlpatterns = [
     path('videos/', include('apps.videos.urls')),
     path('v/', include('apps.videos.urls_public')),
     path('t/', include('apps.email_tracker.urls')),
+    path('social/', include('apps.social.urls')),
 ]
 
 if settings.DEBUG:
