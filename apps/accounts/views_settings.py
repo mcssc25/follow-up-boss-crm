@@ -227,7 +227,7 @@ def lead_routing_settings(request):
         messages.success(request, 'Lead routing configuration updated.')
         return redirect('accounts:settings_lead_routing')
 
-    agents = User.objects.filter(team=team, is_active=True, role='agent').order_by(
+    agents = User.objects.filter(team=team, is_active=True).order_by(
         'first_name'
     )
     return render(
