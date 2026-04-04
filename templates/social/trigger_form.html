@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}New{% endif %} Keyword Trigger{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'social:trigger_list' %}" class="text-sm text-indigo-600 hover:text-indigo-900">
+            &larr; Back to Triggers
+        </a>
+        <h1 class="mt-2 text-2xl font-bold text-gray-900">
+            {% if form.instance.pk %}Edit Trigger{% else %}New Keyword Trigger{% endif %}
+        </h1>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Keyword & Matching -->
+        <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Keyword Trigger</h2>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Keyword</label>
+                    {{ form.keyword }}
+                    {% if form.keyword.errors %}<p class="mt-1 text-sm text-red-600">{{ form.keyword.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Match Type</label>
+                    {{ form.match_type }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+                    {{ form.platform }}
+                </div>
+                <div class="flex items-end">
+                    <label class="inline-flex items-center">
+                        {{ form.is_active }}
+                        <span class="ml-2 text-sm text-gray-700">Active</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-Reply -->
+        <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Auto-Reply</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reply Message</label>
+                    {{ form.reply_text }}
+                    {% if form.reply_text.errors %}<p class="mt-1 text-sm text-red-600">{{ form.reply_text.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Link (optional)</label>
+                    {{ form.reply_link }}
+                    <p class="mt-1 text-xs text-gray-500">PDF, video page, or landing page URL</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CRM Actions -->
+        <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">CRM Actions</h2>
+            <div class="space-y-4">
+                <label class="inline-flex items-center">
+                    {{ form.create_contact }}
+                    <span class="ml-2 text-sm text-gray-700">Add sender to CRM as a contact</span>
+                </label>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Enroll in Campaign</label>
+                    {{ form.campaign }}
+                </div>
+                <label class="inline-flex items-center">
+                    {{ form.notify_agent }}
+                    <span class="ml-2 text-sm text-gray-700">Notify me when this trigger fires</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'social:trigger_list' %}"
+               class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                Cancel
+            </a>
+            <button type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 shadow-sm">
+                {% if form.instance.pk %}Save Changes{% else %}Create Trigger{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
