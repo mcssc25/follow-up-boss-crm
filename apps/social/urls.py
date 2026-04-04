@@ -15,4 +15,9 @@ urlpatterns = [
 
     # Message log
     path('messages/', views.MessageLogView.as_view(), name='message_log'),
+
+    # Social accounts
+    path('accounts/', views.social_accounts, name='accounts'),
+    path('oauth/callback/', views.oauth_callback, name='oauth_callback'),
+    path('accounts/<int:pk>/disconnect/', views.disconnect_account, name='disconnect_account'),
 ]
