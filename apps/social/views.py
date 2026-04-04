@@ -4,6 +4,7 @@ import json
 import logging
 
 from django.conf import settings
+from django.db.models import Q
 from django.contrib import messages as django_messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
@@ -142,3 +143,37 @@ class TriggerDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         django_messages.success(request, 'Keyword trigger deleted.')
         return super().delete(request, *args, **kwargs)
+
+
+# ─── Message Log ─────────────────────────────────────────────────────
+
+
+class MessageLogView(LoginRequiredMixin, ListView):
+    model = MessageLog
+    template_name = 'social/message_log.html'
+    context_object_name = 'messages'
+    paginate_by = 50
+
+    def get_queryset(self):
+        qs = MessageLog.objects.filter(
+            social_account__team=self.request.user.team,
+        ).select_related('trigger_matched', 'contact_created')
+
+        q = self.request.GET.get('q', '').strip()
+        if q:
+            qs = qs.filter(
+                Q(sender_name__icontains=q)
+                | Q(message_text__icontains=q)
+            )
+
+        platform = self.request.GET.get('platform', '').strip()
+        if platform:
+            qs = qs.filter(platform=platform)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['search_query'] = self.request.GET.get('q', '')
+        ctx['selected_platform'] = self.request.GET.get('platform', '')
+        return ctx

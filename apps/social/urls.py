@@ -12,4 +12,7 @@ urlpatterns = [
     path('triggers/new/', views.TriggerCreateView.as_view(), name='trigger_create'),
     path('triggers/<int:pk>/edit/', views.TriggerUpdateView.as_view(), name='trigger_update'),
     path('triggers/<int:pk>/delete/', views.TriggerDeleteView.as_view(), name='trigger_delete'),
+
+    # Message log
+    path('messages/', views.MessageLogView.as_view(), name='message_log'),
 ]
