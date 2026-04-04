@@ -349,6 +349,14 @@ VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'admin@bigbeachal.com')
 EMAIL_TRACKER_API_KEY = os.getenv('EMAIL_TRACKER_API_KEY', '')
 
 # ---------------------------------------------------------------------------
+# Meta (Facebook/Instagram) API
+# ---------------------------------------------------------------------------
+
+META_APP_ID = os.getenv('META_APP_ID', '')
+META_APP_SECRET = os.getenv('META_APP_SECRET', '')
+META_WEBHOOK_VERIFY_TOKEN = os.getenv('META_WEBHOOK_VERIFY_TOKEN', 'crm-social-webhook-verify')
+
+# ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
 
