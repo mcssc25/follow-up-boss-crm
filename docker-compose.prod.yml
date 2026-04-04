@@ -2,11 +2,17 @@ services:
   web:
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings_production
+      - META_APP_ID=${META_APP_ID}
+      - META_APP_SECRET=${META_APP_SECRET}
+      - META_WEBHOOK_VERIFY_TOKEN=${META_WEBHOOK_VERIFY_TOKEN}
     restart: always
 
   celery:
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings_production
+      - META_APP_ID=${META_APP_ID}
+      - META_APP_SECRET=${META_APP_SECRET}
+      - META_WEBHOOK_VERIFY_TOKEN=${META_WEBHOOK_VERIFY_TOKEN}
     restart: always
 
   celery-beat:
@@ -25,3 +31,4 @@ services:
     volumes:
       - ./nginx/nginx-ssl.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /opt/condo-search/dist:/opt/condo-search/dist:ro
