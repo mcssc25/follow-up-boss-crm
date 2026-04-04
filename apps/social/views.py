@@ -1,9 +1,9 @@
-import hashlib
-import hmac
 import json
 import logging
+import secrets
 import urllib.parse
 
+import requests as http_requests
 from django.conf import settings
 from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from .forms import KeywordTriggerForm
+from .meta_api import verify_webhook_signature
 from .models import KeywordTrigger, MessageLog, SocialAccount
 from .tasks import process_incoming_message
 
@@ -39,7 +40,7 @@ def webhook(request):
     # POST: Incoming message
     if request.method == 'POST':
         signature = request.META.get('HTTP_X_HUB_SIGNATURE_256', '')
-        if not _verify_signature(request.body, signature):
+        if not verify_webhook_signature(request.body, signature):
             return HttpResponseForbidden('Invalid signature')
 
         try:
@@ -72,18 +73,6 @@ def webhook(request):
         return HttpResponse('EVENT_RECEIVED', status=200)
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-
-def _verify_signature(request_body, signature_header):
-    """Verify X-Hub-Signature-256 from Meta."""
-    if not signature_header:
-        return False
-    expected = 'sha256=' + hmac.new(
-        settings.META_APP_SECRET.encode(),
-        request_body,
-        hashlib.sha256,
-    ).hexdigest()
-    return hmac.compare_digest(expected, signature_header)
 
 
 # ─── Keyword Trigger CRUD ────────────────────────────────────────────
@@ -191,6 +180,10 @@ def social_accounts(request):
     accounts = SocialAccount.objects.filter(team=request.user.team)
     meta_app_id = settings.META_APP_ID
 
+    # Generate CSRF state token for OAuth
+    state = secrets.token_urlsafe(32)
+    request.session['meta_oauth_state'] = state
+
     redirect_uri = request.build_absolute_uri('/social/oauth/callback/')
     oauth_url = (
         f"https://www.facebook.com/v21.0/dialog/oauth"
@@ -198,6 +191,7 @@ def social_accounts(request):
         f"&redirect_uri={urllib.parse.quote(redirect_uri)}"
         f"&scope=pages_messaging,instagram_messaging,pages_manage_metadata,pages_show_list"
         f"&response_type=code"
+        f"&state={state}"
     )
 
     return render(request, 'social/accounts.html', {
@@ -209,42 +203,53 @@ def social_accounts(request):
 @login_required
 def oauth_callback(request):
     """Handle Meta OAuth callback — exchange code for page access tokens."""
-    import requests as http_requests
-
     code = request.GET.get('code')
     if not code:
         django_messages.error(request, 'OAuth failed — no code received.')
         return redirect('social:accounts')
 
+    # Verify CSRF state token
+    state = request.GET.get('state', '')
+    expected_state = request.session.pop('meta_oauth_state', None)
+    if not state or state != expected_state:
+        django_messages.error(request, 'OAuth failed — invalid state parameter.')
+        return redirect('social:accounts')
+
     redirect_uri = request.build_absolute_uri('/social/oauth/callback/')
     team = request.user.team
 
-    # Exchange code for user access token
-    token_resp = http_requests.get(
-        'https://graph.facebook.com/v21.0/oauth/access_token',
-        params={
-            'client_id': settings.META_APP_ID,
-            'client_secret': settings.META_APP_SECRET,
-            'redirect_uri': redirect_uri,
-            'code': code,
-        },
-        timeout=10,
-    )
-    if token_resp.status_code != 200:
-        logger.error("Meta token exchange failed: %s", token_resp.text)
-        django_messages.error(request, 'Failed to connect to Meta.')
-        return redirect('social:accounts')
+    try:
+        # Exchange code for user access token
+        token_resp = http_requests.get(
+            'https://graph.facebook.com/v21.0/oauth/access_token',
+            params={
+                'client_id': settings.META_APP_ID,
+                'client_secret': settings.META_APP_SECRET,
+                'redirect_uri': redirect_uri,
+                'code': code,
+            },
+            timeout=10,
+        )
+        if token_resp.status_code != 200:
+            logger.error("Meta token exchange failed: %s", token_resp.text)
+            django_messages.error(request, 'Failed to connect to Meta.')
+            return redirect('social:accounts')
 
-    user_token = token_resp.json().get('access_token')
+        user_token = token_resp.json().get('access_token')
 
-    # Get pages the user manages
-    pages_resp = http_requests.get(
-        'https://graph.facebook.com/v21.0/me/accounts',
-        params={'access_token': user_token},
-        timeout=10,
-    )
-    if pages_resp.status_code != 200:
-        django_messages.error(request, 'Failed to retrieve pages.')
+        # Get pages the user manages
+        pages_resp = http_requests.get(
+            'https://graph.facebook.com/v21.0/me/accounts',
+            params={'access_token': user_token},
+            timeout=10,
+        )
+        if pages_resp.status_code != 200:
+            django_messages.error(request, 'Failed to retrieve pages.')
+            return redirect('social:accounts')
+
+    except http_requests.RequestException:
+        logger.exception("Meta OAuth network error")
+        django_messages.error(request, 'Could not reach Meta — please try again.')
         return redirect('social:accounts')
 
     pages = pages_resp.json().get('data', [])
@@ -269,30 +274,33 @@ def oauth_callback(request):
         created_count += 1
 
         # Check for connected Instagram Business account
-        ig_resp = http_requests.get(
-            f'https://graph.facebook.com/v21.0/{page_id}',
-            params={
-                'fields': 'instagram_business_account',
-                'access_token': page_token,
-            },
-            timeout=10,
-        )
-        if ig_resp.status_code == 200:
-            ig_data = ig_resp.json().get('instagram_business_account', {})
-            ig_id = ig_data.get('id')
-            if ig_id:
-                SocialAccount.objects.update_or_create(
-                    team=team,
-                    page_id=ig_id,
-                    defaults={
-                        'platform': 'instagram',
-                        'page_name': f"{page_name} (Instagram)",
-                        'access_token': page_token,
-                        'instagram_account_id': ig_id,
-                        'is_active': True,
-                    },
-                )
-                created_count += 1
+        try:
+            ig_resp = http_requests.get(
+                f'https://graph.facebook.com/v21.0/{page_id}',
+                params={
+                    'fields': 'instagram_business_account',
+                    'access_token': page_token,
+                },
+                timeout=10,
+            )
+            if ig_resp.status_code == 200:
+                ig_data = ig_resp.json().get('instagram_business_account', {})
+                ig_id = ig_data.get('id')
+                if ig_id:
+                    SocialAccount.objects.update_or_create(
+                        team=team,
+                        page_id=ig_id,
+                        defaults={
+                            'platform': 'instagram',
+                            'page_name': f"{page_name} (Instagram)",
+                            'access_token': page_token,
+                            'instagram_account_id': ig_id,
+                            'is_active': True,
+                        },
+                    )
+                    created_count += 1
+        except http_requests.RequestException:
+            logger.exception("Failed to fetch Instagram account for page %s", page_id)
 
     django_messages.success(request, f'Connected {created_count} account(s) from Meta.')
     return redirect('social:accounts')

@@ -15,7 +15,7 @@ class SocialAccount(models.Model):
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
     page_id = models.CharField(max_length=100)
     page_name = models.CharField(max_length=255)
-    access_token = models.TextField(help_text='Encrypted Page Access Token')
+    access_token = models.TextField(help_text='Page Access Token from Meta OAuth')
     instagram_account_id = models.CharField(
         max_length=100, blank=True, default='',
         help_text='Instagram Business Account ID (for IG-specific calls)',
