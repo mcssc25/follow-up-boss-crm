@@ -73,11 +73,13 @@
                 {% for task in tasks %}
                 <tr class="{% if task.is_overdue %}bg-red-50{% endif %}">
                     <td class="px-6 py-4">
-                        <div class="text-sm font-medium text-gray-900 {% if task.status == 'completed' %}line-through text-gray-500{% endif %}">
-                            {{ task.title }}
+                        <div class="text-sm font-medium {% if task.status == 'completed' %}line-through text-gray-500{% endif %}">
+                            <a href="{% url 'tasks:edit' task.pk %}" class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                                {{ task.title }}
+                            </a>
                         </div>
                         {% if task.description %}
-                        <div class="text-sm text-gray-500 truncate max-w-xs">{{ task.description }}</div>
+                        <div class="text-sm text-gray-500 max-w-lg">{{ task.description }}</div>
                         {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm {% if task.is_overdue %}text-red-600 font-semibold{% else %}text-gray-500{% endif %}">
