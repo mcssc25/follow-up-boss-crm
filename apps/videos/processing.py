@@ -110,8 +110,10 @@ def convert_webm_to_mp4(webm_path, mp4_path):
     subprocess.run(
         [
             'ffmpeg', '-y', '-i', str(webm_path),
-            '-c:v', 'libx264', '-preset', 'fast',
+            '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '20',
+            '-threads', '0',
             '-c:a', 'aac', '-b:a', '128k',
+            '-movflags', '+faststart',
             str(mp4_path),
         ],
         capture_output=True,
