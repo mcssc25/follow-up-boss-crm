@@ -1,3 +1,4 @@
+import logging
 import re
 from urllib.parse import quote
 
@@ -5,6 +6,8 @@ from celery import shared_task
 from django.utils import timezone
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 from .email_renderer import get_video_html, render_campaign_email
 from .models import CampaignEnrollment, EmailLog
@@ -20,6 +23,7 @@ def process_due_emails():
         next_send_at__lte=timezone.now(),
         contact__email__gt='',
         campaign__is_active=True,
+        current_step__isnull=False,
     ).select_related(
         'contact', 'contact__assigned_to', 'campaign', 'current_step',
     )
@@ -65,6 +69,10 @@ def send_campaign_email(enrollment_id):
     contact = enrollment.contact
     agent = contact.assigned_to
     step = enrollment.current_step
+
+    if not step:
+        logger.error("Enrollment %s has no current_step, skipping", enrollment_id)
+        return
 
     if not agent or not agent.gmail_connected:
         return
@@ -117,3 +125,10 @@ def send_campaign_email(enrollment_id):
         contact.save(update_fields=['last_contacted_at'])
         # Advance to next step
         enrollment.advance_to_next_step()
+    else:
+        logger.error(
+            "Campaign email failed: enrollment=%s contact=%s step=%s error=%s",
+            enrollment.id, contact, step.order, result.get('error'),
+        )
+        # Delete the EmailLog since the email was never sent
+        email_log.delete()
