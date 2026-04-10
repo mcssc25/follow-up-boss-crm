@@ -1,0 +1,260 @@
+/* Professional PDF Styling */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Merriweather:wght@700;900&display=swap');
+
+:root {
+  --primary: #1a5276;
+  --primary-light: #2980b9;
+  --accent: #e67e22;
+  --accent-light: #f39c12;
+  --dark: #1a1a2e;
+  --gray-900: #212529;
+  --gray-700: #495057;
+  --gray-500: #6c757d;
+  --gray-300: #dee2e6;
+  --gray-100: #f8f9fa;
+  --white: #ffffff;
+  --success: #27ae60;
+  --danger: #e74c3c;
+  --sand: #fdf6e3;
+}
+
+@page {
+  size: letter;
+  margin: 0.75in 0.85in 0.85in 0.85in;
+
+  @bottom-center {
+    content: counter(page);
+    font-family: 'Lato', sans-serif;
+    font-size: 9px;
+    color: #999;
+  }
+}
+
+@page :first {
+  margin-top: 0;
+  @bottom-center { content: none; }
+}
+
+body {
+  font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11pt;
+  line-height: 1.7;
+  font-weight: 400;
+  color: var(--gray-900);
+  max-width: 100%;
+}
+
+/* First h1 becomes a styled cover-like header */
+h1:first-of-type {
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 28pt;
+  font-weight: 800;
+  color: var(--primary);
+  border-bottom: 4px solid var(--accent);
+  padding-bottom: 16px;
+  margin-bottom: 8px;
+  margin-top: 40px;
+  line-height: 1.2;
+}
+
+h1 {
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 22pt;
+  font-weight: 700;
+  color: var(--primary);
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 10px;
+  margin-top: 36px;
+  margin-bottom: 16px;
+  page-break-after: avoid;
+}
+
+h2 {
+  font-family: 'Lato', sans-serif;
+  font-size: 15pt;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 28px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--gray-300);
+  page-break-after: avoid;
+}
+
+h3 {
+  font-family: 'Lato', sans-serif;
+  font-size: 12.5pt;
+  font-weight: 600;
+  color: var(--primary-light);
+  margin-top: 20px;
+  margin-bottom: 8px;
+  page-break-after: avoid;
+}
+
+h4 {
+  font-family: 'Lato', sans-serif;
+  font-size: 11pt;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-top: 16px;
+  margin-bottom: 6px;
+  page-break-after: avoid;
+}
+
+/* Subtitle line (the "Prepared / For" lines) */
+h1:first-of-type + p,
+h1:first-of-type + p + p {
+  font-size: 11pt;
+  color: var(--gray-500);
+}
+
+p {
+  margin-bottom: 10px;
+  orphans: 3;
+  widows: 3;
+}
+
+strong {
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+/* Horizontal rules as section dividers */
+hr {
+  border: none;
+  border-top: 1.5px solid var(--gray-300);
+  margin: 24px 0;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 9.5pt;
+  line-height: 1.4;
+  page-break-inside: avoid;
+}
+
+thead {
+  background: var(--primary);
+  color: var(--white);
+}
+
+thead th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 9pt;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--gray-300);
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--gray-100);
+}
+
+tbody td {
+  padding: 8px 12px;
+  vertical-align: top;
+}
+
+/* Lists */
+ul, ol {
+  margin: 8px 0 12px 0;
+  padding-left: 24px;
+}
+
+li {
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+li strong {
+  color: var(--primary);
+}
+
+/* Nested lists */
+li > ul, li > ol {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+/* Blockquotes for callouts */
+blockquote {
+  background: var(--sand);
+  border-left: 4px solid var(--accent);
+  margin: 16px 0;
+  padding: 12px 16px;
+  font-style: normal;
+  border-radius: 0 6px 6px 0;
+  page-break-inside: avoid;
+}
+
+blockquote p {
+  margin: 4px 0;
+}
+
+/* Code blocks */
+code {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 9pt;
+  background: var(--gray-100);
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+pre {
+  background: var(--dark);
+  color: #e0e0e0;
+  padding: 16px;
+  border-radius: 6px;
+  font-size: 9pt;
+  line-height: 1.5;
+  overflow-x: auto;
+  margin: 12px 0;
+  page-break-inside: avoid;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* Checkbox lists */
+li input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+/* Page break helpers */
+h2 {
+  page-break-before: auto;
+}
+
+.page-break {
+  page-break-before: always;
+}
+
+/* Make key stats/numbers pop */
+em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Links */
+a {
+  color: var(--primary-light);
+  text-decoration: none;
+}
+
+/* Print-friendly adjustments */
+@media print {
+  body { font-size: 10pt; }
+  h1:first-of-type { font-size: 26pt; }
+}
