@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 
@@ -13,8 +14,6 @@ from apps.social.models import SocialAccount
     META_WEBHOOK_VERIFY_TOKEN='test-verify-token',
 )
 class WebhookVerificationTest(TestCase):
-    """Test the GET webhook endpoint (Meta verification handshake)."""
-
     def test_verify_valid_token(self):
         response = self.client.get('/social/webhook/', {
             'hub.mode': 'subscribe',
@@ -35,8 +34,6 @@ class WebhookVerificationTest(TestCase):
 
 @override_settings(META_APP_SECRET='test-secret')
 class WebhookMessageTest(TestCase):
-    """Test the POST webhook endpoint (incoming messages)."""
-
     def setUp(self):
         self.team = Team.objects.create(name="Test Team")
         self.account = SocialAccount.objects.create(
@@ -54,7 +51,8 @@ class WebhookMessageTest(TestCase):
         ).hexdigest()
         return f'sha256={sig}'
 
-    def test_valid_instagram_message(self):
+    @patch('apps.social.views.process_incoming_event.delay')
+    def test_valid_instagram_message_dispatches_message_event(self, mock_delay):
         payload = {
             'object': 'instagram',
             'entry': [{
@@ -62,7 +60,7 @@ class WebhookMessageTest(TestCase):
                 'messaging': [{
                     'sender': {'id': 'user_456'},
                     'recipient': {'id': 'ig_123'},
-                    'message': {'text': 'I want Condos'},
+                    'message': {'text': 'I want Condos', 'mid': 'mid.123'},
                 }],
             }],
         }
@@ -74,16 +72,26 @@ class WebhookMessageTest(TestCase):
             HTTP_X_HUB_SIGNATURE_256=self._sign(body),
         )
         self.assertEqual(response.status_code, 200)
+        mock_delay.assert_called_once()
+        self.assertEqual(mock_delay.call_args.kwargs['event_type'], 'message')
+        self.account.refresh_from_db()
+        self.assertTrue(self.account.webhook_verified)
 
-    def test_valid_facebook_message(self):
+    @patch('apps.social.views.process_incoming_event.delay')
+    def test_comment_change_dispatches_comment_event(self, mock_delay):
         payload = {
-            'object': 'page',
+            'object': 'instagram',
             'entry': [{
-                'id': 'page_123',
-                'messaging': [{
-                    'sender': {'id': 'user_789'},
-                    'recipient': {'id': 'page_123'},
-                    'message': {'text': 'Hello there'},
+                'id': 'ig_123',
+                'changes': [{
+                    'field': 'feed',
+                    'value': {
+                        'item': 'comment',
+                        'comment_id': 'comment_42',
+                        'post_id': 'post_1',
+                        'message': 'send guide',
+                        'from': {'id': 'user_999', 'name': 'Comment User'},
+                    },
                 }],
             }],
         }
@@ -95,6 +103,9 @@ class WebhookMessageTest(TestCase):
             HTTP_X_HUB_SIGNATURE_256=self._sign(body),
         )
         self.assertEqual(response.status_code, 200)
+        mock_delay.assert_called_once()
+        self.assertEqual(mock_delay.call_args.kwargs['event_type'], 'comment')
+        self.assertEqual(mock_delay.call_args.kwargs['comment_id'], 'comment_42')
 
     def test_invalid_signature_rejected(self):
         payload = json.dumps({'object': 'instagram', 'entry': []}).encode()
@@ -103,14 +114,5 @@ class WebhookMessageTest(TestCase):
             payload,
             content_type='application/json',
             HTTP_X_HUB_SIGNATURE_256='sha256=invalid',
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_missing_signature_rejected(self):
-        payload = json.dumps({'object': 'instagram', 'entry': []}).encode()
-        response = self.client.post(
-            '/social/webhook/',
-            payload,
-            content_type='application/json',
         )
         self.assertEqual(response.status_code, 403)

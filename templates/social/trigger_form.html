@@ -33,6 +33,10 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Platform</label>
                     {{ form.platform }}
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Trigger On</label>
+                    {{ form.trigger_event }}
+                </div>
                 <div class="flex items-end">
                     <label class="inline-flex items-center">
                         {{ form.is_active }}
@@ -50,6 +54,11 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Reply Message</label>
                     {{ form.reply_text }}
                     {% if form.reply_text.errors %}<p class="mt-1 text-sm text-red-600">{{ form.reply_text.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reply Method</label>
+                    {{ form.response_type }}
+                    <p class="mt-1 text-xs text-gray-500">Use private replies for comment-triggered offers.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Link (optional)</label>

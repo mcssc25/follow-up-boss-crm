@@ -22,6 +22,9 @@ class SocialAccount(models.Model):
     )
     is_active = models.BooleanField(default=True)
     webhook_verified = models.BooleanField(default=False)
+    app_subscribed = models.BooleanField(default=False)
+    last_webhook_at = models.DateTimeField(null=True, blank=True)
+    last_webhook_error = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -43,6 +46,15 @@ class KeywordTrigger(models.Model):
         ('facebook', 'Facebook'),
         ('both', 'Both'),
     ]
+    TRIGGER_EVENT_CHOICES = [
+        ('message', 'DM'),
+        ('comment', 'Comment'),
+        ('both', 'DM or Comment'),
+    ]
+    RESPONSE_TYPE_CHOICES = [
+        ('message', 'Send DM'),
+        ('private_reply', 'Private Reply to Comment'),
+    ]
 
     team = models.ForeignKey(
         'accounts.Team',
@@ -56,8 +68,14 @@ class KeywordTrigger(models.Model):
     platform = models.CharField(
         max_length=20, choices=PLATFORM_CHOICES, default='both',
     )
+    trigger_event = models.CharField(
+        max_length=20, choices=TRIGGER_EVENT_CHOICES, default='message',
+    )
     is_active = models.BooleanField(default=True)
     reply_text = models.TextField(help_text='Auto-reply message body')
+    response_type = models.CharField(
+        max_length=20, choices=RESPONSE_TYPE_CHOICES, default='message',
+    )
     reply_link = models.URLField(
         blank=True, default='',
         help_text='Optional link to include (PDF, video, landing page)',
@@ -83,6 +101,11 @@ class KeywordTrigger(models.Model):
 
 
 class MessageLog(models.Model):
+    EVENT_TYPE_CHOICES = [
+        ('message', 'DM'),
+        ('comment', 'Comment'),
+    ]
+
     social_account = models.ForeignKey(
         SocialAccount,
         on_delete=models.CASCADE,
@@ -92,6 +115,12 @@ class MessageLog(models.Model):
     sender_name = models.CharField(max_length=255, blank=True, default='')
     message_text = models.TextField()
     platform = models.CharField(max_length=20)
+    event_type = models.CharField(
+        max_length=20, choices=EVENT_TYPE_CHOICES, default='message',
+    )
+    external_event_id = models.CharField(max_length=100, blank=True, default='')
+    comment_id = models.CharField(max_length=100, blank=True, default='')
+    post_id = models.CharField(max_length=100, blank=True, default='')
     trigger_matched = models.ForeignKey(
         KeywordTrigger,
         on_delete=models.SET_NULL,
@@ -107,6 +136,8 @@ class MessageLog(models.Model):
         related_name='social_messages',
     )
     reply_sent = models.BooleanField(default=False)
+    reply_error = models.TextField(blank=True, default='')
+    raw_payload = models.JSONField(default=dict, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -24,8 +24,10 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Keyword</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Match</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Platform</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reply Type</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reply Preview</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campaign</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -36,6 +38,7 @@
                 {% for trigger in triggers %}
                 <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-indigo-50">
                     <td class="px-4 py-3 font-medium text-gray-900">{{ trigger.keyword }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ trigger.get_trigger_event_display }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500">{{ trigger.get_match_type_display }}</td>
                     <td class="px-4 py-3 text-sm">
                         {% if trigger.platform == 'instagram' %}
@@ -46,6 +49,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">Both</span>
                         {% endif %}
                     </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ trigger.get_response_type_display }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{{ trigger.reply_text|truncatewords:15 }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500">
                         {% if trigger.campaign %}{{ trigger.campaign.name }}{% else %}—{% endif %}

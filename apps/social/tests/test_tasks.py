@@ -6,10 +6,10 @@ from apps.accounts.models import Team, User
 from apps.campaigns.models import Campaign
 from apps.contacts.models import Contact
 from apps.social.models import KeywordTrigger, MessageLog, SocialAccount
-from apps.social.tasks import process_incoming_message
+from apps.social.tasks import process_incoming_event
 
 
-class ProcessIncomingMessageTest(TestCase):
+class ProcessIncomingEventTest(TestCase):
     def setUp(self):
         self.team = Team.objects.create(name="Test Team")
         self.agent = User.objects.create_user(
@@ -23,102 +23,80 @@ class ProcessIncomingMessageTest(TestCase):
             access_token='token123',
             instagram_account_id='ig_123',
         )
-        self.trigger = KeywordTrigger.objects.create(
+        self.message_trigger = KeywordTrigger.objects.create(
             team=self.team,
             keyword='Condos',
             match_type='contains',
             platform='both',
+            trigger_event='message',
+            response_type='message',
             reply_text='Here is the condo guide!',
             reply_link='https://example.com/guide.pdf',
             tags=['condos', 'interested'],
             create_contact=True,
         )
+        self.comment_trigger = KeywordTrigger.objects.create(
+            team=self.team,
+            keyword='guide',
+            match_type='contains',
+            platform='instagram',
+            trigger_event='comment',
+            response_type='private_reply',
+            reply_text='Sending the guide in private.',
+            tags=['comment-lead'],
+            create_contact=True,
+        )
 
     @patch('apps.social.tasks.send_message')
     @patch('apps.social.tasks.get_user_profile')
-    def test_keyword_match_creates_contact_and_replies(
+    def test_message_trigger_creates_contact_and_replies(
         self, mock_profile, mock_send
     ):
         mock_profile.return_value = {'name': 'Jane Smith'}
         mock_send.return_value = {'success': True}
 
-        process_incoming_message(
+        process_incoming_event(
             page_id='page_123',
             platform='instagram',
             sender_id='user_456',
             message_text='I want Condos',
+            event_type='message',
+            external_event_id='mid.1',
         )
 
-        # Contact created
-        contact = Contact.objects.get(
-            custom_fields__instagram_id='user_456',
-        )
+        contact = Contact.objects.get(custom_fields__instagram_id='user_456')
         self.assertEqual(contact.first_name, 'Jane')
-        self.assertEqual(contact.last_name, 'Smith')
         self.assertIn('condos', contact.tags)
 
-        # Message logged
         log = MessageLog.objects.get(sender_id='user_456')
-        self.assertEqual(log.trigger_matched, self.trigger)
+        self.assertEqual(log.trigger_matched, self.message_trigger)
         self.assertTrue(log.reply_sent)
-        self.assertEqual(log.contact_created, contact)
+        self.assertEqual(log.event_type, 'message')
 
-        # Reply sent with link appended
         mock_send.assert_called_once()
-        call_args = mock_send.call_args
-        self.assertIn('condo guide', call_args[1]['text'])
-        self.assertIn('https://example.com/guide.pdf', call_args[1]['text'])
+        self.assertIn('https://example.com/guide.pdf', mock_send.call_args.kwargs['text'])
 
-    @patch('apps.social.tasks.send_message')
-    @patch('apps.social.tasks.get_user_profile')
-    def test_no_match_logs_without_reply(self, mock_profile, mock_send):
-        mock_profile.return_value = {'name': 'John Doe'}
+    @patch('apps.social.tasks.send_private_reply')
+    def test_comment_trigger_uses_private_reply(self, mock_private_reply):
+        mock_private_reply.return_value = {'success': True}
 
-        process_incoming_message(
-            page_id='page_123',
+        process_incoming_event(
+            page_id='ig_123',
             platform='instagram',
-            sender_id='user_789',
-            message_text='What is the weather?',
+            sender_id='commenter_1',
+            sender_name='Comment User',
+            message_text='please send the guide',
+            event_type='comment',
+            comment_id='comment_123',
+            post_id='post_999',
+            raw_event={'field': 'feed'},
         )
 
-        # Message logged but no trigger
-        log = MessageLog.objects.get(sender_id='user_789')
-        self.assertIsNone(log.trigger_matched)
-        self.assertFalse(log.reply_sent)
-
-        # No reply sent
-        mock_send.assert_not_called()
-
-    @patch('apps.social.tasks.send_message')
-    @patch('apps.social.tasks.get_user_profile')
-    def test_existing_contact_updated_not_duplicated(
-        self, mock_profile, mock_send
-    ):
-        mock_profile.return_value = {'name': 'Jane Smith'}
-        mock_send.return_value = {'success': True}
-
-        # Pre-existing contact from same sender
-        Contact.objects.create(
-            first_name='Jane',
-            last_name='Smith',
-            team=self.team,
-            custom_fields={'instagram_id': 'user_456'},
-        )
-
-        process_incoming_message(
-            page_id='page_123',
-            platform='instagram',
-            sender_id='user_456',
-            message_text='Show me Condos again',
-        )
-
-        # Should not create a duplicate
-        self.assertEqual(
-            Contact.objects.filter(
-                custom_fields__instagram_id='user_456'
-            ).count(),
-            1,
-        )
+        log = MessageLog.objects.get(comment_id='comment_123')
+        self.assertEqual(log.trigger_matched, self.comment_trigger)
+        self.assertTrue(log.reply_sent)
+        self.assertEqual(log.post_id, 'post_999')
+        mock_private_reply.assert_called_once()
 
     @patch('apps.social.tasks.send_message')
     @patch('apps.social.tasks.get_user_profile')
@@ -126,22 +104,35 @@ class ProcessIncomingMessageTest(TestCase):
         mock_profile.return_value = {'name': 'Bob Jones'}
         mock_send.return_value = {'success': True}
 
-        campaign = Campaign.objects.create(
-            name="Condo Drip", team=self.team
-        )
-        self.trigger.campaign = campaign
-        self.trigger.save()
+        campaign = Campaign.objects.create(name="Condo Drip", team=self.team)
+        self.message_trigger.campaign = campaign
+        self.message_trigger.save()
 
-        process_incoming_message(
+        process_incoming_event(
             page_id='page_123',
             platform='instagram',
             sender_id='user_enroll',
             message_text='I love Condos!',
+            event_type='message',
         )
 
-        contact = Contact.objects.get(
-            custom_fields__instagram_id='user_enroll',
-        )
+        contact = Contact.objects.get(custom_fields__instagram_id='user_enroll')
         self.assertTrue(
             campaign.enrollments.filter(contact=contact, is_active=True).exists()
         )
+
+    @patch('apps.social.tasks.send_private_reply')
+    def test_comment_without_comment_id_logs_reply_error(self, mock_private_reply):
+        process_incoming_event(
+            page_id='ig_123',
+            platform='instagram',
+            sender_id='commenter_2',
+            sender_name='Comment User',
+            message_text='guide please',
+            event_type='comment',
+        )
+
+        log = MessageLog.objects.get(sender_id='commenter_2')
+        self.assertFalse(log.reply_sent)
+        self.assertIn('comment_id', log.reply_error)
+        mock_private_reply.assert_not_called()

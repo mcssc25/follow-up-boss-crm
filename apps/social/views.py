@@ -12,13 +12,14 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from .forms import KeywordTriggerForm
-from .meta_api import verify_webhook_signature
+from .meta_api import subscribe_app_to_page, verify_webhook_signature
 from .models import KeywordTrigger, MessageLog, SocialAccount
-from .tasks import process_incoming_message
+from .tasks import process_incoming_event
 
 logger = logging.getLogger(__name__)
 
@@ -53,20 +54,42 @@ def webhook(request):
 
         for entry in data.get('entry', []):
             page_id = entry.get('id', '')
+            _mark_webhook_received(page_id)
+
             for messaging_event in entry.get('messaging', []):
                 message = messaging_event.get('message', {})
                 text = message.get('text', '')
                 if not text:
-                    continue  # Skip non-text events (reactions, read receipts, etc.)
+                    continue
 
                 sender_id = messaging_event.get('sender', {}).get('id', '')
 
-                # Dispatch to Celery
-                process_incoming_message.delay(
+                process_incoming_event.delay(
                     page_id=page_id,
                     platform=platform,
                     sender_id=sender_id,
                     message_text=text,
+                    event_type='message',
+                    external_event_id=message.get('mid', ''),
+                    raw_event=messaging_event,
+                )
+
+            for change_event in entry.get('changes', []):
+                comment_payload = _extract_comment_payload(change_event)
+                if not comment_payload:
+                    continue
+
+                process_incoming_event.delay(
+                    page_id=page_id,
+                    platform=platform,
+                    sender_id=comment_payload['sender_id'],
+                    sender_name=comment_payload['sender_name'],
+                    message_text=comment_payload['message_text'],
+                    event_type='comment',
+                    comment_id=comment_payload['comment_id'],
+                    post_id=comment_payload['post_id'],
+                    external_event_id=comment_payload['comment_id'],
+                    raw_event=change_event,
                 )
 
         # Always return 200 quickly — Meta retries on non-200
@@ -254,6 +277,7 @@ def oauth_callback(request):
 
     pages = pages_resp.json().get('data', [])
     created_count = 0
+    subscription_errors = []
 
     for page in pages:
         page_token = page['access_token']
@@ -261,7 +285,7 @@ def oauth_callback(request):
         page_name = page['name']
 
         # Save Facebook page
-        SocialAccount.objects.update_or_create(
+        account, _ = SocialAccount.objects.update_or_create(
             team=team,
             page_id=page_id,
             defaults={
@@ -272,6 +296,15 @@ def oauth_callback(request):
             },
         )
         created_count += 1
+
+        subscription_result = subscribe_app_to_page(page_token, page_id)
+        account.app_subscribed = subscription_result.get('success', False)
+        account.last_webhook_error = subscription_result.get('error', '')
+        account.save(update_fields=['app_subscribed', 'last_webhook_error'])
+        if not subscription_result.get('success', False):
+            subscription_errors.append(
+                f"{page_name}: {subscription_result.get('error', 'Unknown error')}"
+            )
 
         # Check for connected Instagram Business account
         try:
@@ -296,13 +329,22 @@ def oauth_callback(request):
                             'access_token': page_token,
                             'instagram_account_id': ig_id,
                             'is_active': True,
+                            'app_subscribed': account.app_subscribed,
+                            'last_webhook_error': account.last_webhook_error,
                         },
                     )
                     created_count += 1
         except http_requests.RequestException:
             logger.exception("Failed to fetch Instagram account for page %s", page_id)
 
-    django_messages.success(request, f'Connected {created_count} account(s) from Meta.')
+    if subscription_errors:
+        django_messages.warning(
+            request,
+            'Connected Meta account(s), but webhook subscription still needs attention: '
+            + '; '.join(subscription_errors[:3]),
+        )
+    else:
+        django_messages.success(request, f'Connected {created_count} account(s) from Meta.')
     return redirect('social:accounts')
 
 
@@ -317,3 +359,39 @@ def disconnect_account(request, pk):
         account.save(update_fields=['is_active'])
         django_messages.success(request, f'Disconnected {account.page_name}.')
     return redirect('social:accounts')
+
+
+def _extract_comment_payload(change_event):
+    if change_event.get('field') != 'feed':
+        return None
+
+    value = change_event.get('value', {})
+    if value.get('item') != 'comment':
+        return None
+
+    message_text = value.get('message') or value.get('text') or ''
+    if not message_text:
+        return None
+
+    from_data = value.get('from', {}) or {}
+    return {
+        'sender_id': from_data.get('id', ''),
+        'sender_name': from_data.get('name', ''),
+        'message_text': message_text,
+        'comment_id': value.get('comment_id') or value.get('id', ''),
+        'post_id': value.get('post_id') or value.get('parent_id', ''),
+    }
+
+
+def _mark_webhook_received(page_id):
+    updated = SocialAccount.objects.filter(page_id=page_id).update(
+        webhook_verified=True,
+        last_webhook_at=timezone.now(),
+        last_webhook_error='',
+    )
+    if not updated:
+        SocialAccount.objects.filter(instagram_account_id=page_id).update(
+            webhook_verified=True,
+            last_webhook_at=timezone.now(),
+            last_webhook_error='',
+        )

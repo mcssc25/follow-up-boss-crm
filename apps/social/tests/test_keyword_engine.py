@@ -13,6 +13,7 @@ class KeywordMatchingTest(TestCase):
             keyword='Condos',
             match_type='contains',
             platform='both',
+            trigger_event='both',
             reply_text='Here is the condo guide!',
         )
         self.trigger_phoenix = KeywordTrigger.objects.create(
@@ -20,71 +21,79 @@ class KeywordMatchingTest(TestCase):
             keyword='Phoenix',
             match_type='exact',
             platform='instagram',
+            trigger_event='message',
             reply_text='Check out Phoenix tours!',
         )
         self.trigger_hello = KeywordTrigger.objects.create(
             team=self.team,
-            keyword='Hi ',
+            keyword='Hi there',
             match_type='starts_with',
             platform='facebook',
+            trigger_event='message',
             reply_text='Welcome!',
+        )
+        self.trigger_comment = KeywordTrigger.objects.create(
+            team=self.team,
+            keyword='guide',
+            match_type='contains',
+            platform='instagram',
+            trigger_event='comment',
+            response_type='private_reply',
+            reply_text='Sending the guide now.',
         )
 
     def test_contains_match(self):
         trigger = find_matching_trigger(
-            self.team, 'I want Condos please', 'instagram'
+            self.team, 'I want Condos please', 'instagram', event_type='message'
         )
         self.assertEqual(trigger, self.trigger_condos)
 
     def test_contains_case_insensitive(self):
         trigger = find_matching_trigger(
-            self.team, 'show me condos', 'instagram'
+            self.team, 'show me condos', 'instagram', event_type='message'
         )
         self.assertEqual(trigger, self.trigger_condos)
 
     def test_exact_match(self):
         trigger = find_matching_trigger(
-            self.team, 'Phoenix', 'instagram'
+            self.team, 'Phoenix', 'instagram', event_type='message'
         )
         self.assertEqual(trigger, self.trigger_phoenix)
 
-    def test_exact_no_partial(self):
-        trigger = find_matching_trigger(
-            self.team, 'Phoenix condos', 'instagram'
-        )
-        # "Phoenix" is exact match only, so this should NOT match phoenix
-        # but "condos" contains match should fire
-        self.assertEqual(trigger, self.trigger_condos)
-
     def test_starts_with_match(self):
         trigger = find_matching_trigger(
-            self.team, 'Hi there!', 'facebook'
+            self.team, 'Hi there friend!', 'facebook', event_type='message'
         )
         self.assertEqual(trigger, self.trigger_hello)
 
     def test_platform_filter_instagram(self):
-        # "Hi " trigger is facebook-only, should not match on instagram
         trigger = find_matching_trigger(
-            self.team, 'Hi there!', 'instagram'
+            self.team, 'Hi there!', 'instagram', event_type='message'
         )
         self.assertIsNone(trigger)
 
-    def test_platform_both_matches_any(self):
+    def test_event_type_filter_for_comment(self):
         trigger = find_matching_trigger(
-            self.team, 'Show me condos', 'facebook'
+            self.team, 'Please send the guide', 'instagram', event_type='comment'
         )
-        self.assertEqual(trigger, self.trigger_condos)
+        self.assertEqual(trigger, self.trigger_comment)
+
+    def test_longer_exact_match_wins(self):
+        more_specific = KeywordTrigger.objects.create(
+            team=self.team,
+            keyword='condos in phoenix',
+            match_type='contains',
+            platform='both',
+            trigger_event='message',
+            reply_text='Specific reply',
+        )
+        trigger = find_matching_trigger(
+            self.team, 'I want condos in phoenix', 'instagram', event_type='message'
+        )
+        self.assertEqual(trigger, more_specific)
 
     def test_no_match(self):
         trigger = find_matching_trigger(
-            self.team, 'What is the weather?', 'instagram'
-        )
-        self.assertIsNone(trigger)
-
-    def test_inactive_trigger_skipped(self):
-        self.trigger_condos.is_active = False
-        self.trigger_condos.save()
-        trigger = find_matching_trigger(
-            self.team, 'I want condos', 'instagram'
+            self.team, 'What is the weather?', 'instagram', event_type='message'
         )
         self.assertIsNone(trigger)

@@ -18,8 +18,8 @@ class KeywordTriggerForm(forms.ModelForm):
     class Meta:
         model = KeywordTrigger
         fields = [
-            'keyword', 'match_type', 'platform', 'is_active',
-            'reply_text', 'reply_link',
+            'keyword', 'match_type', 'platform', 'trigger_event', 'is_active',
+            'reply_text', 'response_type', 'reply_link',
             'campaign', 'create_contact', 'notify_agent',
         ]
         widgets = {
@@ -33,10 +33,16 @@ class KeywordTriggerForm(forms.ModelForm):
             'platform': forms.Select(attrs={
                 'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
             }),
+            'trigger_event': forms.Select(attrs={
+                'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+            }),
             'reply_text': forms.Textarea(attrs={
                 'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'rows': 4,
                 'placeholder': 'The auto-reply message...',
+            }),
+            'response_type': forms.Select(attrs={
+                'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
             }),
             'reply_link': forms.URLInput(attrs={
                 'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',

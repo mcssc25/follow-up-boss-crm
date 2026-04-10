@@ -61,6 +61,32 @@ def send_message(page_access_token, recipient_id, text):
         return {'success': False, 'error': str(e)}
 
 
+def send_private_reply(page_access_token, comment_id, text):
+    """Send a private reply tied to a Facebook/Instagram comment."""
+    url = f'{GRAPH_API_BASE}/{comment_id}/private_replies'
+
+    try:
+        resp = requests.post(
+            url,
+            json={'message': text},
+            params={'access_token': page_access_token},
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            return {
+                'success': True,
+                'reply_id': resp.json().get('id', ''),
+                'response': resp.json(),
+            }
+
+        error = resp.json().get('error', {}).get('message', resp.text)
+        logger.error("Meta private reply error: %s", error)
+        return {'success': False, 'error': error}
+    except requests.RequestException as e:
+        logger.exception("Meta private reply request failed")
+        return {'success': False, 'error': str(e)}
+
+
 def get_user_profile(page_access_token, user_id):
     """Fetch basic profile info for a user (name).
 
@@ -82,3 +108,28 @@ def get_user_profile(page_access_token, user_id):
     except requests.RequestException:
         logger.exception("Failed to fetch user profile for %s", user_id)
         return {}
+
+
+def subscribe_app_to_page(page_access_token, page_id, subscribed_fields=None):
+    """Subscribe the app to a page so webhooks are actually delivered."""
+    fields = subscribed_fields or ['messages', 'messaging_postbacks', 'feed']
+    url = f'{GRAPH_API_BASE}/{page_id}/subscribed_apps'
+
+    try:
+        resp = requests.post(
+            url,
+            params={
+                'access_token': page_access_token,
+                'subscribed_fields': ','.join(fields),
+            },
+            timeout=10,
+        )
+        if resp.status_code == 200 and resp.json().get('success'):
+            return {'success': True}
+
+        error = resp.json().get('error', {}).get('message', resp.text)
+        logger.error("Meta page subscription error: %s", error)
+        return {'success': False, 'error': error}
+    except requests.RequestException as e:
+        logger.exception("Meta page subscription request failed")
+        return {'success': False, 'error': str(e)}

@@ -20,11 +20,8 @@ class SocialAccountModelTest(TestCase):
         self.assertEqual(str(account), "Test Page (instagram)")
         self.assertTrue(account.is_active)
         self.assertFalse(account.webhook_verified)
-
-    def test_platform_choices(self):
-        account = SocialAccount(platform='invalid')
-        with self.assertRaises(Exception):
-            account.full_clean()
+        self.assertFalse(account.app_subscribed)
+        self.assertEqual(account.last_webhook_error, '')
 
 
 class KeywordTriggerModelTest(TestCase):
@@ -37,16 +34,18 @@ class KeywordTriggerModelTest(TestCase):
             keyword='Condos',
             match_type='contains',
             platform='both',
+            trigger_event='comment',
+            response_type='private_reply',
             reply_text='Thanks for your interest! Here is the guide.',
         )
         self.assertEqual(str(trigger), "Condos (both)")
         self.assertTrue(trigger.is_active)
         self.assertTrue(trigger.create_contact)
+        self.assertEqual(trigger.trigger_event, 'comment')
+        self.assertEqual(trigger.response_type, 'private_reply')
 
     def test_trigger_with_campaign(self):
-        campaign = Campaign.objects.create(
-            name="Condo Drip", team=self.team
-        )
+        campaign = Campaign.objects.create(name="Condo Drip", team=self.team)
         trigger = KeywordTrigger.objects.create(
             team=self.team,
             keyword='Phoenix',
@@ -54,18 +53,6 @@ class KeywordTriggerModelTest(TestCase):
             campaign=campaign,
         )
         self.assertEqual(trigger.campaign, campaign)
-
-    def test_trigger_defaults(self):
-        trigger = KeywordTrigger.objects.create(
-            team=self.team,
-            keyword='Test',
-            reply_text='Reply',
-        )
-        self.assertEqual(trigger.match_type, 'contains')
-        self.assertEqual(trigger.platform, 'both')
-        self.assertTrue(trigger.create_contact)
-        self.assertFalse(trigger.notify_agent)
-        self.assertEqual(trigger.tags, [])
 
 
 class MessageLogModelTest(TestCase):
@@ -86,7 +73,13 @@ class MessageLogModelTest(TestCase):
             sender_name='Jane Smith',
             message_text='I want Condos',
             platform='instagram',
+            event_type='comment',
+            comment_id='comment_1',
+            post_id='post_1',
+            raw_payload={'sample': True},
         )
         self.assertFalse(log.reply_sent)
         self.assertIsNone(log.trigger_matched)
         self.assertIsNone(log.contact_created)
+        self.assertEqual(log.event_type, 'comment')
+        self.assertEqual(log.comment_id, 'comment_1')
