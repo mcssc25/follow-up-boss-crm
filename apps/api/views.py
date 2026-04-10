@@ -1,4 +1,5 @@
 import json
+import threading
 
 from django.http import JsonResponse
 from django.utils import timezone
@@ -7,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.campaigns.models import Campaign, CampaignEnrollment
 from apps.contacts.models import Contact, ContactActivity, Tag
 
-from apps.accounts.notifications import notify_new_lead
+from apps.accounts.notifications import notify_new_lead, send_results_email
 
 from .lead_routing import round_robin_assign
 from .models import APIKey
@@ -86,7 +87,7 @@ def capture_lead(request):
         # Log activity for the update
         ContactActivity.objects.create(
             contact=contact,
-            activity_type='campaign_enrolled',
+            activity_type='lead_captured',
             description=f"Returning lead updated from {data.get('source', 'landing_page')}",
         )
         status_label = 'updated'
@@ -106,12 +107,14 @@ def capture_lead(request):
         # Log activity
         ContactActivity.objects.create(
             contact=contact,
-            activity_type='campaign_enrolled',
+            activity_type='lead_captured',
             description=f"New lead captured from {contact.source}",
         )
 
-        # Notify assigned agent
-        notify_new_lead(contact)
+        # Notify assigned agent (background so SMTP doesn't block response)
+        threading.Thread(
+            target=notify_new_lead, args=(contact,), daemon=True
+        ).start()
         status_label = 'created'
 
     # --- Feature 1: Tag handling ---
@@ -135,6 +138,13 @@ def capture_lead(request):
             contact.tags.append(tag_name)
     if tag_names:
         contact.save(update_fields=['tags'])
+
+    # Send results email to the lead in background (don't block API response)
+    results_url = data.get('results_url')
+    if results_url:
+        threading.Thread(
+            target=send_results_email, args=(contact, results_url), daemon=True
+        ).start()
 
     # Auto-enroll in campaign if specified
     campaign_id = data.get('campaign_id')

@@ -5,6 +5,161 @@ from django.core.mail import send_mail
 logger = logging.getLogger(__name__)
 
 
+def send_results_email(contact, results_url):
+    """Send the lead an HTML email with a link to their condo search results via Gmail API."""
+    from .gmail import GmailService
+
+    agent = contact.assigned_to
+    if not contact.email or not agent or not agent.gmail_connected:
+        logger.warning("Cannot send results email for %s — no agent or Gmail not connected", contact)
+        return
+
+    first_name = contact.first_name or "there"
+    subject = f"{first_name}, Your Beach Condo Matches Are Ready!"
+
+    body_html = f"""
+    <div style="margin:0;padding:0;background-color:#fffbf5;font-family:'Nunito Sans',Arial,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fffbf5;padding:40px 0;">
+        <tr><td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+
+            <!-- Header -->
+            <tr>
+              <td style="background:linear-gradient(135deg,#52c09a 0%,#7dd3fc 100%);padding:36px 40px;text-align:center;">
+                <h1 style="margin:0;color:#ffffff;font-family:'Georgia',serif;font-size:28px;font-weight:400;letter-spacing:0.5px;text-shadow:0 1px 3px rgba(0,0,0,0.15);">
+                  Big<span style="font-weight:700;">Beach</span><span style="color:#ffd699;">AL</span>
+                </h1>
+                <p style="margin:8px 0 0;color:#ffffff;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;opacity:0.9;">
+                  Gulf Shores &amp; Orange Beach
+                </p>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding:40px;">
+                <h2 style="margin:0 0 8px;color:#1c6b51;font-family:'Georgia',serif;font-size:24px;font-weight:400;">
+                  Hi {first_name}!
+                </h2>
+                <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+                  Thanks for taking our condo quiz &mdash; we&rsquo;ve matched you with properties
+                  that fit exactly what you&rsquo;re looking for on the Alabama Gulf Coast.
+                </p>
+
+                <!-- CTA Button -->
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td align="center" style="padding:8px 0 32px;">
+                    <a href="{results_url}"
+                       style="display:inline-block;background:linear-gradient(135deg,#30a57e 0%,#38bdf8 100%);color:#ffffff;text-decoration:none;
+                              padding:16px 40px;border-radius:50px;font-size:16px;font-weight:700;
+                              letter-spacing:0.3px;box-shadow:0 4px 14px rgba(48,165,126,0.3);">
+                      View My Matches &rarr;
+                    </a>
+                  </td></tr>
+                </table>
+
+                <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+                  Your personalized results include an interactive map, current MLS listings,
+                  video tours, and all the details you need to compare your top picks.
+                  Bookmark the link above so you can come back anytime.
+                </p>
+
+                <!-- Divider -->
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;">
+                  <tr><td align="center">
+                    <div style="width:60px;height:2px;background:linear-gradient(90deg,#52c09a,#7dd3fc);border-radius:2px;"></div>
+                  </td></tr>
+                </table>
+
+                <p style="margin:0 0 8px;color:#374151;font-size:15px;line-height:1.6;">
+                  <strong>Ready to take the next step?</strong>
+                </p>
+                <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+                  Whether you want to schedule a tour, explore financing options, or just have
+                  questions about Gulf Shores &amp; Orange Beach &mdash; we&rsquo;re here for you.
+                  Just hit reply and we&rsquo;ll be in touch!
+                </p>
+
+                <p style="margin:0;color:#374151;font-size:15px;">
+                  Talk soon,<br/>
+                  <strong>Kelly &amp; Dave Davis</strong><br/>
+                  <span style="color:#6b7280;font-size:13px;">Big Beach AL &middot; Gulf Shores &amp; Orange Beach Real Estate</span>
+                </p>
+              </td>
+            </tr>
+
+            <!-- Social Section -->
+            <tr>
+              <td style="background:linear-gradient(180deg,#f0f9ff 0%,#e0f5ed 100%);padding:32px 40px;text-align:center;border-top:1px solid #e0f2fe;">
+                <p style="margin:0 0 6px;color:#1c6b51;font-family:'Georgia',serif;font-size:18px;font-weight:600;">
+                  Visit Our Socials
+                </p>
+                <p style="margin:0 0 20px;color:#6b7280;font-size:14px;line-height:1.5;">
+                  See more Gulf Shores &amp; Orange Beach day-to-day activity!
+                </p>
+                <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                  <tr>
+                    <td style="padding:0 6px;">
+                      <a href="https://www.facebook.com/kelly.goodworth.davis"
+                         style="display:inline-block;background:#ffffff;color:#228564;text-decoration:none;
+                                padding:10px 22px;border-radius:50px;font-size:14px;font-weight:700;
+                                border:2px solid #30a57e;letter-spacing:0.3px;">
+                        Facebook
+                      </a>
+                    </td>
+                    <td style="padding:0 6px;">
+                      <a href="https://www.instagram.com/diy.davis/"
+                         style="display:inline-block;background:#ffffff;color:#228564;text-decoration:none;
+                                padding:10px 22px;border-radius:50px;font-size:14px;font-weight:700;
+                                border:2px solid #30a57e;letter-spacing:0.3px;">
+                        Instagram
+                      </a>
+                    </td>
+                    <td style="padding:0 6px;">
+                      <a href="https://www.youtube.com/@GulfShoresAlabamaRealEstate"
+                         style="display:inline-block;background:#ffffff;color:#228564;text-decoration:none;
+                                padding:10px 22px;border-radius:50px;font-size:14px;font-weight:700;
+                                border:2px solid #30a57e;letter-spacing:0.3px;">
+                        YouTube
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background:#f2faf7;padding:16px 40px;text-align:center;border-top:1px solid #e0f5ed;">
+                <p style="margin:0;color:#85d6b8;font-size:12px;">
+                  kelly@bigbeachal.com &middot; bigbeachal.com
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td></tr>
+      </table>
+    </div>
+    """
+
+    gmail = GmailService(
+        access_token=agent.gmail_access_token,
+        refresh_token=agent.gmail_refresh_token,
+    )
+    result = gmail.send_email(
+        to=contact.email,
+        subject=subject,
+        body_html=body_html,
+        from_email=agent.email,
+    )
+
+    if result['success']:
+        logger.info("Results email sent to %s via Gmail for contact %s", contact.email, contact)
+    else:
+        logger.error("Results email failed for %s: %s", contact, result.get('error'))
+
+
 def notify_new_lead(contact):
     """Send email notification to assigned agent about new lead."""
     agent = contact.assigned_to
