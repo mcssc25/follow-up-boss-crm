@@ -51,19 +51,32 @@
         }
         .sig-style-option:hover { border-color: #a5b4fc; }
         .sig-style-option.selected { border-color: #4f46e5; background-color: #eef2ff; }
+        .sign-field-active {
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.18);
+            transform: translateY(-1px);
+        }
+        .sign-field-complete {
+            border-color: #059669 !important;
+            background-color: rgba(5, 150, 105, 0.1) !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-full">
     <!-- Top Bar -->
     <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div class="max-w-3xl mx-auto px-3 py-2 sm:px-4 sm:py-3">
+        <div class="max-w-5xl mx-auto px-3 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center justify-between">
                 <div class="min-w-0 flex-1 mr-3">
                     <h1 class="text-sm sm:text-lg font-semibold text-gray-900 truncate">{{ document.title }}</h1>
                     <p class="text-xs text-gray-500 hidden sm:block">Requested by {{ document.created_by.get_full_name|default:document.created_by.username }}</p>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-                    <span id="fields-progress" class="text-xs sm:text-sm text-gray-500 whitespace-nowrap">0 / {{ fields|length }}</span>
+                    <span id="fields-progress" class="px-2.5 py-1 rounded-full bg-indigo-50 text-xs sm:text-sm font-medium text-indigo-700 whitespace-nowrap">0 / {{ fields|length }} complete</span>
+                    <button id="next-btn"
+                            onclick="goToNextField()"
+                            class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 whitespace-nowrap">
+                        Next Field
+                    </button>
                     <button id="finish-btn" disabled
                             onclick="submitSigning()"
                             class="px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
@@ -102,7 +115,7 @@
     </div>
 
     <!-- PDF Viewer with zoom -->
-    <div id="pdf-scroll-area" class="max-w-3xl mx-auto py-4 px-2 sm:py-6 sm:px-4" style="height: calc(100vh - 110px); overflow: auto;">
+    <div id="pdf-scroll-area" class="max-w-5xl mx-auto py-4 px-2 sm:py-6 sm:px-4" style="height: calc(100vh - 110px); overflow: auto;">
         <div id="pdf-zoom-wrapper">
             <div id="pdf-pages" class="flex flex-col items-center space-y-4 sm:space-y-6">
                 <!-- Pages rendered by PDF.js -->
@@ -180,6 +193,30 @@
         </div>
     </div>
 
+    <div id="field-input-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center">
+        <div class="bg-white rounded-t-xl sm:rounded-lg shadow-xl w-full sm:max-w-md p-4 sm:p-6">
+            <div class="mb-4">
+                <p id="field-input-kicker" class="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Complete field</p>
+                <h3 id="field-input-title" class="text-lg font-semibold text-gray-900 mt-1">Enter value</h3>
+                <p id="field-input-help" class="text-sm text-gray-500 mt-1">Add the requested information to continue.</p>
+            </div>
+
+            <input id="field-input-text"
+                   type="text"
+                   class="hidden block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base mb-4">
+            <input id="field-input-date"
+                   type="date"
+                   class="hidden block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base mb-4">
+
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeFieldInputModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                <button onclick="applyFieldInput()"
+                        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Apply</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirmation overlay -->
     <div id="confirmation" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center p-6">
         <div class="text-center">
@@ -210,16 +247,20 @@
                 width: {{ field.width }},
                 height: {{ field.height }},
                 required: {{ field.required|yesno:"true,false" }},
+                font_size: {{ field.font_size }},
+                bold: {{ field.bold|yesno:"true,false" }},
+                italic: {{ field.italic|yesno:"true,false" }},
                 value: null,
             },
             {% endfor %}
         ];
 
         const SIGNER_NAME = '{{ signer.name|escapejs }}';
+        const signerNow = new Date();
 
         const FIELD_LABELS = {
-            signature: 'Tap to Sign',
-            initials: 'Tap to Initial',
+            signature: 'Signature',
+            initials: 'Initial Here',
             name: 'Name',
             text: 'Tap to enter text',
             date: 'Tap to enter date',
@@ -227,6 +268,8 @@
         };
 
         let currentSigField = null;
+        let currentInputField = null;
+        let currentInputMode = 'text';
         let sigCanvas, sigCtx;
         let isDrawing = false;
         let hasDrawn = false;
@@ -241,6 +284,35 @@
             4: '"Satisfy", cursive',
             5: '"Pacifico", cursive',
         };
+
+        function getSignerDisplayDate() {
+            return signerNow.toLocaleDateString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
+                year: 'numeric',
+            });
+        }
+
+        function getSignerInputDate() {
+            const year = signerNow.getFullYear();
+            const month = String(signerNow.getMonth() + 1).padStart(2, '0');
+            const day = String(signerNow.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function isSignerEditableField(field) {
+            return !field.read_only && (field.type === 'text' || field.type === 'date');
+        }
+
+        function getSignerTabFields() {
+            return fields
+                .filter(isSignerEditableField)
+                .sort((a, b) => {
+                    if (a.page !== b.page) return a.page - b.page;
+                    if (Math.abs(a.y - b.y) > 0.35) return a.y - b.y;
+                    return a.x - b.x;
+                });
+        }
 
         // ---- ZOOM ----
         let currentZoom = 1;
@@ -348,24 +420,219 @@
             updateProgress();
         }
 
-        function scaleSignFieldText(el, overlay) {
+        function scaleSignFieldText(el, overlay, field) {
             const overlayHeight = overlay.getBoundingClientRect().height;
             const heightPct = parseFloat(el.style.height);
             const fieldHeightPx = (heightPct / 100) * overlayHeight;
-            const fontSize = Math.max(11, Math.min(fieldHeightPx * 0.75, 32));
             const span = el.querySelector('span');
-            if (span) span.style.fontSize = fontSize + 'px';
+            if (!span) return;
+            // Use stored font_size if set, otherwise auto-calculate
+            if (field && field.font_size > 0) {
+                span.style.fontSize = field.font_size + 'px';
+            } else {
+                const fontSize = Math.max(11, Math.min(fieldHeightPx * 0.75, 32));
+                span.style.fontSize = fontSize + 'px';
+            }
+            // Apply bold/italic
+            if (field) {
+                span.style.fontWeight = field.bold ? '700' : '';
+                span.style.fontStyle = field.italic ? 'italic' : '';
+            }
         }
 
+        function getFieldElement(field) {
+            return document.getElementById('sign-field-' + field.id);
+        }
+
+        function isFieldFilled(field) {
+            return !!(field.value && field.value !== '' && field.value !== 'false');
+        }
+
+        function markFieldActive(field) {
+            document.querySelectorAll('.sign-field-active').forEach(el => el.classList.remove('sign-field-active'));
+            const el = getFieldElement(field);
+            if (el) {
+                el.classList.add('sign-field-active');
+            }
+        }
+
+        function scrollFieldIntoView(field) {
+            const el = getFieldElement(field);
+            const scrollArea = document.getElementById('pdf-scroll-area');
+            if (!el || !scrollArea) return;
+            const areaRect = scrollArea.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+            const deltaTop = (elRect.top - areaRect.top) - (areaRect.height / 2) + (elRect.height / 2);
+            scrollArea.scrollTo({
+                top: scrollArea.scrollTop + deltaTop,
+                left: currentZoom > 1.05 ? scrollArea.scrollLeft : 0,
+                behavior: 'smooth',
+            });
+        }
+
+        function goToField(field) {
+            if (!field) return;
+            markFieldActive(field);
+            scrollFieldIntoView(field);
+        }
+
+        function getRemainingRequiredFields() {
+            return fields.filter(f => f.required && !isFieldFilled(f));
+        }
+
+        function findNextField(fromField) {
+            const remaining = getRemainingRequiredFields();
+            if (!remaining.length) return null;
+            if (!fromField) return remaining[0];
+            const fromIndex = fields.findIndex(f => f.id === fromField.id);
+            const afterCurrent = fields.slice(fromIndex + 1).find(f => f.required && !isFieldFilled(f));
+            return afterCurrent || remaining[0];
+        }
+
+        function finishField(field) {
+            markFieldActive(field);
+            updateProgress();
+            const next = findNextField(field);
+            if (next && next.id !== field.id) {
+                setTimeout(() => goToField(next), 120);
+            }
+        }
+
+        function findAdjacentSignerTabField(fromField, direction) {
+            if (!fromField) return null;
+            const tabFields = getSignerTabFields();
+            const currentIndex = tabFields.findIndex(field => field.id === fromField.id);
+            if (currentIndex === -1) return null;
+            const targetIndex = currentIndex + direction;
+            if (targetIndex < 0 || targetIndex >= tabFields.length) return null;
+            return tabFields[targetIndex];
+        }
+
+        function setTextFieldValue(field, value) {
+            const el = getFieldElement(field);
+            if (!el) return;
+            field.value = value;
+            el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + value + '</span>';
+            el.classList.add('sign-field-complete');
+            scaleSignFieldText(el, el.parentElement, field);
+            finishField(field);
+        }
+
+        function toDateInputValue(value) {
+            if (!value) return '';
+            const usDateMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+            if (usDateMatch) {
+                return `${usDateMatch[3]}-${usDateMatch[1]}-${usDateMatch[2]}`;
+            }
+            return value;
+        }
+
+        function openFieldInputModal(field, mode, title, helpText, initialValue) {
+            currentInputField = field;
+            currentInputMode = mode;
+
+            const textInput = document.getElementById('field-input-text');
+            const dateInput = document.getElementById('field-input-date');
+
+            document.getElementById('field-input-title').textContent = title;
+            document.getElementById('field-input-help').textContent = helpText;
+
+            const showTextInput = mode === 'text';
+            textInput.classList.toggle('hidden', !showTextInput);
+            dateInput.classList.toggle('hidden', showTextInput);
+
+            if (showTextInput) {
+                textInput.value = initialValue || '';
+                setTimeout(() => textInput.focus(), 20);
+            } else {
+                dateInput.value = initialValue || '';
+                setTimeout(() => dateInput.focus(), 20);
+            }
+
+            document.getElementById('field-input-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openSignerTabField(field, direction) {
+            if (!field) return false;
+            goToField(field);
+            if (field.type === 'date') {
+                const initialDate = toDateInputValue(field.value) || getSignerInputDate();
+                openFieldInputModal(field, 'date', 'Choose date', 'Use the date that should appear on the signed document.', initialDate);
+            } else {
+                openFieldInputModal(field, 'text', 'Enter text', 'Add the requested text to this field.', field.value || '');
+            }
+            const input = field.type === 'date'
+                ? document.getElementById('field-input-date')
+                : document.getElementById('field-input-text');
+            if (input) {
+                input.dataset.tabDirection = String(direction || 1);
+            }
+            return true;
+        }
+
+        function applyFieldInputAndNavigate(direction) {
+            if (!currentInputField) return false;
+            const sourceField = currentInputField;
+            const textInput = document.getElementById('field-input-text');
+            const dateInput = document.getElementById('field-input-date');
+            const rawValue = currentInputMode === 'date' ? dateInput.value : textInput.value.trim();
+            if (!rawValue) return false;
+
+            let displayValue = rawValue;
+            if (currentInputMode === 'date') {
+                const parsed = new Date(rawValue + 'T00:00:00');
+                if (!Number.isNaN(parsed.getTime())) {
+                    displayValue = parsed.toLocaleDateString('en-US', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                    });
+                }
+            }
+
+            setTextFieldValue(sourceField, displayValue);
+            closeFieldInputModal();
+
+            const nextField = findAdjacentSignerTabField(sourceField, direction);
+            if (nextField) {
+                setTimeout(() => openSignerTabField(nextField, direction), 40);
+                return true;
+            }
+            return false;
+        }
+
+        window.closeFieldInputModal = function() {
+            document.getElementById('field-input-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+            currentInputField = null;
+        };
+
+        window.applyFieldInput = function() {
+            applyFieldInputAndNavigate(0);
+        };
+
+        window.goToNextField = function() {
+            const active = document.querySelector('.sign-field-active');
+            const activeField = active ? fields.find(f => 'sign-field-' + f.id === active.id) : null;
+            const next = findNextField(activeField);
+            if (next) {
+                goToField(next);
+            }
+        };
+
         function placeSigningField(overlay, field) {
+            const width = Math.max(1, Math.min(100, field.width));
+            const height = Math.max(1, Math.min(100, field.height));
+            const left = Math.max(0, Math.min(100 - width, field.x));
+            const top = Math.max(0, Math.min(100 - height, field.y));
             const el = document.createElement('div');
             el.id = 'sign-field-' + field.id;
             el.className = 'absolute cursor-pointer transition-all';
-            el.style.left = field.x + '%';
-            el.style.top = field.y + '%';
-            el.style.width = Math.max(field.width, 12) + '%';
-            el.style.height = Math.max(field.height, 3.5) + '%';
-            el.style.minHeight = '28px';
+            el.style.left = left + '%';
+            el.style.top = top + '%';
+            el.style.width = width + '%';
+            el.style.height = height + '%';
             el.style.border = '2px solid #4f46e5';
             el.style.backgroundColor = 'rgba(79, 70, 229, 0.08)';
             el.style.borderRadius = '4px';
@@ -373,6 +640,10 @@
             el.style.alignItems = 'center';
             el.style.justifyContent = 'center';
             el.style.zIndex = 10;
+
+            if (field.type === 'date' && !field.read_only && !field.prefill_value && !field.value) {
+                field.value = getSignerDisplayDate();
+            }
 
             // Read-only fields: show as plain text, no border, no interaction
             if (field.read_only && field.prefill_value && (field.type === 'text' || field.type === 'date' || field.type === 'name')) {
@@ -382,84 +653,91 @@
                 el.style.backgroundColor = 'transparent';
                 el.style.cursor = 'default';
                 overlay.appendChild(el);
-                scaleSignFieldText(el, overlay);
+                scaleSignFieldText(el, overlay, field);
                 return;
             }
 
+            if (field.value && field.value !== 'false') {
+                if (field.type === 'checkbox') {
+                    el.innerHTML = '<span class="text-indigo-600 text-lg font-bold">&#9745;</span>';
+                } else if ((field.type === 'signature' || field.type === 'initials') && field.value.startsWith('data:image')) {
+                    el.innerHTML = '<img src="' + field.value + '" class="w-full h-full object-contain" alt="Signature">';
+                } else {
+                    el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + field.value + '</span>';
+                    scaleSignFieldText(el, overlay, field);
+                }
+                el.classList.add('sign-field-complete');
+            }
+            const hasExistingValue = isFieldFilled(field);
+
             // Editable prefilled fields: show value but signer can click to change
-            if (field.prefill_value && !field.read_only && (field.type === 'text' || field.type === 'date' || field.type === 'name')) {
+            if (!field.value && field.prefill_value && !field.read_only && (field.type === 'text' || field.type === 'date' || field.type === 'name')) {
                 field.value = field.prefill_value;
                 el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + field.prefill_value + '</span>';
-                el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
-                el.style.borderColor = '#059669';
+                el.classList.add('sign-field-complete');
                 overlay.appendChild(el);
-                scaleSignFieldText(el, overlay);
+                scaleSignFieldText(el, overlay, field);
                 el.addEventListener('click', () => {
-                    const val = prompt('Edit text:', field.value || '');
-                    if (val !== null) {
-                        field.value = val;
-                        el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + val + '</span>';
-                        scaleSignFieldText(el, overlay);
-                        updateProgress();
-                    }
+                    markFieldActive(field);
+                    openFieldInputModal(
+                        field,
+                        field.type === 'date' ? 'date' : 'text',
+                        field.type === 'date' ? 'Update date' : 'Update value',
+                        'Review and adjust this field before continuing.',
+                        field.type === 'date' ? toDateInputValue(field.value) : (field.value || '')
+                    );
                 });
                 return;
             }
 
             if (field.type === 'checkbox') {
-                el.innerHTML = '<span class="text-gray-400 text-lg">&#9744;</span>';
+                if (!hasExistingValue) {
+                    el.innerHTML = '<span class="text-gray-400 text-lg">&#9744;</span>';
+                }
                 el.addEventListener('click', () => {
+                    markFieldActive(field);
                     field.value = field.value === 'true' ? 'false' : 'true';
                     el.innerHTML = field.value === 'true'
                         ? '<span class="text-indigo-600 text-lg font-bold">&#9745;</span>'
                         : '<span class="text-gray-400 text-lg">&#9744;</span>';
                     if (field.value === 'true') {
-                        el.style.backgroundColor = 'rgba(79, 70, 229, 0.15)';
-                        el.style.borderColor = '#059669';
+                        el.classList.add('sign-field-complete');
+                        finishField(field);
                     } else {
-                        el.style.backgroundColor = 'rgba(79, 70, 229, 0.08)';
-                        el.style.borderColor = '#4f46e5';
+                        el.classList.remove('sign-field-complete');
+                        updateProgress();
                     }
-                    updateProgress();
                 });
             } else if (field.type === 'name') {
                 field.value = SIGNER_NAME;
                 el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + SIGNER_NAME + '</span>';
-                el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
-                el.style.borderColor = '#059669';
-                scaleSignFieldText(el, overlay);
+                el.classList.add('sign-field-complete');
+                scaleSignFieldText(el, overlay, field);
             } else if (field.type === 'text') {
-                el.innerHTML = '<span class="text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.text + '</span>';
-                scaleSignFieldText(el, overlay);
+                if (!hasExistingValue) {
+                    el.innerHTML = '<span class="text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.text + '</span>';
+                    scaleSignFieldText(el, overlay, field);
+                }
                 el.addEventListener('click', () => {
-                    const val = prompt('Enter text:', field.value || '');
-                    if (val !== null) {
-                        field.value = val;
-                        el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + val + '</span>';
-                        el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
-                        el.style.borderColor = '#059669';
-                        scaleSignFieldText(el, overlay);
-                        updateProgress();
-                    }
+                    markFieldActive(field);
+                    openFieldInputModal(field, 'text', 'Enter text', 'Add the requested text to this field.', field.value || '');
                 });
             } else if (field.type === 'date') {
-                el.innerHTML = '<span class="text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.date + '</span>';
-                scaleSignFieldText(el, overlay);
+                if (!hasExistingValue) {
+                    el.innerHTML = '<span class="text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS.date + '</span>';
+                    scaleSignFieldText(el, overlay, field);
+                }
                 el.addEventListener('click', () => {
-                    const today = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
-                    const val = prompt('Enter date:', field.value || today);
-                    if (val !== null) {
-                        field.value = val;
-                        el.innerHTML = '<span class="text-gray-900 px-1 truncate">' + val + '</span>';
-                        el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
-                        el.style.borderColor = '#059669';
-                        scaleSignFieldText(el, overlay);
-                        updateProgress();
-                    }
+                    markFieldActive(field);
+                    const initialDate = toDateInputValue(field.value) || new Date().toISOString().slice(0, 10);
+                    openFieldInputModal(field, 'date', 'Choose date', 'Use the date that should appear on the signed document.', initialDate);
                 });
             } else {
-                el.innerHTML = '<span class="text-xs text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS[field.type] + '</span>';
+                if (!hasExistingValue) {
+                    el.innerHTML = '<span class="text-[10px] text-indigo-400 pointer-events-none truncate px-1">' + FIELD_LABELS[field.type] + '</span>';
+                }
                 el.addEventListener('click', () => {
+                    markFieldActive(field);
                     currentSigField = field;
                     document.getElementById('sig-modal-title').textContent =
                         field.type === 'initials' ? 'Initial Here' : 'Sign Here';
@@ -473,8 +751,14 @@
         function updateProgress() {
             const required = fields.filter(f => f.required);
             const filled = required.filter(f => f.value && f.value !== '' && f.value !== 'false');
-            document.getElementById('fields-progress').textContent = filled.length + ' / ' + required.length;
-            document.getElementById('finish-btn').disabled = filled.length < required.length;
+            const remaining = required.length - filled.length;
+            document.getElementById('fields-progress').textContent = filled.length + ' / ' + required.length + ' complete';
+            document.getElementById('finish-btn').disabled = remaining > 0;
+
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = remaining === 0;
+            nextBtn.classList.toggle('opacity-50', remaining === 0);
+            nextBtn.classList.toggle('cursor-not-allowed', remaining === 0);
         }
 
         // ---- SIGNATURE MODAL ----
@@ -579,16 +863,16 @@
                 value = tc.toDataURL('image/png');
             }
 
-            currentSigField.value = value;
-            const el = document.getElementById('sign-field-' + currentSigField.id);
+            const completedField = currentSigField;
+            completedField.value = value;
+            const el = document.getElementById('sign-field-' + completedField.id);
             el.innerHTML = '<img src="' + value + '" class="w-full h-full object-contain" alt="Signature">';
-            el.style.backgroundColor = 'rgba(5, 150, 105, 0.1)';
-            el.style.borderColor = '#059669';
+            el.classList.add('sign-field-complete');
 
             closeSigModal();
             document.getElementById('sig-text-input').value = '';
             updateTypedPreviews();
-            updateProgress();
+            finishField(completedField);
         };
 
         // ---- SUBMIT / DECLINE ----
@@ -648,7 +932,32 @@
             resizeTimeout = setTimeout(() => { currentZoom = 1; applyZoom(); loadPDF(); }, 300);
         });
 
-        loadPDF();
+        loadPDF().then(() => {
+            const next = findNextField();
+            if (next) {
+                setTimeout(() => goToField(next), 250);
+            }
+        });
+
+        document.getElementById('field-input-text').addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                applyFieldInputAndNavigate(e.shiftKey ? -1 : 1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                applyFieldInput();
+            }
+        });
+
+        document.getElementById('field-input-date').addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                applyFieldInputAndNavigate(e.shiftKey ? -1 : 1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                applyFieldInput();
+            }
+        });
     })();
     </script>
 </body>

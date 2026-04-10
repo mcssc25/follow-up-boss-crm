@@ -6,10 +6,21 @@ from apps.accounts.gmail import GmailService
 
 def _get_gmail_service(user):
     """Build a GmailService from the user's OAuth credentials."""
+    if not user or not getattr(user, 'gmail_access_token', '') or not getattr(user, 'gmail_refresh_token', ''):
+        raise RuntimeError('Gmail is not connected for your account. Reconnect Gmail in Settings and try again.')
     return GmailService(
         access_token=user.gmail_access_token,
         refresh_token=user.gmail_refresh_token,
     )
+
+
+def _raise_for_gmail_failure(result):
+    if result and result.get('success'):
+        return result
+    error = (result or {}).get('error', 'Unable to send email.')
+    if 'invalid_grant' in error.lower():
+        raise RuntimeError('Your Gmail connection has expired or was revoked. Reconnect Gmail in Settings and try again.')
+    raise RuntimeError(error)
 
 
 def send_signing_request(signer, sender):
@@ -28,12 +39,13 @@ def send_signing_request(signer, sender):
     }
     html = render_to_string('signatures/emails/signing_request.html', context)
     gmail = _get_gmail_service(sender)
-    gmail.send_email(
+    result = gmail.send_email(
         to=signer.email,
         subject=f"Please sign: {signer.document.title}",
         body_html=html,
         from_email=sender.email,
     )
+    return _raise_for_gmail_failure(result)
 
 
 def send_completion_notification(document):
@@ -48,12 +60,13 @@ def send_completion_notification(document):
     html = render_to_string('signatures/emails/signing_complete.html', context)
     sender = document.created_by
     gmail = _get_gmail_service(sender)
-    gmail.send_email(
+    result = gmail.send_email(
         to=sender.email,
         subject=f"Completed: {document.title}",
         body_html=html,
         from_email=sender.email,
     )
+    return _raise_for_gmail_failure(result)
 
 
 def send_signer_confirmation(signer):
@@ -67,12 +80,13 @@ def send_signer_confirmation(signer):
     }
     html = render_to_string('signatures/emails/signer_confirmation.html', context)
     gmail = _get_gmail_service(sender)
-    gmail.send_email(
+    result = gmail.send_email(
         to=signer.email,
         subject=f"Signed: {signer.document.title}",
         body_html=html,
         from_email=sender.email,
     )
+    return _raise_for_gmail_failure(result)
 
 
 def send_completed_copy_to_signers(document):
@@ -88,10 +102,11 @@ def send_completed_copy_to_signers(document):
     html = render_to_string('signatures/emails/completed_copy.html', context)
     gmail = _get_gmail_service(sender)
     for signer in document.signers.all():
-        gmail.send_email(
+        result = gmail.send_email(
             to=signer.email,
             subject=f"Completed: {document.title}",
             body_html=html,
             from_email=sender.email,
             attachments=[{'filename': filename, 'content': pdf_bytes}],
         )
+        _raise_for_gmail_failure(result)

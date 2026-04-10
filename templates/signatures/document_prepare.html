@@ -3,23 +3,37 @@
 {% block title %}Prepare: {{ document.title }} - CRM{% endblock %}
 
 {% block content %}
-<div class="mb-4 flex items-center justify-between">
-    <div>
-        <a href="{% url 'signatures:list' %}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Signatures</a>
-        <h1 class="text-xl font-bold text-gray-900 mt-1">{{ document.title }}</h1>
-    </div>
-    <div class="flex space-x-3">
+<div class="mb-5 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <a href="{% url 'signatures:list' %}" class="text-sm font-medium text-slate-500 hover:text-slate-700">&larr; Back to Signatures</a>
+            <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{{ document.title }}</h1>
+            <div class="mt-3 flex flex-wrap gap-2">
+                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{{ signers|length }} signer{{ signers|length|pluralize }}</span>
+                <span class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">{{ fields|length }} field{{ fields|length|pluralize }} placed</span>
+                <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">Sender values + signer input</span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            <div id="crm-status-pill" class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Workspace ready</div>
+            <div class="flex space-x-3">
+        <button id="scan-fields-btn" type="button" onclick="detectSuggestedFields(false)"
+                class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700">
+            Scan Form
+        </button>
         <button id="save-fields-btn" onclick="saveFields()"
-                class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700">
+                class="rounded-xl bg-slate-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
             Save Fields
         </button>
         <button id="send-btn" onclick="saveAndSend()"
-                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700">
             Send for Signing
         </button>
+            </div>
         <form method="post" action="{% url 'signatures:send' document.pk %}" id="send-form" class="hidden">
             {% csrf_token %}
         </form>
+        </div>
     </div>
 </div>
 
@@ -35,14 +49,69 @@
 </div>
 {% endif %}
 
-<div class="flex gap-4" style="height: calc(100vh - {% if document.template %}230{% else %}180{% endif %}px);">
+<div id="suggestions-banner" class="mb-4 hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <p class="text-sm font-semibold text-emerald-900">Suggested fields found</p>
+            <p id="suggestions-summary" class="mt-1 text-sm text-emerald-800">We found possible fillable fields in this document.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="applySuggestedFields()"
+                    class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
+                Add Suggested Fields
+            </button>
+            <button type="button" onclick="dismissSuggestedFields()"
+                    class="rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100">
+                Dismiss
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="suggested-assignment-modal" class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/35 px-4 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900">Assign suggested fields</h3>
+                <p class="mt-2 text-sm text-slate-500">Choose which signer should receive this batch of suggested fields. You can still reassign individual fields afterward.</p>
+            </div>
+            <button type="button" id="close-suggested-assignment-modal" class="rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600" aria-label="Close assignment dialog">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="mt-5">
+            <label for="suggested-assignment-signer" class="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Assign All Suggested Fields To</label>
+            <select id="suggested-assignment-signer" class="block w-full rounded-xl border-slate-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                {% for signer in signers %}
+                <option value="{{ signer.pk }}">{{ signer.name }}{% if signer.role %} · {{ signer.role }}{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" id="cancel-suggested-assignment" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                Cancel
+            </button>
+            <button type="button" id="confirm-suggested-assignment" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
+                Add Fields
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="flex gap-4" style="height: calc(100vh - {% if document.template %}260{% else %}210{% endif %}px);">
     <!-- Left Sidebar -->
-    <div class="w-80 flex-shrink-0 space-y-4 overflow-y-auto">
+    <div class="w-[20rem] flex-shrink-0 space-y-4 overflow-y-auto pr-1">
         <!-- Add Signer -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 class="text-sm font-semibold text-gray-900 mb-3">Signers</h3>
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-900">Signers</h3>
+                    <p class="mt-1 text-xs text-slate-500">Assign each field to the person who should review or complete it.</p>
+                </div>
+                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{{ signers|length }}</span>
+            </div>
             {% for signer in signers %}
-            <div class="py-2 border-b border-gray-100 last:border-0 {% if signer.email == 'placeholder@example.com' %}bg-yellow-50 rounded px-2 -mx-2{% endif %}" id="signer-row-{{ signer.pk }}">
+            <div class="py-2 border-b border-slate-100 last:border-0 {% if signer.email == 'placeholder@example.com' %}rounded-xl border border-amber-200 bg-amber-50 px-2 -mx-2{% endif %}" id="signer-row-{{ signer.pk }}">
                 <!-- Display mode -->
                 <div class="signer-display flex items-center justify-between">
                     <div class="flex items-center min-w-0">
@@ -81,7 +150,7 @@
             </div>
             {% endfor %}
 
-            <form method="post" action="{% url 'signatures:add_signer' document.pk %}" class="mt-3 space-y-2">
+            <form method="post" action="{% url 'signatures:add_signer' document.pk %}" class="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/80 p-3">
                 {% csrf_token %}
                 <div class="relative">
                     <input type="text" name="name" id="signer-name" placeholder="Name" required autocomplete="off"
@@ -100,15 +169,17 @@
         </div>
 
         <!-- Field Toolbar -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 class="text-sm font-semibold text-gray-900 mb-3">Fields</h3>
-            <p class="text-xs text-gray-500 mb-3">Drag fields onto the document. Select a signer first.</p>
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3">
+                <h3 class="text-sm font-semibold text-slate-900">Field Library</h3>
+                <p class="mt-1 text-xs text-slate-500">Drag onto the page or click a tool, then click the document.</p>
+            </div>
 
             {% if signers %}
             <div class="mb-3">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Assign to</label>
+                <label class="mb-1 block text-xs font-medium text-slate-500">Assign to</label>
                 <select id="active-signer"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                        class="block w-full rounded-xl border-slate-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                     {% for signer in signers %}
                     <option value="{{ signer.pk }}" data-color="{{ signer_colors|default_if_none:'#3B82F6' }}">{{ signer.name }}</option>
                     {% endfor %}
@@ -117,7 +188,7 @@
 
             <div class="grid grid-cols-2 gap-2">
                 <button type="button" draggable="true" data-field-type="signature"
-                        class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab">
+                        class="field-tool flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 cursor-grab">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     Signature
                 </button>
@@ -142,7 +213,7 @@
                     Date
                 </button>
                 <button type="button" draggable="true" data-field-type="checkbox"
-                        class="field-tool flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-grab col-span-2">
+                        class="field-tool col-span-2 flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 cursor-grab">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Checkbox
                 </button>
@@ -152,38 +223,114 @@
             {% endif %}
         </div>
 
+    </div>
+
+    <!-- PDF Viewer -->
+    <div class="flex-1 overflow-auto rounded-2xl border border-slate-200 bg-slate-100/90 shadow-inner" id="pdf-container">
+        <div class="sticky top-0 z-20 border-b border-slate-200 bg-white/90 px-5 py-3 backdrop-blur">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-900">Document Canvas</h3>
+                    <p class="mt-1 text-xs text-slate-500">Drag, resize, and select fields directly on the PDF.</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-500">
+                    <span class="rounded-full bg-white px-3 py-1 shadow-sm">Click empty space to deselect</span>
+                    <span class="rounded-full bg-white px-3 py-1 shadow-sm">Ctrl/Cmd + C to duplicate</span>
+                </div>
+            </div>
+        </div>
+        <div id="pdf-pages" class="flex flex-col items-center py-5 space-y-5">
+            <!-- Pages rendered by PDF.js -->
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="w-[22rem] flex-shrink-0 space-y-4 overflow-y-auto pl-1">
         <!-- Field Properties (shown when fields selected) -->
-        <div id="field-properties" class="bg-white rounded-lg shadow-sm border border-indigo-200 p-4 hidden">
-            <h3 class="text-sm font-semibold text-gray-900 mb-3">Field Properties</h3>
-            <p id="prop-selection-info" class="text-xs text-gray-500 mb-3">1 field selected</p>
+        <div id="field-properties" class="hidden rounded-2xl border border-indigo-200 bg-white p-4 shadow-sm">
+            <div class="mb-3">
+                <h3 class="text-sm font-semibold text-slate-900">Field Properties</h3>
+                <p id="prop-selection-info" class="mt-1 text-xs text-slate-500">1 field selected</p>
+            </div>
+            <div>
+                <h4 class="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Field Mode</h4>
+                <div class="space-y-2">
+                    <label class="field-mode-option flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-indigo-300 hover:bg-indigo-50/70">
+                        <input type="radio" name="prop-field-mode" value="required" class="mt-0.5 border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <p class="text-sm font-medium text-slate-800">Required signer field</p>
+                            <p class="mt-1 text-xs text-slate-500">Signer must complete this before they can finish.</p>
+                        </div>
+                    </label>
+                    <label class="field-mode-option flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-indigo-300 hover:bg-indigo-50/70">
+                        <input type="radio" name="prop-field-mode" value="optional" class="mt-0.5 border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <p class="text-sm font-medium text-slate-800">Editable optional field</p>
+                            <p class="mt-1 text-xs text-slate-500">You can prefill it now, and the signer can still edit it later.</p>
+                        </div>
+                    </label>
+                    <label class="field-mode-option flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-indigo-300 hover:bg-indigo-50/70">
+                        <input type="radio" name="prop-field-mode" value="readonly" class="mt-0.5 border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <p class="text-sm font-medium text-slate-800">Read-only sender value</p>
+                            <p class="mt-1 text-xs text-slate-500">Signer sees the value, but cannot change it.</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div id="prefill-editor" class="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 p-3 hidden">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h4 class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Sender Value</h4>
+                        <p id="prefill-help" class="mt-1 text-xs text-slate-500">Pre-fill a value before sending.</p>
+                    </div>
+                    <button id="clear-prefill-btn" type="button" class="text-xs font-medium text-slate-500 hover:text-slate-700">Clear</button>
+                </div>
+                <input id="prop-prefill-input" type="text"
+                       class="mt-3 hidden block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                       placeholder="Enter a value">
+                <input id="prop-prefill-date" type="date"
+                       class="mt-3 hidden block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                <textarea id="prop-prefill-textarea" rows="3"
+                          class="mt-3 hidden block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                          placeholder="Enter a value"></textarea>
+            </div>
+            <hr class="my-4 border-slate-200">
+            <h4 class="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Text Formatting</h4>
             <div class="space-y-2">
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" id="prop-required" checked
-                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                    <span class="text-sm text-gray-700">Required</span>
-                </label>
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" id="prop-readonly"
-                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                    <span class="text-sm text-gray-700">Read-only</span>
-                    <span class="text-xs text-gray-400">(signer can't edit)</span>
-                </label>
+                <div>
+                    <label class="text-xs text-slate-600">Font Size (pt)</label>
+                    <select id="prop-font-size" class="mt-1 block w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="0">Auto</option>
+                        <option value="8">8</option>
+                        <option value="10">10</option>
+                        <option value="12">12</option>
+                        <option value="14">14</option>
+                        <option value="16">16</option>
+                        <option value="18">18</option>
+                        <option value="20">20</option>
+                        <option value="24">24</option>
+                        <option value="28">28</option>
+                        <option value="32">32</option>
+                        <option value="36">36</option>
+                    </select>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="prop-bold" type="button" class="rounded-xl border border-slate-300 px-3 py-1.5 text-sm font-bold transition hover:bg-slate-100" title="Bold">B</button>
+                    <button id="prop-italic" type="button" class="rounded-xl border border-slate-300 px-3 py-1.5 text-sm italic transition hover:bg-slate-100" title="Italic">I</button>
+                </div>
             </div>
         </div>
 
         <!-- Placed Fields Summary -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 class="text-sm font-semibold text-gray-900 mb-2">Placed Fields</h3>
-            <div id="fields-summary" class="text-xs text-gray-500">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-2 flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-slate-900">Placed Fields</h3>
+                <span id="field-count-chip" class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">0</span>
+            </div>
+            <div id="fields-summary" class="text-xs text-slate-500">
                 <p>No fields placed yet.</p>
             </div>
-        </div>
-    </div>
-
-    <!-- PDF Viewer -->
-    <div class="flex-1 bg-gray-200 rounded-lg overflow-auto" id="pdf-container">
-        <div id="pdf-pages" class="flex flex-col items-center py-4 space-y-4">
-            <!-- Pages rendered by PDF.js -->
         </div>
     </div>
 </div>
@@ -200,6 +347,7 @@
     const PDF_URL = '{{ document.pdf_file.url }}';
     const CSRF_TOKEN = '{{ csrf_token }}';
     const SAVE_URL = '{% url "signatures:save_fields" document.pk %}';
+    const SUGGEST_URL = '{% url "signatures:suggest_fields" document.pk %}';
     const SIGNER_COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
     const SOURCE_FILES = {{ source_files_json|safe }};
 
@@ -226,12 +374,20 @@
             width: {{ field.width }},
             height: {{ field.height }},
             required: {{ field.required|yesno:"true,false" }},
+            font_size: {{ field.font_size }},
+            bold: {{ field.bold|yesno:"true,false" }},
+            italic: {{ field.italic|yesno:"true,false" }},
         },
         {% endfor %}
     ];
 
     // Update signer select colors
     const signerSelect = document.getElementById('active-signer');
+    const suggestedAssignmentModal = document.getElementById('suggested-assignment-modal');
+    const suggestedAssignmentSigner = document.getElementById('suggested-assignment-signer');
+    const confirmSuggestedAssignmentBtn = document.getElementById('confirm-suggested-assignment');
+    const closeSuggestedAssignmentBtn = document.getElementById('close-suggested-assignment-modal');
+    const cancelSuggestedAssignmentBtn = document.getElementById('cancel-suggested-assignment');
     if (signerSelect) {
         signerSelect.addEventListener('change', updateSignerSelectColor);
         updateSignerSelectColor();
@@ -253,6 +409,8 @@
     let dragFieldType = null;
     let selectedFields = [];  // multi-select support
     let pageScales = {};
+    let suggestedFields = [];
+    let suggestionsDismissed = false;
 
     // Default field sizes (as percentage of page)
     const FIELD_DEFAULTS = {
@@ -271,6 +429,24 @@
         text: 'Text',
         date: 'Date',
         checkbox: 'Checkbox',
+    };
+
+    const FIELD_MODE_META = {
+        required: {
+            label: 'Required',
+            badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+            hint: 'Signer must complete',
+        },
+        optional: {
+            label: 'Optional',
+            badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
+            hint: 'Editable by signer',
+        },
+        readonly: {
+            label: 'Read-only',
+            badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+            hint: 'Locked sender value',
+        },
     };
 
     // Load PDF
@@ -337,11 +513,174 @@
 
         // Load existing fields
         existingFields.forEach(f => {
-            addFieldToPage(f.page, f.x, f.y, f.type, f.signer_id, f.width, f.height, f.prefill_value, f.required, f.read_only);
+            addFieldToPage(f.page, f.x, f.y, f.type, f.signer_id, f.width, f.height, f.prefill_value, f.required, f.read_only, f.font_size, f.bold, f.italic);
         });
 
         updateFieldsSummary();
     }
+
+    function clearSuggestedFieldPreviews() {
+        document.querySelectorAll('.suggested-field-preview').forEach(el => el.remove());
+    }
+
+    function renderSuggestedFieldPreviews() {
+        clearSuggestedFieldPreviews();
+        suggestedFields.forEach(field => {
+            const overlay = document.querySelector(`.field-overlay[data-page="${field.page}"]`);
+            if (!overlay) return;
+            const preview = document.createElement('div');
+            preview.className = 'suggested-field-preview absolute pointer-events-none';
+            preview.style.left = field.x + '%';
+            preview.style.top = field.y + '%';
+            preview.style.width = field.width + '%';
+            preview.style.height = field.height + '%';
+            preview.style.border = '2px dashed #10b981';
+            preview.style.background = 'rgba(16, 185, 129, 0.08)';
+            preview.style.borderRadius = '6px';
+            preview.style.zIndex = 8;
+            preview.innerHTML = `
+                <span class="absolute left-1 top-1 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white">
+                    Suggested ${field.type}
+                </span>
+            `;
+            overlay.appendChild(preview);
+        });
+    }
+
+    function updateSuggestionsBanner(counts) {
+        const banner = document.getElementById('suggestions-banner');
+        const summary = document.getElementById('suggestions-summary');
+        const total = suggestedFields.length;
+        if (!total || suggestionsDismissed) {
+            banner.classList.add('hidden');
+            return;
+        }
+        const parts = [];
+        if (counts.text) parts.push(`${counts.text} text`);
+        if (counts.date) parts.push(`${counts.date} date`);
+        if (counts.checkbox) parts.push(`${counts.checkbox} checkbox`);
+        const assignmentHint = signers.length > 1
+            ? ' Choose a signer when you add them.'
+            : '';
+        summary.textContent = `We found ${total} suggested field${total === 1 ? '' : 's'} (${parts.join(', ') || 'review needed'}). Add them to the document?${assignmentHint}`;
+        banner.classList.remove('hidden');
+    }
+
+    function openSuggestedAssignmentModal() {
+        if (!suggestedAssignmentModal || !suggestedAssignmentSigner || !signerSelect) return;
+        suggestedAssignmentSigner.value = signerSelect.value;
+        suggestedAssignmentModal.classList.remove('hidden');
+        suggestedAssignmentModal.classList.add('flex');
+    }
+
+    function closeSuggestedAssignmentModal() {
+        if (!suggestedAssignmentModal) return;
+        suggestedAssignmentModal.classList.add('hidden');
+        suggestedAssignmentModal.classList.remove('flex');
+    }
+
+    function applySuggestedFieldsForSigner(signerId) {
+        if (!signerId) return;
+        if (signerSelect) {
+            signerSelect.value = String(signerId);
+            updateSignerSelectColor();
+        }
+        suggestedFields.forEach(field => {
+            addFieldToPage(
+                field.page,
+                field.x,
+                field.y,
+                field.type,
+                signerId,
+                field.width,
+                field.height,
+                '',
+                false,
+                false,
+                0,
+                false,
+                false
+            );
+        });
+        suggestedFields = [];
+        document.getElementById('suggestions-banner').classList.add('hidden');
+        clearSuggestedFieldPreviews();
+        updateFieldsSummary();
+        const statusPill = document.getElementById('crm-status-pill');
+        if (statusPill) statusPill.textContent = 'Suggested fields added';
+    }
+
+    if (confirmSuggestedAssignmentBtn) {
+        confirmSuggestedAssignmentBtn.addEventListener('click', () => {
+            const signerId = parseInt(suggestedAssignmentSigner.value, 10);
+            closeSuggestedAssignmentModal();
+            applySuggestedFieldsForSigner(signerId);
+        });
+    }
+
+    [closeSuggestedAssignmentBtn, cancelSuggestedAssignmentBtn].forEach(btn => {
+        if (btn) btn.addEventListener('click', closeSuggestedAssignmentModal);
+    });
+
+    if (suggestedAssignmentModal) {
+        suggestedAssignmentModal.addEventListener('click', (event) => {
+            if (event.target === suggestedAssignmentModal) {
+                closeSuggestedAssignmentModal();
+            }
+        });
+    }
+
+    window.dismissSuggestedFields = function() {
+        suggestionsDismissed = true;
+        suggestedFields = [];
+        document.getElementById('suggestions-banner').classList.add('hidden');
+        clearSuggestedFieldPreviews();
+    };
+
+    window.applySuggestedFields = function() {
+        if (!suggestedFields.length || !signerSelect) {
+            const statusPill = document.getElementById('crm-status-pill');
+            if (statusPill) statusPill.textContent = 'Add a signer before applying suggested fields';
+            alert('Add at least one signer before applying suggested fields.');
+            return;
+        }
+        if (signers.length > 1 && suggestedAssignmentModal) {
+            openSuggestedAssignmentModal();
+            return;
+        }
+        applySuggestedFieldsForSigner(parseInt(signerSelect.value, 10));
+    };
+
+    window.detectSuggestedFields = async function(autoRun) {
+        const scanBtn = document.getElementById('scan-fields-btn');
+        const statusPill = document.getElementById('crm-status-pill');
+        if (scanBtn) {
+            scanBtn.disabled = true;
+            scanBtn.textContent = autoRun ? 'Scanning...' : 'Scanning form...';
+        }
+        if (statusPill) statusPill.textContent = 'Scanning PDF for fillable fields...';
+        try {
+            const resp = await fetch(SUGGEST_URL);
+            const data = await resp.json();
+            suggestedFields = (data.suggestions || []).filter(field => !field.type.startsWith('signature'));
+            suggestionsDismissed = false;
+            renderSuggestedFieldPreviews();
+            updateSuggestionsBanner(data.counts || {});
+            if (statusPill) {
+                statusPill.textContent = suggestedFields.length
+                    ? `Found ${suggestedFields.length} suggested fields`
+                    : 'No suggested fields found';
+            }
+        } catch (err) {
+            console.error('Field suggestion scan failed', err);
+            if (statusPill) statusPill.textContent = 'Field scan failed';
+        } finally {
+            if (scanBtn) {
+                scanBtn.disabled = false;
+                scanBtn.textContent = 'Scan Form';
+            }
+        }
+    };
 
     function setupDropZone(overlay, pageNum) {
         overlay.addEventListener('dragover', (e) => {
@@ -468,17 +807,86 @@
         const heightPct = parseFloat(el.style.height);
         const fieldHeightPx = (heightPct / 100) * overlayHeight;
         const fontSize = Math.max(10, Math.min(fieldHeightPx * 0.7, 32));
-        const span = el.querySelector('span:first-child');
+        const span = el.querySelector('.field-label');
         if (span) span.style.fontSize = fontSize + 'px';
     }
 
-    function addFieldToPage(pageNum, xPct, yPct, fieldType, signerId, widthPct, heightPct, prefillValue, isRequired, isReadOnly) {
+    function applyFieldFormatting(el, fieldData) {
+        const span = el.querySelector('.field-label');
+        if (!span) return;
+        span.style.fontWeight = fieldData.bold ? '700' : '600';
+        span.style.fontStyle = fieldData.italic ? 'italic' : 'normal';
+        if (fieldData.font_size > 0) {
+            span.style.fontSize = fieldData.font_size + 'px';
+        }
+    }
+
+    function getFieldMode(fieldData) {
+        if (fieldData.read_only) return 'readonly';
+        return fieldData.required ? 'required' : 'optional';
+    }
+
+    function isPrefillCapable(fieldType) {
+        return fieldType === 'text' || fieldType === 'date' || fieldType === 'name';
+    }
+
+    function updateFieldAppearance(fieldData) {
+        if (!fieldData || !fieldData.element) return;
+        const el = fieldData.element;
+        const signer = signers.find(s => s.id === fieldData.signer_id);
+        const color = signer ? signer.color : '#3B82F6';
+        const mode = getFieldMode(fieldData);
+        const meta = FIELD_MODE_META[mode];
+        const span = el.querySelector('.field-label');
+        const badge = el.querySelector('.field-mode-badge');
+        const sublabel = el.querySelector('.field-meta');
+
+        el.style.borderColor = color;
+        el.style.color = color;
+        el.style.backgroundColor = mode === 'readonly' ? '#f8fafc' : color + '18';
+        el.style.borderStyle = mode === 'readonly' ? 'dashed' : 'solid';
+        el.style.opacity = mode === 'readonly' ? '0.92' : '1';
+        el.title = `${FIELD_LABELS[fieldData.type]} - ${signer ? signer.name : 'Unknown'} - ${meta.label}`;
+
+        if (span) {
+            const displayText = fieldData.prefill_value && isPrefillCapable(fieldData.type)
+                ? fieldData.prefill_value
+                : FIELD_LABELS[fieldData.type];
+            span.textContent = displayText;
+            span.style.color = fieldData.prefill_value && isPrefillCapable(fieldData.type) ? '#0f172a' : color;
+        }
+        if (badge) {
+            badge.textContent = meta.label;
+            badge.className = `field-mode-badge pointer-events-none rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] ${meta.badgeClass}`;
+        }
+        if (sublabel) {
+            sublabel.textContent = signer ? `${signer.name} • ${meta.hint}` : meta.hint;
+        }
+    }
+
+    function applyFieldMode(fieldData, mode) {
+        if (mode === 'readonly') {
+            fieldData.read_only = true;
+            fieldData.required = false;
+        } else if (mode === 'optional') {
+            fieldData.read_only = false;
+            fieldData.required = false;
+        } else {
+            fieldData.read_only = false;
+            fieldData.required = true;
+        }
+        updateFieldAppearance(fieldData);
+    }
+
+    function addFieldToPage(pageNum, xPct, yPct, fieldType, signerId, widthPct, heightPct, prefillValue, isRequired, isReadOnly, fontSize, isBold, isItalic) {
         const overlay = document.querySelector(`.field-overlay[data-page="${pageNum}"]`);
         if (!overlay) return;
 
         const defaults = FIELD_DEFAULTS[fieldType];
         const w = widthPct || defaults.width;
         const h = heightPct || defaults.height;
+        const clampedX = Math.max(0, Math.min(100 - w, xPct));
+        const clampedY = Math.max(0, Math.min(100 - h, yPct));
 
         const signer = signers.find(s => s.id === signerId);
         const color = signer ? signer.color : '#3B82F6';
@@ -489,8 +897,8 @@
         const el = document.createElement('div');
         el.id = fieldId;
         el.className = 'placed-field absolute cursor-move select-none';
-        el.style.left = xPct + '%';
-        el.style.top = yPct + '%';
+        el.style.left = clampedX + '%';
+        el.style.top = clampedY + '%';
         el.style.width = w + '%';
         el.style.height = h + '%';
         el.style.border = `2px solid ${color}`;
@@ -506,7 +914,9 @@
         el.title = `${FIELD_LABELS[fieldType]} - ${signerName}`;
         if (fieldType === 'checkbox') {
             el.innerHTML = `
-                <span class="pointer-events-none" style="font-size:14px;">&#9744;</span>
+                <span class="field-label pointer-events-none" style="font-size:14px;">&#9744;</span>
+                <span class="field-mode-badge pointer-events-none absolute left-1 top-1 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em]"></span>
+                <span class="field-meta pointer-events-none absolute bottom-1 left-1 text-[9px] font-medium opacity-70"></span>
                 <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px; line-height:1; display:none;">X</button>
                 <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background: ${color}; opacity: 0.5; display:none;"></div>
             `;
@@ -519,7 +929,13 @@
             });
         } else {
             el.innerHTML = `
-                <span class="pointer-events-none">${FIELD_LABELS[fieldType]}</span>
+                <div class="pointer-events-none flex h-full w-full flex-col justify-between px-1.5 py-1">
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="field-label truncate">${FIELD_LABELS[fieldType]}</span>
+                        <span class="field-mode-badge rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em]"></span>
+                    </div>
+                    <span class="field-meta truncate text-[9px] font-medium opacity-70"></span>
+                </div>
                 <button class="field-delete absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700" style="font-size:8px; line-height:1; display:none;">X</button>
                 <div class="field-resize absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style="background: ${color}; opacity: 0.5; display:none;"></div>
             `;
@@ -536,32 +952,21 @@
             prefill_value: prefillValue || '',
             read_only: isReadOnly || false,
             page: pageNum,
-            x: xPct,
-            y: yPct,
+            x: clampedX,
+            y: clampedY,
             width: w,
             height: h,
             required: isRequired !== undefined ? isRequired : true,
+            font_size: fontSize || 0,
+            bold: isBold || false,
+            italic: isItalic || false,
             element: el,
         };
 
-        // Visual indicator for read-only fields
-        if (fieldData.read_only) {
-            el.style.borderStyle = 'dashed';
-            el.style.opacity = '0.8';
-        }
-
-        // Show prefill value if it exists
-        if (prefillValue && (fieldType === 'text' || fieldType === 'date' || fieldType === 'name')) {
-            const span = el.querySelector('span:not(.pointer-events-none):first-child') || el.querySelector('span');
-            if (span && !span.classList.contains('field-delete')) {
-                span.textContent = prefillValue;
-                span.style.color = '#111827';
-                span.classList.remove('pointer-events-none');
-            }
-        }
-
-        // Scale text to fit field height
+        // Scale text to fit field height, then apply custom formatting (overrides auto-size if set)
         scaleFieldText(el, overlay);
+        applyFieldFormatting(el, fieldData);
+        updateFieldAppearance(fieldData);
 
         placedFields.push(fieldData);
 
@@ -601,19 +1006,14 @@
         if (fieldType === 'text' || fieldType === 'date' || fieldType === 'name') {
             el.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
-                const currentVal = fieldData.prefill_value || '';
-                const promptLabel = fieldType === 'date' ? 'Enter date value:' :
-                                    fieldType === 'name' ? 'Enter name value:' :
-                                    'Enter text value:';
-                const val = prompt(promptLabel, currentVal);
-                if (val !== null) {
-                    fieldData.prefill_value = val;
-                    const span = el.querySelector('span:first-child');
-                    if (span) {
-                        span.textContent = val || FIELD_LABELS[fieldType];
-                        span.style.color = val ? '#111827' : color;
-                    }
-                    triggerAutoSave();
+                selectField(fieldData, false);
+                updatePropertiesPanel();
+                if (fieldType === 'date') {
+                    propPrefillDate.focus();
+                } else if (fieldType === 'text') {
+                    propPrefillTextarea.focus();
+                } else {
+                    propPrefillInput.focus();
                 }
             });
         }
@@ -623,9 +1023,17 @@
     let skipNextClick = false;
 
     const propPanel = document.getElementById('field-properties');
-    const propRequired = document.getElementById('prop-required');
-    const propReadOnly = document.getElementById('prop-readonly');
+    const propModeInputs = Array.from(document.querySelectorAll('input[name="prop-field-mode"]'));
+    const propFontSize = document.getElementById('prop-font-size');
+    const propBold = document.getElementById('prop-bold');
+    const propItalic = document.getElementById('prop-italic');
     const propInfo = document.getElementById('prop-selection-info');
+    const prefillEditor = document.getElementById('prefill-editor');
+    const prefillHelp = document.getElementById('prefill-help');
+    const propPrefillInput = document.getElementById('prop-prefill-input');
+    const propPrefillDate = document.getElementById('prop-prefill-date');
+    const propPrefillTextarea = document.getElementById('prop-prefill-textarea');
+    const clearPrefillBtn = document.getElementById('clear-prefill-btn');
 
     function updatePropertiesPanel() {
         if (selectedFields.length === 0) {
@@ -637,32 +1045,175 @@
             ? `1 field selected (${FIELD_LABELS[selectedFields[0].type]})`
             : `${selectedFields.length} fields selected`;
 
-        // Show current values (if mixed, show indeterminate)
-        const allRequired = selectedFields.every(f => f.required);
-        const noneRequired = selectedFields.every(f => !f.required);
-        propRequired.checked = allRequired;
-        propRequired.indeterminate = !allRequired && !noneRequired;
+        const modes = [...new Set(selectedFields.map(getFieldMode))];
+        propModeInputs.forEach(input => {
+            input.checked = modes.length === 1 && input.value === modes[0];
+        });
+        document.querySelectorAll('.field-mode-option').forEach(option => {
+            const input = option.querySelector('input');
+            const active = !!input.checked;
+            option.classList.toggle('border-indigo-400', active);
+            option.classList.toggle('bg-indigo-50', active);
+        });
 
-        const allReadOnly = selectedFields.every(f => f.read_only);
-        const noneReadOnly = selectedFields.every(f => !f.read_only);
-        propReadOnly.checked = allReadOnly;
-        propReadOnly.indeterminate = !allReadOnly && !noneReadOnly;
+        const singleField = selectedFields.length === 1 ? selectedFields[0] : null;
+        const supportsPrefill = !!(singleField && isPrefillCapable(singleField.type));
+        prefillEditor.classList.toggle('hidden', !supportsPrefill);
+        propPrefillInput.classList.add('hidden');
+        propPrefillDate.classList.add('hidden');
+        propPrefillTextarea.classList.add('hidden');
+        if (supportsPrefill) {
+            if (singleField.type === 'date') {
+                propPrefillDate.classList.remove('hidden');
+                propPrefillDate.value = singleField.prefill_value || '';
+                prefillHelp.textContent = 'Set the date you want in the document before the signer opens it.';
+            } else if (singleField.type === 'text') {
+                propPrefillTextarea.classList.remove('hidden');
+                propPrefillTextarea.value = singleField.prefill_value || '';
+                prefillHelp.textContent = 'Pre-fill a longer text value. Optional mode lets the signer adjust it later.';
+            } else {
+                propPrefillInput.classList.remove('hidden');
+                propPrefillInput.value = singleField.prefill_value || '';
+                prefillHelp.textContent = singleField.read_only
+                    ? 'This value will be locked for the signer.'
+                    : 'Set a starting value. Optional mode lets the signer edit it later.';
+            }
+        }
+
+        // Font size — show common value or "Auto" if mixed
+        const fontSizes = [...new Set(selectedFields.map(f => f.font_size || 0))];
+        propFontSize.value = fontSizes.length === 1 ? fontSizes[0] : '0';
+
+        // Bold/Italic toggle state
+        const allBold = selectedFields.every(f => f.bold);
+        propBold.classList.toggle('bg-indigo-100', allBold);
+        propBold.classList.toggle('border-indigo-500', allBold);
+
+        const allItalic = selectedFields.every(f => f.italic);
+        propItalic.classList.toggle('bg-indigo-100', allItalic);
+        propItalic.classList.toggle('border-indigo-500', allItalic);
     }
 
-    // Wire up property checkboxes
-    propRequired.addEventListener('change', () => {
-        selectedFields.forEach(f => { f.required = propRequired.checked; });
+    propModeInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            if (!input.checked) return;
+            selectedFields.forEach(f => applyFieldMode(f, input.value));
+            updatePropertiesPanel();
+            updateFieldsSummary();
+            triggerAutoSave();
+        });
+    });
+
+    function setSelectedPrefillValue(value) {
+        if (selectedFields.length !== 1) return;
+        const field = selectedFields[0];
+        if (!isPrefillCapable(field.type)) return;
+        field.prefill_value = value;
+        updateFieldAppearance(field);
+        updateFieldsSummary();
+        triggerAutoSave();
+    }
+
+    function getNavigablePrefillFields() {
+        return placedFields
+            .filter(field => isPrefillCapable(field.type))
+            .sort((a, b) => {
+                if (a.page !== b.page) return a.page - b.page;
+                if (Math.abs(a.y - b.y) > 0.35) return a.y - b.y;
+                return a.x - b.x;
+            });
+    }
+
+    function focusPrefillEditorForField(field) {
+        if (!field) return;
+        clearSelection();
+        selectField(field, true);
+        if (field.element) {
+            field.element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+        updatePropertiesPanel();
+
+        let targetInput = null;
+        if (field.type === 'date') {
+            targetInput = propPrefillDate;
+        } else if (field.type === 'text') {
+            targetInput = propPrefillTextarea;
+        } else {
+            targetInput = propPrefillInput;
+        }
+
+        if (targetInput) {
+            window.requestAnimationFrame(() => {
+                targetInput.focus();
+                if (typeof targetInput.select === 'function') {
+                    targetInput.select();
+                }
+            });
+        }
+    }
+
+    function moveToAdjacentPrefillField(direction) {
+        if (selectedFields.length !== 1) return false;
+        const currentField = selectedFields[0];
+        if (!isPrefillCapable(currentField.type)) return false;
+
+        const navigableFields = getNavigablePrefillFields();
+        const currentIndex = navigableFields.findIndex(field => field.id === currentField.id);
+        if (currentIndex === -1) return false;
+
+        const targetIndex = currentIndex + direction;
+        if (targetIndex < 0 || targetIndex >= navigableFields.length) return false;
+
+        focusPrefillEditorForField(navigableFields[targetIndex]);
+        return true;
+    }
+
+    propPrefillInput.addEventListener('input', () => setSelectedPrefillValue(propPrefillInput.value));
+    propPrefillDate.addEventListener('input', () => setSelectedPrefillValue(propPrefillDate.value));
+    propPrefillTextarea.addEventListener('input', () => setSelectedPrefillValue(propPrefillTextarea.value));
+    [propPrefillInput, propPrefillDate, propPrefillTextarea].forEach(input => {
+        input.addEventListener('keydown', (event) => {
+            if (event.key !== 'Tab') return;
+            const moved = moveToAdjacentPrefillField(event.shiftKey ? -1 : 1);
+            if (moved) {
+                event.preventDefault();
+            }
+        });
+    });
+    clearPrefillBtn.addEventListener('click', () => {
+        propPrefillInput.value = '';
+        propPrefillDate.value = '';
+        propPrefillTextarea.value = '';
+        setSelectedPrefillValue('');
+        updatePropertiesPanel();
+    });
+
+    propFontSize.addEventListener('change', () => {
+        const val = parseInt(propFontSize.value) || 0;
+        selectedFields.forEach(f => {
+            f.font_size = val;
+            if (f.element) applyFieldFormatting(f.element, f);
+        });
         triggerAutoSave();
     });
 
-    propReadOnly.addEventListener('change', () => {
+    propBold.addEventListener('click', () => {
+        const newVal = !selectedFields.every(f => f.bold);
         selectedFields.forEach(f => {
-            f.read_only = propReadOnly.checked;
-            if (f.element) {
-                f.element.style.borderStyle = f.read_only ? 'dashed' : 'solid';
-                f.element.style.opacity = f.read_only ? '0.8' : '1';
-            }
+            f.bold = newVal;
+            if (f.element) applyFieldFormatting(f.element, f);
         });
+        updatePropertiesPanel();
+        triggerAutoSave();
+    });
+
+    propItalic.addEventListener('click', () => {
+        const newVal = !selectedFields.every(f => f.italic);
+        selectedFields.forEach(f => {
+            f.italic = newVal;
+            if (f.element) applyFieldFormatting(f.element, f);
+        });
+        updatePropertiesPanel();
         triggerAutoSave();
     });
 
@@ -699,13 +1250,9 @@
             selectedFields.forEach(f => {
                 f.signer_id = newSignerId;
                 if (f.element) {
-                    f.element.style.borderColor = newSigner.color;
-                    f.element.style.backgroundColor = newSigner.color + '20';
-                    f.element.style.color = newSigner.color;
-                    f.element.title = f.element.title.replace(/ - .*$/, ' - ' + newSigner.name);
-                    // Update resize handle color
                     const rh = f.element.querySelector('.field-resize');
                     if (rh) rh.style.background = newSigner.color;
+                    updateFieldAppearance(f);
                 }
             });
             updateSignerSelectColor();
@@ -714,10 +1261,21 @@
         });
     }
 
+    ['mousedown', 'click'].forEach(eventName => {
+        propPanel.addEventListener(eventName, (e) => {
+            e.stopPropagation();
+        });
+    });
+
     // Click on empty area deselects (but skip after lasso)
     document.addEventListener('click', (e) => {
         if (skipNextClick) { skipNextClick = false; return; }
-        if (!e.target.closest('.placed-field') && !e.target.closest('.field-tool') && !e.target.closest('#active-signer')) {
+        if (
+            !e.target.closest('.placed-field') &&
+            !e.target.closest('.field-tool') &&
+            !e.target.closest('#active-signer') &&
+            !e.target.closest('#field-properties')
+        ) {
             clearSelection();
         }
     });
@@ -737,6 +1295,9 @@
                 y: f.y,
                 width: f.width,
                 height: f.height,
+                font_size: f.font_size || 0,
+                bold: f.bold || false,
+                italic: f.italic || false,
             }));
         }
         if (e.key === 'v' && (e.ctrlKey || e.metaKey) && clipboardFields.length > 0) {
@@ -745,7 +1306,7 @@
             clipboardFields.forEach(cf => {
                 const newX = Math.min(cf.x + 2, 100 - cf.width);
                 const newY = Math.min(cf.y + 2, 100 - cf.height);
-                addFieldToPage(cf.page, newX, newY, cf.type, cf.signer_id, cf.width, cf.height, cf.prefill_value, cf.required, cf.read_only);
+                addFieldToPage(cf.page, newX, newY, cf.type, cf.signer_id, cf.width, cf.height, cf.prefill_value, cf.required, cf.read_only, cf.font_size, cf.bold, cf.italic);
             });
             // Select the newly pasted fields
             const newFields = placedFields.slice(-clipboardFields.length);
@@ -829,11 +1390,16 @@
             const rect = overlay.getBoundingClientRect();
             const dw = ((e.clientX - startX) / rect.width) * 100;
             const dh = ((e.clientY - startY) / rect.height) * 100;
-            el.style.width = Math.max(3, startW + dw) + '%';
-            el.style.height = Math.max(2, startH + dh) + '%';
-            fieldData.width = Math.max(3, startW + dw);
-            fieldData.height = Math.max(2, startH + dh);
+            const maxWidth = 100 - fieldData.x;
+            const maxHeight = 100 - fieldData.y;
+            const newWidth = Math.max(3, Math.min(maxWidth, startW + dw));
+            const newHeight = Math.max(2, Math.min(maxHeight, startH + dh));
+            el.style.width = newWidth + '%';
+            el.style.height = newHeight + '%';
+            fieldData.width = newWidth;
+            fieldData.height = newHeight;
             scaleFieldText(el, overlay);
+            applyFieldFormatting(el, fieldData);
         });
 
         document.addEventListener('mouseup', () => { if (isResizing) { isResizing = false; triggerAutoSave(); } });
@@ -841,16 +1407,36 @@
 
     function updateFieldsSummary() {
         const summary = document.getElementById('fields-summary');
+        const countChip = document.getElementById('field-count-chip');
+        if (countChip) countChip.textContent = placedFields.length;
         if (placedFields.length === 0) {
             summary.innerHTML = '<p>No fields placed yet.</p>';
             return;
         }
-        let html = `<p class="mb-1">${placedFields.length} field(s) placed:</p><ul class="space-y-1">`;
+        const counts = {
+            required: placedFields.filter(f => getFieldMode(f) === 'required').length,
+            optional: placedFields.filter(f => getFieldMode(f) === 'optional').length,
+            readonly: placedFields.filter(f => getFieldMode(f) === 'readonly').length,
+        };
+        let html = `
+            <div class="mb-3 flex flex-wrap gap-2">
+                <span class="rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700">${counts.required} required</span>
+                <span class="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700">${counts.optional} optional</span>
+                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700">${counts.readonly} read-only</span>
+            </div>
+            <ul class="space-y-1.5">`;
         placedFields.forEach(f => {
             const signer = signers.find(s => s.id === f.signer_id);
-            html += `<li class="flex items-center">
-                <span class="w-2 h-2 rounded-full mr-1" style="background:${signer ? signer.color : '#999'}"></span>
-                ${FIELD_LABELS[f.type]} (p${f.page}) - ${signer ? signer.name : '?'}
+            const mode = FIELD_MODE_META[getFieldMode(f)];
+            html += `<li class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2">
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="h-2 w-2 rounded-full" style="background:${signer ? signer.color : '#999'}"></span>
+                        <span class="truncate font-medium text-slate-700">${FIELD_LABELS[f.type]}</span>
+                    </div>
+                    <p class="mt-1 truncate text-[11px] text-slate-500">Page ${f.page} · ${signer ? signer.name : '?'}</p>
+                </div>
+                <span class="rounded-full border px-2 py-1 text-[10px] font-semibold ${mode.badgeClass}">${mode.label}</span>
             </li>`;
         });
         html += '</ul>';
@@ -892,11 +1478,16 @@
             width: f.width,
             height: f.height,
             required: f.required,
+            font_size: f.font_size || 0,
+            bold: f.bold || false,
+            italic: f.italic || false,
         }));
 
         const btn = document.getElementById('save-fields-btn');
+        const statusPill = document.getElementById('crm-status-pill');
         btn.disabled = true;
         btn.textContent = 'Saving...';
+        if (statusPill) statusPill.textContent = 'Saving changes...';
 
         try {
             const resp = await fetch(SAVE_URL, {
@@ -910,10 +1501,12 @@
             const data = await resp.json();
             if (data.status === 'ok') {
                 btn.textContent = 'Saved!';
+                if (statusPill) statusPill.textContent = 'All changes saved';
                 setTimeout(() => { btn.textContent = 'Save Fields'; btn.disabled = false; }, 1500);
             }
         } catch (err) {
             btn.textContent = 'Error!';
+            if (statusPill) statusPill.textContent = 'Save failed';
             btn.disabled = false;
             console.error(err);
         }
@@ -941,6 +1534,9 @@
             width: f.width,
             height: f.height,
             required: f.required,
+            font_size: f.font_size || 0,
+            bold: f.bold || false,
+            italic: f.italic || false,
         }));
         try {
             await fetch(SAVE_URL, {
@@ -949,7 +1545,9 @@
                 body: JSON.stringify({ fields }),
             });
             const btn = document.getElementById('save-fields-btn');
+            const statusPill = document.getElementById('crm-status-pill');
             btn.textContent = 'Auto-saved';
+            if (statusPill) statusPill.textContent = 'Auto-saved just now';
             setTimeout(() => { btn.textContent = 'Save Fields'; }, 1000);
         } catch (err) { console.error('Auto-save failed:', err); }
     }
@@ -957,8 +1555,10 @@
     // Save then submit the send form
     window.saveAndSend = async function() {
         const btn = document.getElementById('send-btn');
+        const statusPill = document.getElementById('crm-status-pill');
         btn.disabled = true;
         btn.textContent = 'Saving & Sending...';
+        if (statusPill) statusPill.textContent = 'Preparing to send...';
 
         const fields = placedFields.map(f => ({
             signer_id: f.signer_id,
@@ -972,6 +1572,9 @@
             width: f.width,
             height: f.height,
             required: f.required,
+            font_size: f.font_size || 0,
+            bold: f.bold || false,
+            italic: f.italic || false,
         }));
 
         try {
@@ -985,27 +1588,54 @@
                 document.getElementById('send-form').submit();
             } else {
                 btn.textContent = 'Send for Signing';
+                if (statusPill) statusPill.textContent = 'Unable to send';
                 btn.disabled = false;
                 alert('Failed to save fields. Please try again.');
             }
         } catch (err) {
             btn.textContent = 'Send for Signing';
+            if (statusPill) statusPill.textContent = 'Unable to send';
             btn.disabled = false;
             alert('Error saving fields. Please try again.');
         }
     };
 
     // Load PDF on page load
-    loadPDF();
+    loadPDF().then(() => {
+        if (placedFields.length === 0) {
+            detectSuggestedFields(true);
+        }
+    });
 })();
 </script>
 
 <style>
+    #pdf-container {
+        background-image:
+            radial-gradient(circle at top, rgba(255,255,255,0.7), rgba(255,255,255,0)),
+            linear-gradient(180deg, rgba(226,232,240,0.55), rgba(241,245,249,0.9));
+    }
+    .pdf-page-wrapper {
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+    }
     .placed-field:hover {
-        box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.5);
+        box-shadow: 0 10px 22px rgba(79, 70, 229, 0.16), 0 0 0 1px rgba(99, 102, 241, 0.22);
     }
     .field-overlay {
         cursor: crosshair;
+    }
+    .placed-field {
+        backdrop-filter: blur(2px);
+        transition: box-shadow 0.16s ease, transform 0.16s ease, border-color 0.16s ease;
+    }
+    .suggested-field-preview {
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.14);
+    }
+    .placed-field .field-label,
+    .placed-field .field-meta {
+        line-height: 1.1;
     }
 </style>
 

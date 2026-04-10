@@ -101,6 +101,7 @@ class Document(models.Model):
         blank=True,
     )
     title = models.CharField(max_length=255)
+    email_message = models.TextField(blank=True, default='')
     pdf_file = models.FileField(upload_to='signatures/originals/')
     signed_pdf = models.FileField(upload_to='signatures/signed/', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
@@ -130,6 +131,12 @@ class Document(models.Model):
     @property
     def all_signed(self):
         return self.signers.exists() and not self.signers.exclude(status='completed').exists()
+
+    def get_signing_message(self):
+        custom_message = (self.email_message or '').strip()
+        if custom_message:
+            return custom_message
+        return f'Please sign "{self.title}".'
 
 
 class DocumentFile(models.Model):

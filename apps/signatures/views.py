@@ -25,7 +25,7 @@ from apps.signatures.models import (
 )
 from apps.signatures.forms import DocumentCreateForm
 from apps.signatures.email import send_signing_request
-from apps.signatures.pdf import extract_text_fingerprint, match_template
+from apps.signatures.pdf import extract_text_fingerprint, match_template, suggest_fields_from_pdf
 
 
 class DocumentListView(LoginRequiredMixin, ListView):
@@ -121,8 +121,38 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
     form_class = DocumentCreateForm
     template_name = 'signatures/document_create.html'
 
+    def _parse_signers(self, request):
+        names = request.POST.getlist('signer_name[]')
+        emails = request.POST.getlist('signer_email[]')
+        roles = request.POST.getlist('signer_role[]')
+        max_len = max(len(names), len(emails), len(roles), 0)
+        signers = []
+        errors = []
+
+        for idx in range(max_len):
+            name = (names[idx] if idx < len(names) else '').strip()
+            email = (emails[idx] if idx < len(emails) else '').strip()
+            role = (roles[idx] if idx < len(roles) else '').strip()
+
+            if not name and not email and not role:
+                continue
+            if not name or not email:
+                errors.append(f'Signer #{idx + 1} needs both a name and email.')
+                continue
+            signers.append({
+                'name': name,
+                'email': email,
+                'role': role,
+            })
+
+        if not signers:
+            errors.append('Add at least one signer before continuing.')
+
+        return signers, errors
+
     def post(self, request, *args, **kwargs):
         pdf_files = request.FILES.getlist('pdf_files')
+        parsed_signers, signer_errors = self._parse_signers(request)
         if not pdf_files:
             form = self.get_form()
             form.is_valid()
@@ -139,6 +169,13 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
                 form.is_valid()
                 form.add_error(None, f'"{f.name}" exceeds the 50MB limit.')
                 return self.form_invalid(form)
+        if signer_errors:
+            form = self.get_form()
+            form.is_valid()
+            for error in signer_errors:
+                form.add_error(None, error)
+            return self.form_invalid(form)
+        request._parsed_signers = parsed_signers
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -146,6 +183,9 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
         form.instance.created_by = self.request.user
 
         pdf_files = self.request.FILES.getlist('pdf_files')
+        parsed_signers = getattr(self.request, '_parsed_signers', None)
+        if parsed_signers is None:
+            parsed_signers, _ = self._parse_signers(self.request)
 
         if len(pdf_files) == 1:
             # Read page count before Django consumes the temp file on save
@@ -222,16 +262,32 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
             if matched_template:
                 self.object.template = matched_template
                 self.object.save(update_fields=['template'])
-                # Auto-create placeholder signers for each role
+                # Create signers using uploaded signer info, mapped onto template roles.
+                available_signers = parsed_signers[:]
                 role_signers = {}
                 for role in matched_template.signer_roles or []:
+                    matched_input = None
+                    for signer_data in list(available_signers):
+                        if signer_data.get('role', '').strip().lower() == role.strip().lower():
+                            matched_input = signer_data
+                            available_signers.remove(signer_data)
+                            break
+                    if matched_input is None and available_signers:
+                        matched_input = available_signers.pop(0)
                     signer = DocumentSigner.objects.create(
                         document=self.object,
-                        name=f'{role} (edit name)',
-                        email=f'placeholder@example.com',
+                        name=matched_input['name'] if matched_input else f'{role} (edit name)',
+                        email=matched_input['email'] if matched_input else 'placeholder@example.com',
                         role=role,
                     )
                     role_signers[role] = signer
+                for signer_data in available_signers:
+                    DocumentSigner.objects.create(
+                        document=self.object,
+                        name=signer_data['name'],
+                        email=signer_data['email'],
+                        role=signer_data.get('role', ''),
+                    )
                 # Copy template fields to document
                 for tf in matched_template.fields.all():
                     signer = role_signers.get(tf.signer_role)
@@ -253,14 +309,28 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
                 messages.success(
                     self.request,
                     f'Matched template "{matched_template.title}" ({pct}% confidence). '
-                    f'Fields auto-placed. Update signer names/emails before sending.'
+                    f'Fields auto-placed. Review assignments and send when ready.'
                 )
             else:
+                for signer_data in parsed_signers:
+                    DocumentSigner.objects.create(
+                        document=self.object,
+                        name=signer_data['name'],
+                        email=signer_data['email'],
+                        role=signer_data.get('role', ''),
+                    )
                 file_word = 'file' if len(pdf_files) == 1 else 'files'
-                messages.success(self.request, f'{len(pdf_files)} {file_word} uploaded. Now add signers and place fields.')
+                messages.success(self.request, f'{len(pdf_files)} {file_word} uploaded. Signers added. Review suggested fields and send when ready.')
         except Exception:
+            for signer_data in parsed_signers:
+                DocumentSigner.objects.create(
+                    document=self.object,
+                    name=signer_data['name'],
+                    email=signer_data['email'],
+                    role=signer_data.get('role', ''),
+                )
             file_word = 'file' if len(pdf_files) == 1 else 'files'
-            messages.success(self.request, f'{len(pdf_files)} {file_word} uploaded. Now add signers and place fields.')
+            messages.success(self.request, f'{len(pdf_files)} {file_word} uploaded. Signers added. Review suggested fields and send when ready.')
 
         return response
 
@@ -360,6 +430,32 @@ def save_fields(request, pk):
 
 
 @login_required
+def suggest_fields(request, pk):
+    doc = get_object_or_404(Document, pk=pk, team=request.user.team)
+    existing_fields = list(doc.fields.values('page', 'field_type', 'x', 'y', 'width', 'height'))
+    normalized_existing = [
+        {
+            'page': field['page'],
+            'type': field['field_type'],
+            'x': field['x'],
+            'y': field['y'],
+            'width': field['width'],
+            'height': field['height'],
+        }
+        for field in existing_fields
+    ]
+    suggestions = suggest_fields_from_pdf(doc.pdf_file, existing_fields=normalized_existing)
+    counts = {}
+    for suggestion in suggestions:
+        counts[suggestion['type']] = counts.get(suggestion['type'], 0) + 1
+    return JsonResponse({
+        'status': 'ok',
+        'suggestions': suggestions,
+        'counts': counts,
+    })
+
+
+@login_required
 @require_POST
 def send_document(request, pk):
     doc = get_object_or_404(Document, pk=pk, team=request.user.team, status='draft')
@@ -374,30 +470,39 @@ def send_document(request, pk):
         names = ', '.join(s.name for s in placeholder_signers)
         messages.error(request, f'Update signer details before sending: {names}')
         return redirect('signatures:prepare', pk=pk)
-    doc.status = 'sent'
-    doc.save()
     email_errors = []
+    sent_count = 0
     for signer in doc.signers.all():
         try:
             send_signing_request(signer, sender=request.user)
+            sent_count += 1
         except Exception as e:
             email_errors.append(f'{signer.name}: {e}')
-    AuditEvent.objects.create(
-        document=doc, event_type='sent',
-        ip_address=request.META.get('REMOTE_ADDR'),
-        user_agent=request.META.get('HTTP_USER_AGENT', ''),
-    )
-    if doc.contact:
-        from apps.contacts.models import ContactActivity
-        ContactActivity.objects.create(
-            contact=doc.contact, team=doc.team,
-            activity_type='document_sent',
-            description=f'Document sent for signature: {doc.title}',
+    if sent_count:
+        doc.status = 'sent'
+        doc.save(update_fields=['status'])
+        AuditEvent.objects.create(
+            document=doc, event_type='sent',
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
         )
-    if email_errors:
-        messages.warning(request, f'Document marked as sent but email delivery failed for: {"; ".join(email_errors)}. You can resend from the detail page.')
-    else:
+        if doc.contact:
+            from apps.contacts.models import ContactActivity
+            ContactActivity.objects.create(
+                contact=doc.contact, team=doc.team,
+                activity_type='document_sent',
+                description=f'Document sent for signature: {doc.title}',
+            )
+    if email_errors and sent_count:
+        messages.warning(request, f'Sent to {sent_count} signer(s), but delivery failed for: {"; ".join(email_errors)}')
+    elif email_errors:
+        messages.error(request, f'No signing emails were sent: {"; ".join(email_errors)}')
+        return redirect('signatures:prepare', pk=pk)
+    elif sent_count:
         messages.success(request, 'Document sent to all signers.')
+    else:
+        messages.error(request, 'No signing emails were sent.')
+        return redirect('signatures:prepare', pk=pk)
     return redirect('signatures:detail', pk=pk)
 
 
@@ -858,8 +963,11 @@ def resend_to_signer(request, pk, signer_pk):
     if signer.status in ('completed', 'declined'):
         messages.error(request, f'{signer.name} has already {signer.get_status_display().lower()}.')
         return redirect('signatures:detail', pk=pk)
-    send_signing_request(signer, sender=request.user)
-    messages.success(request, f'Signing email resent to {signer.name}.')
+    try:
+        send_signing_request(signer, sender=request.user)
+        messages.success(request, f'Signing email resent to {signer.name}.')
+    except Exception as e:
+        messages.error(request, f'Unable to resend to {signer.name}: {e}')
     return redirect('signatures:detail', pk=pk)
 
 
