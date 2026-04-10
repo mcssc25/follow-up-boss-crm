@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bigbeach-crm-v1';
+const CACHE_NAME = 'bigbeach-crm-v4';
 const OFFLINE_URL = '/pwa/offline/';
 
 // Pre-cache on install
@@ -80,8 +80,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'BigBeach CRM';
   const options = {
     body: data.body || '',
-    icon: '/static/icons/icon-192.svg',
-    badge: '/static/icons/icon-192.svg',
+    icon: '/static/icons/icon-192.png',
+    badge: '/static/icons/icon-192.png',
     data: { url: data.url || '/' },
   };
   event.waitUntil(self.registration.showNotification(title, options));

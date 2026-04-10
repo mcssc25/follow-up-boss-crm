@@ -1,4 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="64" fill="#4f46e5"/>
-  <text x="256" y="296" font-family="Georgia, serif" font-size="192" font-weight="bold" fill="white" text-anchor="middle">BC</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e8dba"/>
+      <stop offset="100%" stop-color="#154b67"/>
+    </linearGradient>
+    <linearGradient id="sunset" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c48c3c"/>
+      <stop offset="100%" stop-color="#e8a94e"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="64" fill="url(#bg)"/>
+  <!-- Sun -->
+  <circle cx="346" cy="192" r="58" fill="url(#sunset)" opacity="0.9"/>
+  <!-- Palm trunk -->
+  <path d="M208 448 C218 346, 234 266, 245 213 C250 192, 240 181, 229 213 C240 266, 224 346, 214 448Z" fill="#c48c3c" opacity="0.85"/>
+  <!-- Palm fronds -->
+  <path d="M240 208 C186 160, 101 138, 74 154 C112 144, 166 154, 218 198Z" fill="white" opacity="0.95"/>
+  <path d="M240 202 C202 144, 144 96, 106 90 C138 90, 186 122, 229 186Z" fill="white" opacity="0.85"/>
+  <path d="M245 202 C293 148, 373 128, 416 138 C378 132, 314 148, 256 192Z" fill="white" opacity="0.95"/>
+  <path d="M245 197 C282 138, 346 96, 394 85 C362 90, 298 122, 250 181Z" fill="white" opacity="0.85"/>
+  <path d="M242 213 C229 154, 224 96, 234 64 C240 96, 240 148, 242 197Z" fill="white" opacity="0.9"/>
+  <!-- Water line -->
+  <path d="M0 420 C80 404, 160 432, 256 410 C352 388, 432 420, 512 404 L512 512 L0 512Z" fill="white" opacity="0.12"/>
 </svg>
