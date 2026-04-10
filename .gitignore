@@ -62,3 +62,17 @@ celerybeat.pid
 node_modules/
 package-lock.json
 .worktrees/
+
+# Local asset / working directories (not source, too large for git)
+Videos/
+condo pictures/
+website photos/
+email campaigns/
+
+# Nested standalone repo (condo search SPA has its own git)
+gsob-condo-search/
+
+# Runtime / one-off files
+gunicorn.ctl
+update_server.py
+listings for *.csv
