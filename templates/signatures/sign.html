@@ -71,7 +71,7 @@
                     <p class="text-xs text-gray-500 hidden sm:block">Requested by {{ document.created_by.get_full_name|default:document.created_by.username }}</p>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-                    <span id="fields-progress" class="px-2.5 py-1 rounded-full bg-indigo-50 text-xs sm:text-sm font-medium text-indigo-700 whitespace-nowrap">0 / {{ fields|length }} complete</span>
+                    <span id="fields-progress" class="px-2.5 py-1 rounded-full bg-indigo-50 text-xs sm:text-sm font-medium text-indigo-700 whitespace-nowrap">0 / 0 complete</span>
                     <button id="next-btn"
                             onclick="goToNextField()"
                             class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 whitespace-nowrap">
@@ -250,6 +250,9 @@
                 font_size: {{ field.font_size }},
                 bold: {{ field.bold|yesno:"true,false" }},
                 italic: {{ field.italic|yesno:"true,false" }},
+                is_mine: {{ field.is_mine|yesno:"true,false" }},
+                other_value: '{{ field.other_value|escapejs }}',
+                assigned_name: '{{ field.assigned_name|escapejs }}',
                 value: null,
             },
             {% endfor %}
@@ -301,7 +304,7 @@
         }
 
         function isSignerEditableField(field) {
-            return !field.read_only && (field.type === 'text' || field.type === 'date');
+            return field.is_mine && !field.read_only && (field.type === 'text' || field.type === 'date');
         }
 
         function getSignerTabFields() {
@@ -477,7 +480,7 @@
         }
 
         function getRemainingRequiredFields() {
-            return fields.filter(f => f.required && !isFieldFilled(f));
+            return fields.filter(f => f.is_mine && f.required && !isFieldFilled(f));
         }
 
         function findNextField(fromField) {
@@ -485,7 +488,7 @@
             if (!remaining.length) return null;
             if (!fromField) return remaining[0];
             const fromIndex = fields.findIndex(f => f.id === fromField.id);
-            const afterCurrent = fields.slice(fromIndex + 1).find(f => f.required && !isFieldFilled(f));
+            const afterCurrent = fields.slice(fromIndex + 1).find(f => f.is_mine && f.required && !isFieldFilled(f));
             return afterCurrent || remaining[0];
         }
 
@@ -641,8 +644,48 @@
             el.style.justifyContent = 'center';
             el.style.zIndex = 10;
 
-            if (field.type === 'date' && !field.read_only && !field.prefill_value && !field.value) {
+            if (field.type === 'date' && field.is_mine && !field.read_only && !field.prefill_value && !field.value) {
                 field.value = getSignerDisplayDate();
+            }
+
+            // Fields assigned to ANOTHER signer: show as read-only reference so
+            // this signer can see the full form, but can't edit/submit them.
+            if (!field.is_mine) {
+                const otherValue = field.other_value || '';
+                el.style.border = '1px dashed #9ca3af';
+                el.style.backgroundColor = 'rgba(156, 163, 175, 0.08)';
+                el.style.cursor = 'default';
+
+                if (otherValue) {
+                    if (field.type === 'checkbox') {
+                        el.innerHTML = otherValue === 'true'
+                            ? '<span class="text-gray-600 text-lg font-bold">&#9745;</span>'
+                            : '<span class="text-gray-400 text-lg">&#9744;</span>';
+                    } else if ((field.type === 'signature' || field.type === 'initials') && otherValue.startsWith('data:image')) {
+                        el.innerHTML = '<img src="' + otherValue + '" class="w-full h-full object-contain" alt="Signature">';
+                        el.style.border = 'none';
+                        el.style.backgroundColor = 'transparent';
+                    } else {
+                        el.innerHTML = '<span class="text-gray-700 px-1 truncate">' + otherValue + '</span>';
+                        scaleSignFieldText(el, overlay, field);
+                    }
+                } else {
+                    // Nothing filled yet — show muted placeholder with assignee's name.
+                    if (field.type === 'checkbox') {
+                        el.innerHTML = '<span class="text-gray-400 text-lg">&#9744;</span>';
+                    } else {
+                        const who = field.assigned_name ? field.assigned_name : 'other signer';
+                        const labelText = field.type === 'signature' ? who + ' — signature'
+                            : field.type === 'initials' ? who + ' — initials'
+                            : field.type === 'name' ? who
+                            : field.type === 'date' ? who + ' — date'
+                            : who;
+                        el.innerHTML = '<span class="text-gray-400 px-1 truncate italic">' + labelText + '</span>';
+                        scaleSignFieldText(el, overlay, field);
+                    }
+                }
+                overlay.appendChild(el);
+                return;
             }
 
             // Read-only fields: show as plain text, no border, no interaction
@@ -749,7 +792,7 @@
         }
 
         function updateProgress() {
-            const required = fields.filter(f => f.required);
+            const required = fields.filter(f => f.is_mine && f.required);
             const filled = required.filter(f => f.value && f.value !== '' && f.value !== 'false');
             const remaining = required.length - filled.length;
             document.getElementById('fields-progress').textContent = filled.length + ' / ' + required.length + ' complete';
@@ -881,10 +924,12 @@
             btn.disabled = true;
             btn.textContent = 'Submitting...';
 
-            const fieldData = fields.map(f => ({
-                field_id: f.id,
-                value: f.value || '',
-            }));
+            const fieldData = fields
+                .filter(f => f.is_mine)
+                .map(f => ({
+                    field_id: f.id,
+                    value: f.value || '',
+                }));
 
             try {
                 const resp = await fetch(SUBMIT_URL, {

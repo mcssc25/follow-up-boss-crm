@@ -556,8 +556,18 @@ def sign_document(request, token):
             doc.save()
 
     fields = DocumentField.objects.filter(
-        document=doc, assigned_to=signer
-    ).order_by('page', 'y')
+        document=doc
+    ).select_related('assigned_to').order_by('page', 'y')
+
+    # Values already filled in by other signers — shown read-only on this signer's page.
+    existing_values = {
+        v.field_id: v.value
+        for v in SignerFieldValue.objects.filter(field__document=doc)
+    }
+    for f in fields:
+        f.is_mine = (f.assigned_to_id == signer.id)
+        f.other_value = '' if f.is_mine else existing_values.get(f.pk, '')
+        f.assigned_name = f.assigned_to.name if f.assigned_to else ''
 
     source_files = list(doc.source_files.all().values(
         'original_filename', 'page_start', 'page_end', 'order'
