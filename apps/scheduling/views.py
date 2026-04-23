@@ -116,8 +116,16 @@ def confirm_booking(request, slug):
             email__iexact=booking.email,
             team=event_type.team,
         )
+        dirty = False
         if not contact.phone and booking.phone_number:
             contact.phone = booking.phone_number
+            dirty = True
+        # Only assign to the schedule owner if the contact is currently unassigned —
+        # never override an existing agent assignment.
+        if contact.assigned_to_id is None:
+            contact.assigned_to = event_type.owner
+            dirty = True
+        if dirty:
             contact.save()
     except Contact.DoesNotExist:
         contact = Contact.objects.create(
@@ -128,6 +136,7 @@ def confirm_booking(request, slug):
             source='landing_page',
             source_detail=f'Scheduling: {event_type.name}',
             team=event_type.team,
+            assigned_to=event_type.owner,
         )
 
     booking.contact = contact
@@ -257,10 +266,11 @@ def event_type_create(request):
     """Create a new event type with availability."""
     from .forms import EventTypeForm
     if request.method == 'POST':
-        form = EventTypeForm(request.POST, team=request.user.team)
+        form = EventTypeForm(request.POST, team=request.user.team, user=request.user)
         if form.is_valid():
             event_type = form.save(commit=False)
-            event_type.owner = form.cleaned_data['owner']
+            # Non-admins always own their own schedules regardless of POST data.
+            event_type.owner = request.user if not request.user.is_admin else form.cleaned_data['owner']
             event_type.team = request.user.team
             event_type.save()
             event_type.tags.set(form.cleaned_data.get('tag_ids', []))
@@ -268,7 +278,7 @@ def event_type_create(request):
             messages.success(request, f'Event type "{event_type.name}" created.')
             return redirect('scheduling:event_type_list')
     else:
-        form = EventTypeForm(team=request.user.team, initial={'owner': request.user})
+        form = EventTypeForm(team=request.user.team, user=request.user, initial={'owner': request.user})
     return render(request, 'scheduling/event_type_form.html', {
         'form': form,
         'is_edit': False,
@@ -281,18 +291,21 @@ def event_type_edit(request, pk):
     """Edit an existing event type."""
     from .forms import EventTypeForm
     event_type = get_object_or_404(EventType, pk=pk, team=request.user.team)
+    if not request.user.is_admin and event_type.owner_id != request.user.id:
+        messages.error(request, "You can only edit your own schedules.")
+        return redirect('scheduling:event_type_list')
     if request.method == 'POST':
-        form = EventTypeForm(request.POST, instance=event_type, team=request.user.team)
+        form = EventTypeForm(request.POST, instance=event_type, team=request.user.team, user=request.user)
         if form.is_valid():
             event_type = form.save(commit=False)
-            event_type.owner = form.cleaned_data['owner']
+            event_type.owner = request.user if not request.user.is_admin else form.cleaned_data['owner']
             event_type.save()
             event_type.tags.set(form.cleaned_data.get('tag_ids', []))
             _save_availability(request, event_type)
             messages.success(request, f'Event type "{event_type.name}" updated.')
             return redirect('scheduling:event_type_list')
     else:
-        form = EventTypeForm(instance=event_type, team=request.user.team)
+        form = EventTypeForm(instance=event_type, team=request.user.team, user=request.user)
         form.fields['tag_ids'].initial = event_type.tags.all()
         form.fields['owner'].initial = event_type.owner
     return render(request, 'scheduling/event_type_form.html', {
@@ -309,6 +322,9 @@ def event_type_edit(request, pk):
 def event_type_delete(request, pk):
     """Delete an event type."""
     event_type = get_object_or_404(EventType, pk=pk, team=request.user.team)
+    if not request.user.is_admin and event_type.owner_id != request.user.id:
+        messages.error(request, "You can only delete your own schedules.")
+        return redirect('scheduling:event_type_list')
     name = event_type.name
     event_type.delete()
     messages.success(request, f'Event type "{name}" deleted.')

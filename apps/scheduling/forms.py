@@ -38,8 +38,14 @@ class EventTypeForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
     )
 
-    def __init__(self, *args, team=None, **kwargs):
+    def __init__(self, *args, team=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if team:
             self.fields['tag_ids'].queryset = Tag.objects.filter(team=team)
             self.fields['owner'].queryset = User.objects.filter(team=team)
+        # Non-admin agents can only own their own schedules — lock the owner
+        # field to themselves so they can't assign bookings to other agents.
+        if user is not None and not user.is_admin:
+            self.fields['owner'].queryset = User.objects.filter(pk=user.pk)
+            self.fields['owner'].initial = user
+            self.fields['owner'].disabled = True
