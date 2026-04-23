@@ -188,6 +188,37 @@ def notify_new_lead(contact):
         logger.exception("Failed to send new lead notification for contact %s", contact)
 
 
+def notify_task_created(task, agent):
+    """Send email to an assignee when a new task is created for them."""
+    if not agent or not agent.email:
+        return
+
+    contact_info = f"\nContact: {task.contact}" if task.contact else ""
+    description = f"\n\n{task.description}" if task.description else ""
+    subject = f"New Task Assigned: {task.title}"
+    message = (
+        f"A new task has been assigned to you.\n\n"
+        f"Task: {task.title}\n"
+        f"Due: {task.due_date.strftime('%b %d, %Y at %I:%M %p')}\n"
+        f"Priority: {task.get_priority_display()}"
+        f"{contact_info}"
+        f"{description}"
+        f"\n\nView your tasks: https://crm.bigbeachal.com/tasks/"
+    )
+
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=None,
+            recipient_list=[agent.email],
+            fail_silently=True,
+        )
+        logger.info("New task email sent to %s for task %s", agent.email, task)
+    except Exception:
+        logger.exception("Failed to send new task email for task %s", task)
+
+
 def notify_task_reminder(task):
     """Send email reminder for an upcoming task."""
     agent = task.assigned_to

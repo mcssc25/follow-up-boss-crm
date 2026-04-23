@@ -4,7 +4,11 @@ from datetime import timedelta
 from celery import shared_task
 from django.utils import timezone
 
-from apps.accounts.notifications import notify_overdue_digest, notify_task_reminder
+from apps.accounts.notifications import (
+    notify_overdue_digest,
+    notify_task_created,
+    notify_task_reminder,
+)
 from apps.pwa.push import send_push_notification
 from apps.scheduling.calendar import GoogleCalendarService
 
@@ -107,6 +111,9 @@ def create_task_notifications(task_id):
 
     for assignment in task.assignments.select_related('user').all():
         agent = assignment.user
+
+        # Email notification
+        notify_task_created(task, agent)
 
         # Push notification
         send_push_notification(
