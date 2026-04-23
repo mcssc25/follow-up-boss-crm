@@ -97,8 +97,15 @@
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
-                        <div class="space-y-1">
-                            {{ form.assigned_to }}
+                        <div class="space-y-2 max-h-48 overflow-y-auto rounded-md border border-gray-200 bg-gray-50 p-3">
+                            {% for choice in form.assigned_to %}
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-gray-900">
+                                {{ choice.tag }}
+                                <span>{{ choice.choice_label }}</span>
+                            </label>
+                            {% empty %}
+                            <p class="text-sm text-gray-500">No team members available.</p>
+                            {% endfor %}
                         </div>
                     </div>
 
