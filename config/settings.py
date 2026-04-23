@@ -359,6 +359,21 @@ VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'admin@bigbeachal.com')
 EMAIL_TRACKER_API_KEY = os.getenv('EMAIL_TRACKER_API_KEY', '')
 
 # ---------------------------------------------------------------------------
+# Outbound Email (SendGrid SMTP relay for system notifications)
+# Campaign emails sent from agents use Gmail OAuth — see apps/accounts/gmail.py
+# ---------------------------------------------------------------------------
+
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend'
+)
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '25'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'webmaster@localhost')
+
+# ---------------------------------------------------------------------------
 # Meta (Facebook/Instagram) API
 # ---------------------------------------------------------------------------
 
