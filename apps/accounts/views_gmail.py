@@ -7,6 +7,9 @@ from google_auth_oauthlib.flow import Flow
 
 # Allow OAuth over HTTP (before SSL is set up)
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' if not getattr(settings, 'SECURE_SSL_REDIRECT', False) else '0'
+# Tolerate Google dropping unverified scopes (e.g. youtube) from the consent grant.
+# Without this, oauthlib raises on any scope mismatch and the callback 500s.
+os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.send',
