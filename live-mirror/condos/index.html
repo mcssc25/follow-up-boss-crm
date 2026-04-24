@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Big Beach AL — Find Your Perfect Condo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seafoam: { 50: '#f2faf7', 100: '#e0f5ed', 200: '#b8e8d5', 300: '#85d6b8', 400: '#52c09a', 500: '#30a57e', 600: '#228564', 700: '#1c6b51', 800: '#195542', 900: '#164637' },
+                        sky: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' },
+                        warm: { 50: '#fffbf5', 100: '#fff5e8', 200: '#ffe8c8', 300: '#ffd699', 400: '#ffc266', 500: '#f5a623', 600: '#d4891a', 700: '#b06e14', 800: '#8c5710', 900: '#73480d' },
+                    },
+                    fontFamily: {
+                        display: ['Cormorant Garamond', 'serif'],
+                        body: ['Nunito Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .hero-fade { background: linear-gradient(180deg, rgba(255,251,245,0) 0%, rgba(255,251,245,0.3) 40%, rgba(255,251,245,1) 100%); }
+            .divider { width: 60px; height: 2px; background: #30a57e; }
+            .editorial-card { transition: all 0.5s ease; }
+            .editorial-card:hover { transform: translateY(-8px); box-shadow: 0 30px 60px rgba(0,0,0,0.1); }
+            .filter-btn { @apply px-4 py-1.5 text-sm rounded-full border-2 border-gray-100 bg-white text-gray-500 font-medium transition-all hover:border-seafoam-200 hover:text-seafoam-600; }
+            .filter-btn.active { @apply border-seafoam-500 bg-seafoam-500 text-white shadow-lg shadow-seafoam-200; }
+        }
+    </style>
+    <script type="module" crossorigin src="/condos/assets/main-CmIqS11n.js"></script>
+    <link rel="modulepreload" crossorigin href="/condos/assets/modulepreload-polyfill-wMinxHhO.js">
+    <link rel="stylesheet" crossorigin href="/condos/assets/main-Bk6bnTQ8.css">
+  </head>
+  <body class="bg-warm-50">
+    
+    <!-- NAVIGATION -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+            <span class="font-display text-3xl font-bold text-gray-800 tracking-wide">Big Beach <span class="text-seafoam-500">AL</span></span>
+            <div class="hidden md:flex items-center space-x-10 text-sm font-medium text-gray-500 tracking-wide">
+                <a href="#team" class="hover:text-seafoam-600 transition">Team</a>
+                <a href="#guide" class="hover:text-seafoam-600 transition">Area Guide</a>
+                <a href="#search" class="text-seafoam-600 font-bold">Condo Search</a>
+                <a href="#invest" class="hover:text-seafoam-600 transition">Invest</a>
+                <a href="#contact" class="border-2 border-seafoam-500 text-seafoam-600 hover:bg-seafoam-500 hover:text-white px-6 py-2.5 rounded-full transition font-semibold">Let's Talk</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="relative pt-20">
+        <div class="w-full h-[60vh] relative overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80" alt="Gulf Shores Beach" class="w-full h-full object-cover">
+            <div class="hero-fade absolute inset-0"></div>
+        </div>
+        <div class="max-w-4xl mx-auto px-6 text-center -mt-32 relative z-10">
+            <p class="text-seafoam-500 text-sm font-semibold tracking-[0.3em] uppercase mb-6">Expertise &middot; Vision &middot; Results</p>
+            <h1 class="font-display text-5xl md:text-7xl font-bold text-gray-800 leading-tight mb-6">
+                Discover the Gulf Coast<br>Like Never Before
+            </h1>
+            <p class="text-gray-500 text-lg md:text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
+                Kelly and Dave Davis combine local deep-knowledge with financial strategies to help you find more than a home — we help you find a lifestyle.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#search" class="bg-seafoam-500 hover:bg-seafoam-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition shadow-xl shadow-seafoam-200">Find Your Condo</a>
+                <a href="#contact" class="bg-white/80 backdrop-blur-sm border-2 border-seafoam-500 text-seafoam-600 hover:bg-seafoam-500 hover:text-white px-10 py-4 rounded-full text-lg font-semibold transition">Book a Call</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONDO SEARCH SECTION -->
+    <section id="search" class="py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <div class="divider mb-6"></div>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-gray-800 mb-4">Find Your Perfect Condo</h2>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">Use our exclusive database to find the complexes that match your vision of life on the beach.</p>
+            </div>
+
+            <!-- FILTERS -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10 p-5 bg-warm-50 rounded-[2rem] border border-warm-100 shadow-inner">
+
+                <!-- Location Filter -->
+                <div class="space-y-4">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-widest ml-1">Location</label>
+                    <div class="flex flex-col gap-2" id="location-filters">
+                        <button class="filter-btn active" data-location="any">Any Location</button>
+                        <button class="filter-btn" data-location="fort-morgan">Fort Morgan</button>
+                        <button class="filter-btn" data-location="gulf-shores">Gulf Shores</button>
+                        <button class="filter-btn" data-location="orange-beach">Orange Beach</button>
+                    </div>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="space-y-4">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-widest ml-1">Price Range</label>
+                    <div class="flex flex-col gap-2" id="price-filters">
+                        <button class="filter-btn active" data-price="all">Any Price</button>
+                        <button class="filter-btn" data-price="under-400">Under $400k</button>
+                        <button class="filter-btn" data-price="400-700">$400k - $700k</button>
+                        <button class="filter-btn" data-price="above-700">$700k+</button>
+                    </div>
+                </div>
+
+                <!-- Beachfront Filter -->
+                <div class="space-y-4">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-widest ml-1">Beach Position</label>
+                    <div class="flex flex-col gap-2" id="beachfront-filters">
+                        <button class="filter-btn active" data-beachfront="any">Any Position</button>
+                        <button class="filter-btn" data-beachfront="yes">Beachfront (Gulf-Side)</button>
+                        <button class="filter-btn" data-beachfront="no">Across the Street</button>
+                    </div>
+                </div>
+
+                <!-- Pool Filter -->
+                <div class="space-y-4">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-widest ml-1">Pool Amenities</label>
+                    <div class="flex flex-col gap-2" id="pool-filters">
+                        <button class="filter-btn active" data-pool="any">Any Pool</button>
+                        <button class="filter-btn" data-pool="outdoor">Outdoor Pool</button>
+                        <button class="filter-btn" data-pool="indoor">Indoor (Heated)</button>
+                        <button class="filter-btn" data-pool="lazy">Lazy River</button>
+                        <button class="filter-btn" data-pool="multiple">Multiple Pools</button>
+                    </div>
+                </div>
+
+                <!-- Rental Filter -->
+                <div class="space-y-4">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-widest ml-1">Rental Policy</label>
+                    <div class="flex flex-col gap-2" id="rental-filters">
+                        <button class="filter-btn active" data-rental="any">Any Policy</button>
+                        <button class="filter-btn" data-rental="yes">STR Allowed</button>
+                        <button class="filter-btn" data-rental="pet">Pet Friendly</button>
+                    </div>
+                </div>
+
+                <!-- Extras/Amenities Filter -->
+                <div class="space-y-4 lg:col-span-2">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-widest ml-1">Key Amenities</label>
+                    <div class="flex flex-wrap gap-2" id="amenity-filters">
+                        <button class="filter-btn active" data-amenity="any">Any Extras</button>
+                        <button class="filter-btn" data-amenity="fitness">Fitness Center</button>
+                        <button class="filter-btn" data-amenity="sauna">Sauna / Steam</button>
+                        <button class="filter-btn" data-amenity="parking">Covered Parking</button>
+                        <button class="filter-btn" data-amenity="hottub">Hot Tub / Spa</button>
+                        <button class="filter-btn" data-amenity="grill">Grilling Area</button>
+                        <button class="filter-btn" data-amenity="tennis">Tennis Courts</button>
+                        <button class="filter-btn" data-amenity="pickleball">Pickleball</button>
+                        <button class="filter-btn" data-amenity="basketball">Basketball</button>
+                        <button class="filter-btn" data-amenity="kiddiepool">Kiddie Pool</button>
+                        <button class="filter-btn" data-amenity="boardwalk">Boardwalk</button>
+                        <button class="filter-btn" data-amenity="splashpad">Splash Pad / Slide</button>
+                        <button class="filter-btn" data-amenity="gameroom">Game Room</button>
+                        <button class="filter-btn" data-amenity="dock">Private Dock</button>
+                        <button class="filter-btn" data-amenity="elevator">Elevator Access</button>
+                    </div>
+                </div>
+
+                <!-- Stats / Results Header -->
+                <div class="lg:col-span-4 flex flex-col items-center text-center">
+                    <div class="p-4 bg-white rounded-3xl shadow-sm border border-warm-100 w-full max-w-md group overflow-hidden relative">
+                         <div class="absolute inset-0 bg-seafoam-50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                         <div class="relative z-10 flex items-center justify-center gap-3">
+                            <span id="results-count" class="font-display text-5xl font-bold text-seafoam-500">0</span>
+                            <span class="text-gray-400 font-medium">Matching Complexes</span>
+                         </div>
+                    </div>
+                    <button id="reset-filters" class="mt-3 text-sm text-gray-400 hover:text-seafoam-600 underline underline-offset-4 decoration-seafoam-200 transition-colors">Clear All Filters</button>
+                </div>
+
+            </div>
+
+            <!-- INTERACTIVE MAP -->
+            <div id="map-wrapper" class="w-full h-[350px] sm:h-[400px] bg-warm-100 rounded-[2.5rem] shadow-inner border border-warm-200 mb-16 relative overflow-hidden z-10">
+                <div id="condo-map" class="w-full h-full z-0"></div>
+                <!-- Mini tag overlay -->
+                <div class="absolute top-6 left-6 z-[400] bg-white/95 backdrop-blur-sm px-6 py-2 border border-warm-50 rounded-full shadow-lg text-sm font-bold text-seafoam-600 uppercase tracking-widest pointer-events-none">
+                    Map View
+                </div>
+            </div>
+
+            <!-- RESULTS GRID -->
+            <div id="condo-results" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Result cards will be injected here -->
+            </div>
+            
+            <div id="no-results" class="hidden text-center py-24">
+                <div class="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 text-red-300">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="font-display text-3xl font-bold text-gray-800 mb-2">No perfect matches.</h3>
+                <p class="text-gray-400">Try adjusting your filters or <a href="#contact" class="text-seafoam-500 font-semibold underline">ask us directly</a>.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- INVEST SECTION (Restored from mockup) -->
+    <section id="invest" class="py-24 bg-seafoam-50/30">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <div class="divider mb-6"></div>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-gray-800 mb-4">Your Beach Home Can Pay for Itself</h2>
+                <p class="text-gray-400 text-lg max-w-xl mx-auto">Gulf Shores is a top short-term rental market. Dave's proprietary financial models help you see the ROI before you sign.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center p-8 bg-white border border-seafoam-100 rounded-3xl editorial-card">
+                    <div class="w-16 h-16 bg-seafoam-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                        <span class="font-display text-3xl font-bold text-seafoam-600">1</span>
+                    </div>
+                    <h4 class="font-display text-xl font-bold text-gray-800 mb-3">Revenue Projection</h4>
+                    <p class="text-gray-500 text-sm leading-relaxed">Detailed income estimates based on historical STR data from actual units in each complex.</p>
+                </div>
+                <div class="text-center p-8 bg-white border border-sky-100 rounded-3xl editorial-card">
+                    <div class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                        <span class="font-display text-3xl font-bold text-sky-600">2</span>
+                    </div>
+                    <h4 class="font-display text-xl font-bold text-gray-800 mb-3">Carrying Cost Analysis</h4>
+                    <p class="text-gray-500 text-sm leading-relaxed">HOA, Insurance, and management fees—we wrap every cost into one clear view.</p>
+                </div>
+                <div class="text-center p-8 bg-white border border-warm-100 rounded-3xl editorial-card">
+                    <div class="w-16 h-16 bg-warm-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                        <span class="font-display text-3xl font-bold text-warm-600">3</span>
+                    </div>
+                    <h4 class="font-display text-xl font-bold text-gray-800 mb-3">Portfolio Growth</h4>
+                    <p class="text-gray-500 text-sm leading-relaxed">Strategy sessions on how to turn one beach condo into a thriving rental portfolio.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-gray-400 py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+                <span class="font-display text-2xl font-bold text-white">Big Beach <span class="text-seafoam-400">AL</span></span>
+                <div class="flex gap-8 text-sm">
+                    <a href="#search" class="hover:text-white transition">Search</a>
+                    <a href="#contact" class="hover:text-white transition">Contact</a>
+                </div>
+                <div class="flex gap-5 items-center">
+                    <a href="https://www.facebook.com/kelly.goodworth.davis" target="_blank" rel="noopener noreferrer" class="hover:text-white transition" aria-label="Facebook">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/diy.davis/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition" aria-label="Instagram">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    </a>
+                    <a href="https://www.youtube.com/@GulfShoresAlabamaRealEstate" target="_blank" rel="noopener noreferrer" class="hover:text-white transition" aria-label="YouTube">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-800 flex flex-col items-center gap-4">
+                <img src="https://bigbeachal.com/assets/dw-logo.png" alt="Dalton Wade Real Estate Group" class="h-10 opacity-70">
+                <p class="text-xs text-gray-400 text-center">Realtors with Dalton Wade Real Estate Group &middot; Gulf Shores / Orange Beach Area</p>
+                <p class="text-xs max-w-xl mx-auto text-gray-500 text-center leading-relaxed">Disclaimer: While we strive for accuracy, property details, pricing, and amenity information may not reflect the most current conditions. We encourage all prospective buyers to independently verify any information before making purchasing decisions.</p>
+                <p class="text-xs max-w-lg mx-auto">&copy; 2026 Big Beach AL. Licensed Realtors in the State of Alabama.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LISTINGS MODAL -->
+    <div id="listings-modal" class="fixed inset-0 z-[1000] bg-gray-900/60 backdrop-blur-sm hidden flex-col items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col transform scale-95 transition-transform duration-300" id="modal-content">
+            <!-- Header -->
+            <div class="px-8 py-6 sm:px-10 sm:py-8 border-b border-warm-100 flex justify-between items-center bg-warm-50 relative">
+                <div>
+                    <h2 id="modal-title" class="font-display text-3xl sm:text-4xl font-bold text-gray-800">Complex Name</h2>
+                    <p class="text-gray-400 font-medium mt-1">Current Active Listings & Recent Sales</p>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+                    <button id="modal-tour-btn" class="hidden flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-full shadow-lg transition-all duration-300">
+                        <span class="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3.5 h-3.5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </span>
+                        <span class="text-xs font-bold uppercase tracking-wider whitespace-nowrap">Watch Tour</span>
+                    </button>
+                    <button id="close-modal" class="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition shadow-sm border border-warm-100">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="p-6 sm:p-10 overflow-y-auto flex-1 bg-white">
+                <div id="modal-listings-container" class="space-y-4">
+                    <!-- Unit rows injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIDEO TOUR MODAL -->
+    <div id="video-modal" class="fixed inset-0 z-[1100] bg-gray-900/80 backdrop-blur-md hidden flex-col items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-5xl flex flex-col transform scale-95 transition-transform duration-300" id="video-content">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="video-title" class="font-display text-2xl sm:text-3xl font-bold text-white truncate mr-4">Video Tour</h3>
+                <button id="close-video-modal" class="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <!-- YouTube Embed -->
+            <div class="relative w-full rounded-3xl overflow-hidden shadow-2xl bg-black" style="padding-bottom: 56.25%;">
+                <iframe id="video-frame" class="absolute inset-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+            <!-- Subscribe CTA -->
+            <div class="mt-4 text-center">
+                <a href="https://www.youtube.com/@GulfShoresAlabamaRealEstate?sub_confirmation=1" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm font-medium transition">
+                    <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    Subscribe to our channel for more tours
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  </body>
+</html>

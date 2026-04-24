@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beaches & Waterfront Access in Gulf Shores, Orange Beach & Fort Morgan | Big Beach AL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: {
+                    sand: { 50: '#fdf8f0', 100: '#f5ead6', 200: '#ead3ab', 300: '#ddb87a', 400: '#d4a45e', 500: '#c48c3c', 600: '#a87030', 700: '#8a5828', 800: '#6e4622', 900: '#5a3a1e' },
+                    ocean: { 50: '#eef8fc', 100: '#d5eef7', 200: '#aaddf0', 300: '#6ec5e5', 400: '#38a8d4', 500: '#1e8dba', 600: '#17719a', 700: '#145b7d', 800: '#154b67', 900: '#134057' },
+                    seafoam: { 50: '#effaf6', 100: '#d8f3e8', 200: '#b4e6d4', 300: '#82d2b8', 400: '#51b899', 500: '#309d7e', 600: '#257f66', 700: '#216654', 800: '#1e5244', 900: '#1a4439' },
+                    warmgray: { 50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1' },
+                },
+                fontFamily: { display:['Playfair Display','serif'], body:['Inter','sans-serif'] }
+            }}
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Playfair Display', serif; }
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="bg-warmgray-50 text-gray-800">
+
+    <!-- NAVIGATION -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" class="font-display text-2xl text-ocean-800">Big Beach <span class="text-sand-500">AL</span></a>
+            <a href="/" class="text-gray-600 hover:text-ocean-600 text-sm font-medium transition">&larr; Back to Home</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="pt-24 pb-16 bg-ocean-800 text-white">
+        <div class="max-w-7xl mx-auto px-6 pt-12">
+            <p class="text-seafoam-400 text-sm font-bold tracking-widest uppercase mb-3">BEACHES & WATERFRONT</p>
+            <h1 class="font-display text-4xl md:text-6xl mb-4">32 Miles of<br>Sugar-White Sand</h1>
+            <p class="text-ocean-300 text-lg max-w-2xl">From groomed public beaches with full amenities to pristine stretches of undeveloped coastline inside a national wildlife refuge. Here's where to find the best sand on Alabama's Gulf Coast.</p>
+        </div>
+    </section>
+
+    <!-- MAP -->
+    <section class="bg-white">
+        <div id="beachMap" class="w-full h-[400px]"></div>
+    </section>
+
+    <!-- GULF SHORES BEACHES -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+
+            <div class="mb-12">
+                <h2 class="font-display text-3xl text-ocean-900 mb-2">Gulf Shores Beaches</h2>
+                <p class="text-gray-500">The heart of the Alabama coast — easy access, full amenities, and the widest selection of public beach entries.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+
+                <!-- Gulf Place -->
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow md:col-span-2">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="/guide/images/gulf-place.jpg" alt="Gulf Place main public beach" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Gulf Place (Main Public Beach)</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">GULF SHORES</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Hwy 59 at the Gulf &middot; Paid parking</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">Gulf Place, known as the Gulf Shores Main Public Beach, is the city's premier coastal destination located where Highway 59 dead-ends into the Gulf of Mexico. This popular spot features sugar-white sands and extensive amenities, making it a hub for both relaxation and high-energy beach activities.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Key Amenities &amp; Features</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Recreation:</strong> Professional-grade volleyball courts, a playground, and a large grassy "Town Green" area</li>
+                                <li><strong>Facilities:</strong> Restrooms, changing rooms, and outdoor freshwater rinse showers</li>
+                                <li><strong>Accessibility:</strong> 20-foot-wide concrete promenade and four Mobi-Mats for wheelchair and stroller access to the hard-packed sand</li>
+                                <li><strong>Safety:</strong> Lifeguards seasonally (March&ndash;October) with a strict flag warning system</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Parking &amp; Fees</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li>~$5 for 4 hours or $15 full day via ParkMobile app or pay-and-display machines</li>
+                                <li>Enforced 7 AM &ndash; 2 AM</li>
+                                <li><strong>Local Tip:</strong> Fills fast in summer and during Hangout Music Festival &mdash; arrive early</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Essential Beach Rules</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Prohibited:</strong> Glass, alcohol, fires, grills, tobacco/e-cigarettes</li>
+                                <li><strong>Overnight:</strong> All gear must be removed daily; items left an hour after sunset will be discarded</li>
+                                <li><strong>Pets:</strong> Dogs welcome in grassy areas but not on the sand</li>
+                                <li><strong>Tents:</strong> Limited to 7'&times;7'&times;4' or smaller except in designated areas</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Nearby Attractions</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li><strong>The Hangout:</strong> Famous restaurant and entertainment venue</li>
+                                <li><strong>Pink Pony Pub:</strong> Local landmark for beachfront dining</li>
+                                <li>Various shops and eateries line the Gulf Shores Parkway just steps from the sand</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 13th Street -->
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow md:col-span-2">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="/guide/images/13th-street.jpg" alt="13th Street public beach" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">13th Street Public Beach</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">GULF SHORES</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">1499 W Beach Blvd &middot; Paid parking ($15/day)</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">The 13th Street Public Beach Access is a favored "hidden gem" for those looking for a quieter, more relaxed environment compared to the central Gulf Place Main Public Beach. Known for its wide expanses of soft white sand and open views of the Gulf, largely unobstructed by high-rise buildings.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Key Features &amp; Amenities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Easy Access:</strong> Well-maintained boardwalk and dune walkover to the shoreline</li>
+                                <li><strong>Facilities:</strong> Outdoor shower and restrooms</li>
+                                <li><strong>Safety:</strong> Seasonal lifeguard station</li>
+                                <li><strong>Recreation:</strong> Nearby volleyball nets and designated areas for beach tents</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Parking Information</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li>$15 all-day parking across West Beach Blvd from the access point</li>
+                                <li>Pay via ParkMobile app or on-site pay stations</li>
+                                <li>Gulf Shores residents with a valid beach parking pass park free</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Why Choose 13th Street?</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li><strong>Low Crowd Density:</strong> Much less crowded than the "Hangout" area &mdash; ideal for families or couples</li>
+                                <li><strong>Photography:</strong> No shadows from tall buildings makes it one of the best spots for sunset photos</li>
+                                <li><strong>Cleanliness:</strong> Highly rated for pristine conditions with ample trash and recycling bins</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6th Street -->
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow md:col-span-2">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden bg-gradient-to-br from-ocean-100 to-seafoam-100 flex items-center justify-center">
+                            <div class="text-center p-8">
+                                <svg class="w-16 h-16 text-ocean-300 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+                                <p class="text-ocean-400 font-medium text-sm">Photo coming soon</p>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">6th Street Public Beach</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">GULF SHORES</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">699 W Beach Blvd &middot; ~6 blocks west of Hwy 59</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">The 6th Street Public Beach Access is located approximately six blocks west of the main intersection where Highway 59 dead-ends into the Gulf. Often less crowded than the main Gulf Place Public Beach.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Amenities &amp; Accessibility</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Boardwalk:</strong> Wooden boardwalk over the dunes with handicapped-accessible restroom and entrance</li>
+                                <li><strong>Showers:</strong> Beach rinse shower available for washing off sand</li>
+                                <li><strong>Safety:</strong> Seasonal lifeguard services March through September</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Parking Information</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li>Small paved lot on-site &mdash; $15 all-day parking</li>
+                                <li>Gulf Shores residents with a valid Beach Parking Pass park free</li>
+                                <li><strong>Heads up:</strong> The turn into the lot is tight and right at a stoplight &mdash; easy to miss</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lagoon Pass -->
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow md:col-span-2">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="/guide/images/lagoon-pass.jpg" alt="Lagoon Pass beach" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Lagoon Pass Beach</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">GULF SHORES</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">1660 W Beach Blvd &middot; ~3 mi west of Hwy 59</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">Lagoon Pass Beach, officially known as Little Lagoon Pass Park, is a quiet coastal spot offering access to both the shallow, calm waters of Little Lagoon and the open waves of the Gulf of Mexico. A unique two-for-one beach experience.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Quick Facts &amp; Logistics</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Parking:</strong> Small paid lot on the north side &mdash; $15 all-day (valid until 2 AM)</li>
+                                <li><strong>Amenities:</strong> Public restrooms, outdoor showers, and water fountains</li>
+                                <li><strong>Pro Tip:</strong> Lot fills quickly in peak season &mdash; arrive early</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Best Activities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Family Beach Days:</strong> The lagoon side is a hidden gem for young children &mdash; shallow, calm water with no undertow</li>
+                                <li><strong>Fishing:</strong> Prime spot for redfish, flounder, and speckled trout in the brackish pass waters</li>
+                                <li><strong>Paddling:</strong> Ideal launch point for kayaking and paddleboarding the 10-mile lagoon</li>
+                                <li><strong>Wildlife:</strong> Excellent birdwatching &mdash; herons, pelicans, and sometimes dolphins in the channel</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Visitor Experience</h4>
+                            <p class="text-gray-600 text-sm leading-relaxed">A peaceful alternative to the crowded main beaches. A bridge spans the pass &mdash; walk under it to transition between the lagoon side and the Gulf beach, where a lifeguard is typically on duty during busy season.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ORANGE BEACH BEACHES -->
+    <section class="py-20 bg-ocean-50">
+        <div class="max-w-7xl mx-auto px-6">
+
+            <div class="mb-12">
+                <h2 class="font-display text-3xl text-ocean-900 mb-2">Orange Beach Beaches</h2>
+                <p class="text-gray-500">Wide stretches of sand, well-maintained public access points, and some of the best dune systems on the coast.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+
+                <!-- Alabama Point East -->
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow md:col-span-2">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/alabama-point.png" alt="Alabama Point East crystal clear water" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Alabama Point East</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">TOP CHOICE</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">0.3 mi east of Perdido Pass Bridge &middot; Gulf State Park</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">Alabama Point East is a scenic public beach access located within Gulf State Park in Orange Beach. Situated just 0.3 miles east of the Perdido Pass Bridge, it features over 6,000 feet of wide, white-sand beach and rolling dunes.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Key Features &amp; Amenities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Diverse Views:</strong> Both Gulf-facing (south) and pass-facing (west) beach areas &mdash; great for watching boat traffic between the Gulf and Perdido Bay</li>
+                                <li><strong>Amenities:</strong> Restrooms, outdoor showers, shaded picnic areas, and boardwalks up to 1/4 mile long over the dunes</li>
+                                <li><strong>Safety:</strong> Free life jackets available for children and inexperienced swimmers</li>
+                                <li><strong>Activities:</strong> Prime spot for bird watching, shelling, fishing, and sunset viewing</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Seasonal Info &amp; Parking</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Parking:</strong> $3/2hrs, $5/4hrs, or $10 all-day &mdash; pay at on-site kiosks (cash or card)</li>
+                                <li><strong>Spring Break:</strong> Beach under the east side of Perdido Pass Bridge typically closed late Feb&ndash;mid April due to boat traffic</li>
+                                <li><strong>Food Trucks:</strong> Often found in the parking lot during peak season (e.g. Frost Bites)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shell Beach -->
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow md:col-span-2">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/shell-beach.jpg" alt="Shell Beach in Orange Beach, Alabama" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Shell Beach</h3>
+                                <span class="bg-sand-50 text-sand-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">ORANGE BEACH</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">28273 Perdido Beach Blvd &middot; Across from The Caribe</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">Shell Beach is a public access point just east of the Perdido Pass Bridge, known for its abundance of seashells and a more natural, tranquil atmosphere compared to busier local beaches.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Key Features &amp; Amenities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Beach Environment:</strong> Soft white sand, picturesque dunes, and clear turquoise water &mdash; great for beachcombing, sunbathing, and watching boats navigate Perdido Pass</li>
+                                <li><strong>Shelling:</strong> One of the best locations in the area for finding large seashells and sand dollars</li>
+                                <li><strong>Facilities:</strong> A more "natural" spot &mdash; gravel parking and seasonal portable restrooms, no permanent showers or full-time lifeguards</li>
+                                <li><strong>Accessibility:</strong> Parking lot and entrance are wheelchair accessible</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Parking &amp; Access</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li>Managed by Gulf State Park &mdash; $10&ndash;$15 all-day for personal vehicles</li>
+                                <li>Limited parking helps maintain a quieter, less crowded environment</li>
+                                <li>Provides easy access to the easternmost portion of the Gulf State Park beach system</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow md:col-span-2">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/cotton-bayou.jpg" alt="Cotton Bayou beach in Orange Beach, Alabama" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Cotton Bayou</h3>
+                                <span class="bg-sand-50 text-sand-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">ORANGE BEACH</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Hwy 182 &amp; Hwy 161 &middot; Gulf State Park</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">Cotton Bayou is a popular, well-maintained public beach access point within Gulf State Park in Orange Beach. Known for its soft, white quartz sand and blue-green waters, it is a favored spot for families and locals alike, offering a more relaxed alternative to the highly commercialized main beach areas.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Beach Amenities &amp; Features</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Accessibility:</strong> Wooden boardwalk and ADA-accessible Mobi-Mat at the east ramp for those with mobility issues</li>
+                                <li><strong>Facilities:</strong> Public restrooms, outdoor showers, and a community toy box for kids</li>
+                                <li><strong>Safety:</strong> Lifeguards on duty March through September</li>
+                                <li><strong>Pet Policy:</strong> Dogs prohibited on the beach (fines up to $500). For pet-friendly options, head to nearby Fort Morgan.</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Parking &amp; Access</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li>Managed by Gulf State Park &mdash; $10&ndash;$15/day for non-residents</li>
+                                <li>Pay at on-site kiosks; place receipt on dashboard</li>
+                                <li><strong>Pro Tip:</strong> Lot fills fast on weekends &mdash; arrive before 10 AM in peak season</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Nearby Dining &amp; Recreation</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li><strong>Zeke's Restaurant:</strong> Upscale-casual spot overlooking the bayou, famous for fresh seafood like blackened cobia</li>
+                                <li><strong>CoastAL Orange Beach:</strong> Beachfront restaurant &amp; bar with live music and local favorites like crab cakes</li>
+                                <li><strong>Cotton Bayou Trailhead:</strong> Hugh S. Branyon Backcountry Trail just 0.3 mi away &mdash; paved paths for hiking and cycling</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Romar Beach -->
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow md:col-span-2">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/romar-beach.jpg" alt="Romar Beach public access in Orange Beach" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Romar Beach</h3>
+                                <span class="bg-sand-50 text-sand-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">ORANGE BEACH</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">24450 Perdido Beach Blvd &middot; Gulf State Park</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">Romar Beach is a major entry point to the area's white-sand beaches, part of the Gulf State Park system. This site is specifically known for its convenience and is often used for small beach weddings.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Features &amp; Amenities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Amenities:</strong> Paved parking lot (~40 spots), portable restrooms, and a boardwalk through the dunes</li>
+                                <li><strong>Activities:</strong> Popular for swimming, volleyball, picnics, and scenic sunset strolls</li>
+                                <li><strong>Accessibility:</strong> Wheelchair-accessible parking lot and ramp-accessible boardwalk</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Nearby Condo Communities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Romar Beach Condo:</strong> Low-density, 3-story beachfront with 2BR units, outdoor pool, and private elevator</li>
+                                <li><strong>Romar Place:</strong> 11-story building with indoor/outdoor pool, hot tub, sauna, and fitness center</li>
+                                <li><strong>Romar House:</strong> Gated, higher-end community with Polynesian-style architecture, 700-foot private beach, and tennis/pickleball courts</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Location</h4>
+                            <p class="text-gray-600 text-sm leading-relaxed">~6.7 miles east of Highway 59 and 1.3 miles west of Highway 161</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- GULF STATE PARK -->
+    <section class="py-20 bg-seafoam-50">
+        <div class="max-w-7xl mx-auto px-6">
+
+            <div class="mb-12">
+                <h2 class="font-display text-3xl text-ocean-900 mb-2">Gulf State Park</h2>
+                <p class="text-gray-500">6,150 acres of pristine coastal ecosystem, 28 miles of trails, and the legendary 1,500-foot fishing pier.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow lg:col-span-3">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/state-park-pier.avif" alt="Gulf State Park Pier" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Gulf State Park Pier</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">MUST VISIT</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">20800 E Beach Blvd &middot; 2,448 ft of fishing rails</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">One of the largest fishing structures in the Gulf of Mexico, reopened in late 2024 after a $13.6 million renovation. A premier destination for serious anglers and casual sightseers alike.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Visiting Essentials</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Hours:</strong> Open 24/7 &mdash; staff on-site 6 AM&ndash;8 PM daily (until Memorial Day). After-hours uses an honor box system.</li>
+                                <li><strong>Location:</strong> 20800 E Beach Blvd, Gulf Shores, AL 36542</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Fees &amp; Permits</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Sightseeing:</strong> $3/day adults &mdash; free for veterans and kids 11 and under</li>
+                                <li><strong>Fishing:</strong> $10/day adults, $7 for veterans and campground/lodge guests, free for kids 11 and under</li>
+                                <li><strong>Parking:</strong> $15 all-day &mdash; <em>pro tip:</em> this includes one daily pier fishing permit for the driver. Show your receipt to the attendant.</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Activities &amp; Amenities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Fishing:</strong> 2,448 feet of rail space. Rod &amp; reel rentals $10/4 hours. Bait available at the on-site Bait &amp; Tackle Shop.</li>
+                                <li><strong>Dining:</strong> ByWater Beachside Beach Bar &amp; Grill on the pier &mdash; ocean views and weekly karaoke</li>
+                                <li><strong>Education:</strong> Wildlife info signs and the Angler Academy &mdash; a two-hour intro course for new saltwater anglers</li>
+                                <li><strong>Accessibility:</strong> Wheelchair-accessible rail fishing and comfort stations at the pier's midpoint</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">April Fishing Report</h4>
+                            <p class="text-gray-600 text-sm leading-relaxed">Common catches this season: Sheepshead, Red Drum, Spanish Mackerel, Pompano, Whiting, and Flounder.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow lg:col-span-3">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/branyon-trail.avif" alt="Hugh S. Branyon Backcountry Trail" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Hugh S. Branyon Backcountry Trail</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">AWARD-WINNING</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">28+ miles &middot; 9 ecosystems &middot; Gulf State Park</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">An award-winning network of multi-use trails winding through the 6,150-acre Gulf State Park. Voted <strong>"Best Recreational Trail"</strong> in the country by USA Today for three consecutive years (2023&ndash;2025), it offers access to nine distinct ecosystems.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Key Features &amp; Activities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Diverse Ecosystems:</strong> Coastal dunes, pine flatwoods, freshwater marshes, and coastal hardwood swamps</li>
+                                <li><strong>Wildlife:</strong> Alligators, white-tailed deer, bobcats, otters, bald eagles, and ospreys</li>
+                                <li><strong>Recreation:</strong> ADA-accessible paved paths and boardwalks for walking, running, biking, and skating</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Unique Stops</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Butterfly Garden:</strong> A hub where four trails meet, with plants that attract vibrant butterflies</li>
+                                <li><strong>Boulder Park &amp; Parkour Challenge:</strong> Dedicated climbing and agility areas for kids and adventurous adults</li>
+                                <li><strong>The Lookout:</strong> A shaded seating area with a slide on the Rosemary Dune Trail</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Visitor Information</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li><strong>Access:</strong> At least six primary trailheads with parking (Rosemary Dunes, Catman Road, and more)</li>
+                                <li><strong>Hours:</strong> Open 365 days a year during daylight hours only</li>
+                                <li><strong>Rentals:</strong> Free park bike-sharing program or rentals from nearby outfitters</li>
+                                <li><strong>Camping:</strong> Primitive camping at "The Outpost" &mdash; raised canvas tents and fire pits (reservations required)</li>
+                                <li><strong>Rules:</strong> No motorized vehicles (except wheelchairs), smoking, or fires. Pets on leash. 12 mph cyclist speed limit.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow lg:col-span-3">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/lake-shelby.jpg" alt="Lake Shelby freshwater lake in Gulf State Park" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Lake Shelby</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">LAKEFRONT</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">20115 State Hwy 135 &middot; 592-acre freshwater lake</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">Lake Shelby is a 592-acre freshwater lake within Gulf State Park and one of the closest freshwater lakes to saltwater on the Gulf Coast &mdash; just steps from the beach across a pedestrian bridge.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Top Things to Do</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Water Sports &amp; Boating:</strong> Swimming, kayaking, canoeing, and stand-up paddleboarding. Rentals on-site through Ike's Beach Service.</li>
+                                <li><strong>Fishing:</strong> Both freshwater and saltwater species &mdash; largemouth bass, bream, redfish, and speckled trout thanks to occasional saltwater intrusion. Freshwater fishing license required.</li>
+                                <li><strong>The Dog Pond:</strong> Dedicated fenced-in lakeside dog park where pets can swim and play off-leash</li>
+                                <li><strong>Picnicking &amp; Playgrounds:</strong> Charcoal grills, picnic tables, pavilions for rent, and two playgrounds for different age groups</li>
+                                <li><strong>Hiking &amp; Biking:</strong> Paved Lakeview Trail and the Hugh S. Branyon Backcountry Trail system wind around the lake</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Key Amenities &amp; Hours</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Hours:</strong> Picnic and dog park areas open 8 AM to sunset</li>
+                                <li><strong>Boat Launch:</strong> $5 fee via honor box. Motorized vessels allowed, but no personal watercraft (jet skis).</li>
+                                <li><strong>Wildlife Safety:</strong> Alligators live in the lake &mdash; stay alert, keep a safe distance, and never feed wildlife</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Location &amp; Accessibility</h4>
+                            <p class="text-gray-600 text-sm leading-relaxed">Located at 20115 State Hwy 135, just a short walk across a pedestrian bridge from the Gulf beaches. Features wheelchair-accessible entrances and parking.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branyon Beach Access -->
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow lg:col-span-3">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/branyon-beach.jpg" alt="Branyon Beach Access boardwalk to the Gulf" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Branyon Beach Access</h3>
+                                <span class="bg-seafoam-50 text-seafoam-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">HIDDEN GEM</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Hwy 182 &amp; Campground Rd &middot; Gulf Shores</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">The Branyon Beach Access is a small, public beach entry point located at the intersection of Highway 182 and Campground Road. Known for its serene, secluded atmosphere, it provides a quieter alternative to the more crowded central public beaches.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Key Details &amp; Features</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Location:</strong> Directly across from the entrance to the Gulf State Park Campground</li>
+                                <li><strong>Access:</strong> Wooden boardwalk over the scenic sand dunes directly onto the beach</li>
+                                <li><strong>Safety:</strong> Traffic light at the intersection helps pedestrians cross Hwy 182 safely</li>
+                                <li><strong>Crowds:</strong> Typically less crowded &mdash; great for privacy, sunbathing, or sunrise watching</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Amenities &amp; Limitations</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Parking:</strong> Very limited free parking across the street &mdash; arrive early or use alternative transport</li>
+                                <li><strong>Facilities:</strong> No permanent restrooms, showers, or foot-washing stations. Closest facilities are at the Gulf State Park Pavilion down the beach</li>
+                                <li><strong>Lifeguards:</strong> Not staffed &mdash; this is a "natural" beach spot</li>
+                                <li><strong>Bike Access:</strong> Easily reached via the Hugh S. Branyon Backcountry Trail system with bike racks near the boardwalk</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Best For</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li><strong>Campground Guests:</strong> Ideally located for Gulf State Park Campground visitors who can walk or bike to the water</li>
+                                <li><strong>Nature Lovers:</strong> Tranquil coastal environment with natural dunes and fewer commercial distractions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FORT MORGAN BEACHES -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+
+            <div class="mb-12">
+                <h2 class="font-display text-3xl text-ocean-900 mb-2">Fort Morgan Beaches</h2>
+                <p class="text-gray-500">The wild side of the peninsula — undeveloped coastline, wildlife refuge trails, and dog-friendly sand.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow lg:col-span-3">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/bon-secour.jpg" alt="Bon Secour National Wildlife Refuge beach" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Bon Secour NWR Beach</h3>
+                                <span class="bg-ocean-50 text-ocean-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">FORT MORGAN</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">National Wildlife Refuge &middot; Sunrise&ndash;sunset &middot; Free</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">A pristine, undeveloped stretch of coastline managed as a natural sanctuary for wildlife like nesting sea turtles and the endangered Alabama beach mouse. Unlike common public beaches, it offers a "wild" experience with no restrooms or commercial amenities at the shore.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Beach Access &amp; Parking</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Mobile Street Access:</strong> The most direct public access point with a free parking lot at the end of Mobile Street &mdash; leads to a boardwalk over the dunes to the beach</li>
+                                <li><strong>Pine Beach Trail:</strong> A more scenic 4-mile round-trip approach through forests and past Gator Lake to a secluded stretch of beach</li>
+                                <li><strong>Hours &amp; Fees:</strong> Beach and trails are free and open daily from sunrise to sunset</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Regulations &amp; Tips</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>No Pets Allowed:</strong> Strictly prohibited on all refuge trails and beaches to protect native species like the beach mouse</li>
+                                <li><strong>Leave No Trace:</strong> No trash cans on the beach &mdash; pack out everything you bring in</li>
+                                <li><strong>Wildlife Protection:</strong> Do not disturb nesting areas &mdash; critical site for migratory birds and sea turtles</li>
+                                <li><strong>Bicycles:</strong> Permitted on paved roads only, prohibited on refuge trails</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Popular Activities</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li><strong>Birdwatching:</strong> Top destination for over 370 bird species, especially during spring and fall migrations</li>
+                                <li><strong>Surf Fishing:</strong> Beach fishing allowed in the Gulf with appropriate licenses</li>
+                                <li><strong>Photography:</strong> The transition from maritime forests to towering dunes offers unique natural landscapes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow lg:col-span-3">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/pine-beach-trail.jpg" alt="Pine Beach Trail through Bon Secour NWR" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Pine Beach Trail</h3>
+                                <span class="bg-ocean-50 text-ocean-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">FORT MORGAN</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">1609 Mobile Street &middot; Bon Secour NWR &middot; 4 mi out-and-back</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">A roughly 4-mile out-and-back trail within Bon Secour National Wildlife Refuge, known for its diverse coastal ecosystems and a secluded beach at the end. One of the most rewarding walks on the Alabama coast.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Key Trail Details</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Distance:</strong> ~3.4&ndash;4 miles total (out-and-back)</li>
+                                <li><strong>Difficulty:</strong> Easy to Moderate &mdash; mostly flat, but the final 1/4 to 1/2 mile is loose sand through the dunes</li>
+                                <li><strong>Duration:</strong> Typically 1&ndash;2 hours</li>
+                                <li><strong>Pet Policy:</strong> No dogs allowed &mdash; protects endangered Alabama beach mouse and nesting sea turtles</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Scenery &amp; Highlights</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Ecosystem Transition:</strong> Starts in a maritime forest of pine and oak, crosses a land bridge between brackish Little Lagoon and freshwater Gator Lake</li>
+                                <li><strong>Observation Tower:</strong> A two-story deck about a mile in with views of Gator Lake &mdash; often spot alligators and birds</li>
+                                <li><strong>Secluded Beach:</strong> Ends at a quiet, undeveloped stretch of Gulf coastline, far less crowded than public beaches</li>
+                                <li><strong>Wildlife:</strong> 360+ recorded bird species, plus monarch butterflies during migration</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Practical Information</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li><strong>Parking:</strong> Shaded gravel lot at the trailhead</li>
+                                <li><strong>Facilities:</strong> Vault toilet about a half-mile in &mdash; no restrooms at the trailhead itself</li>
+                                <li><strong>Bring:</strong> Water, sunscreen, and bug spray &mdash; limited shade and biting flies can be present</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow lg:col-span-3">
+                    <div class="grid md:grid-cols-2">
+                        <div class="h-64 md:h-full overflow-hidden">
+                            <img src="../images/fort-morgan.webp" alt="Fort Morgan public beach" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-display text-xl text-ocean-900">Fort Morgan Public Beach</h3>
+                                <span class="bg-ocean-50 text-ocean-600 text-xs font-bold px-2 py-1 rounded-lg shrink-0 ml-2">DOG-FRIENDLY</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">110 AL Hwy 180 &middot; ~20 mi west of Gulf Shores</p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">A quieter, more natural alternative to the bustling main beaches, located at the end of the Fort Morgan Peninsula. Known for soft white sand, abundant seashells, and being the <strong>only area in Alabama with dog-friendly public beaches</strong>.</p>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Essential Visitor Information</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Hours:</strong> Site-related areas open 8 AM&ndash;5 PM; public beach access varies by entry point</li>
+                                <li><strong>Fort Morgan Pier:</strong> Free parking near the fishing pier</li>
+                                <li><strong>Morgantown Public Access:</strong> Free lot with a boardwalk to the beach</li>
+                                <li><strong>Bon Secour Refuge:</strong> Gravel lot at the end of Mobile Street (daylight hours only)</li>
+                                <li><strong>Amenities:</strong> Natural beaches &mdash; no restrooms, showers, or lifeguards at the shoreline. Restrooms available within the historic fort grounds.</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Top Activities &amp; Features</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 mb-4 list-disc ml-4">
+                                <li><strong>Dog-Friendly Areas:</strong> Dogs allowed (leashed) on the bayside beach between Engineer's Wharf and the fishing pier</li>
+                                <li><strong>History Tours:</strong> Explore the 19th-century Fort Morgan State Historic Site &mdash; key role in the Civil War and both World Wars</li>
+                                <li><strong>Mobile Bay Ferry:</strong> Scenic 40-minute ride across the bay to Dauphin Island, catches near the fort</li>
+                                <li><strong>Nature &amp; Wildlife:</strong> Adjacent Bon Secour NWR offers hiking trails and birdwatching</li>
+                                <li><strong>Fishing:</strong> Excellent surf and pier fishing, plus a bay-side boat launch</li>
+                            </ul>
+
+                            <h4 class="font-semibold text-ocean-800 text-sm mb-2">Practical Tips</h4>
+                            <ul class="text-gray-600 text-sm leading-relaxed space-y-1 list-disc ml-4">
+                                <li><strong>Supplies:</strong> Stock up on food and water before driving out &mdash; local markets are expensive and major stores are 20+ minutes away</li>
+                                <li><strong>Wildlife:</strong> Watch for nesting sea turtles and occasional gators in marshy areas</li>
+                                <li><strong>Beach Safety:</strong> Rough water and rip tides where Mobile Bay meets the Gulf (Mobile Point) &mdash; swimming is typically safer on the bay side</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="py-16 bg-ocean-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-8">
+
+                <div class="bg-white rounded-2xl p-8 border border-gray-100">
+                    <div class="flex items-center mb-4">
+                        <span class="text-2xl mr-3">&#9855;</span>
+                        <h3 class="font-display text-xl text-ocean-900">Beach Accessibility</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed">Several Gulf Shores and Orange Beach public access points offer beach access mats — firm roll-out paths laid over the sand so wheelchairs, strollers, and walkers can reach the water's edge. Check with the city for current mat locations, as they are typically placed seasonally at high-traffic access points including Gulf Place and Cotton Bayou.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-8 border border-gray-100">
+                    <div class="flex items-center mb-4">
+                        <span class="text-2xl mr-3">&#128054;</span>
+                        <h3 class="font-display text-xl text-ocean-900">Dogs on the Beach</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed">Dogs are not allowed on Gulf Shores or Orange Beach public beaches. However, Fort Morgan beaches welcome dogs — making them the go-to destination for pet owners. Fort Morgan Public Beach at the tip of the peninsula is especially popular with dog owners. Keep your pup leashed and bring bags for cleanup.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-16 bg-ocean-800 text-white text-center">
+        <div class="max-w-2xl mx-auto px-6">
+            <h2 class="font-display text-3xl mb-4">Ready to Live Where You Vacation?</h2>
+            <p class="text-ocean-300 mb-8">Imagine waking up to this every morning — 32 miles of white sand just minutes from your front door.</p>
+            <a href="/#contact" class="inline-block bg-sand-500 hover:bg-sand-400 text-white px-8 py-4 rounded-lg text-lg font-semibold transition">Talk to Our Team &rarr;</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-ocean-900 border-t border-ocean-800 text-ocean-300 py-8">
+        <div class="max-w-7xl mx-auto px-6 text-center text-sm">
+            &copy; 2026 Big Beach AL &middot; Kelly Davis, Realtor &middot; Dave Davis, Realtor & Mortgage Broker
+        </div>
+    </footer>
+
+    <script>
+        var map = L.map('beachMap', { zoomControl: true, scrollWheelZoom: false }).setView([30.255, -87.68], 12);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+
+        var beaches = [
+            { name: "Gulf Place (Main Public Beach)", lat: 30.2460, lng: -87.6868, area: "Gulf Shores", img: "/guide/images/gulf-place.jpg", desc: "The city's premier beach where Hwy 59 meets the Gulf. Volleyball courts, playground, Town Green, restrooms, showers, lifeguards, and ADA Mobi-Mats. Parking ~$5/4hrs or $15/day." },
+            { name: "13th Street Public Beach", lat: 30.2455, lng: -87.6990, area: "Gulf Shores", img: "/guide/images/13th-street.jpg", desc: "A hidden gem with wide white sand and open Gulf views unobstructed by high-rises. Boardwalk, outdoor shower, seasonal lifeguard. $15/day parking. Best sunset photography spot." },
+            { name: "6th Street Public Beach", lat: 30.2440, lng: -87.6950, area: "Gulf Shores", img: "", desc: "Quieter alternative ~6 blocks west of Hwy 59. Boardwalk, ADA-accessible restroom, outdoor shower, seasonal lifeguards. $15/day parking. Tight turn at the stoplight — easy to miss." },
+            { name: "Lagoon Pass Beach", lat: 30.2430, lng: -87.7280, area: "Gulf Shores", img: "/guide/images/lagoon-pass.jpg", desc: "Access both calm Little Lagoon and the open Gulf. Ideal for families (shallow lagoon side), fishing, kayaking, and birdwatching. $15/day parking. Lot fills fast — arrive early." },
+            { name: "Alabama Point East", lat: 30.2630, lng: -87.5520, area: "Orange Beach", img: "/images/alabama-point.png", desc: "6,000+ ft of wide beach with Gulf and pass views. Boardwalks up to 1/4 mile, free life jackets, shaded picnic areas. Parking $3/2hrs, $5/4hrs, or $10/day. Food trucks in season." },
+            { name: "Cotton Bayou", lat: 30.2680, lng: -87.5780, area: "Orange Beach", img: "/images/cotton-bayou.jpg", desc: "Soft white quartz sand and blue-green waters. ADA Mobi-Mat, restrooms, outdoor showers, community toy box, lifeguards Mar–Sep. No dogs (up to $500 fine). $10–$15/day parking." },
+            { name: "Shell Beach", lat: 30.2735, lng: -87.5690, area: "Orange Beach", img: "/images/shell-beach.jpg", desc: "Best shelling spot in the area — find seashells and sand dollars. Natural setting across from The Caribe resort. Limited facilities, wheelchair-accessible entrance. $10–$15/day." },
+            { name: "Romar Beach", lat: 30.2620, lng: -87.6130, area: "Orange Beach", img: "/images/romar-beach.jpg", desc: "Gulf State Park access popular for small beach weddings. ~40 paved parking spots, boardwalk through dunes, wheelchair accessible. Near Romar House, Romar Place, and Romar Beach condos." },
+            { name: "Branyon Beach Access", lat: 30.2465, lng: -87.6560, area: "Gulf State Park", img: "/images/branyon-beach.jpg", desc: "Serene entry across from Gulf State Park Campground. Boardwalk over dunes, limited free parking, no facilities. Reachable via Branyon Trail with bike racks at the boardwalk." },
+            { name: "Bon Secour NWR Beach", lat: 30.2320, lng: -87.7870, area: "Fort Morgan", img: "/images/bon-secour.jpg", desc: "Pristine wildlife refuge beach — nesting sea turtles and endangered Alabama beach mouse. Mobile Street access with free parking and boardwalk. No pets, no trash cans. Free, sunrise–sunset." },
+            { name: "Pine Beach Trail", lat: 30.2350, lng: -87.7950, area: "Fort Morgan", img: "/images/pine-beach-trail.jpg", desc: "A 4-mile out-and-back through maritime forest past Gator Lake to a secluded Gulf beach. Observation tower for gator spotting. 360+ bird species. No pets. Bring water and bug spray." },
+            { name: "Fort Morgan Public Beach", lat: 30.2280, lng: -87.8990, area: "Fort Morgan", img: "/images/fort-morgan.webp", desc: "The only dog-friendly public beach in Alabama (bayside between Engineer's Wharf and the pier). Historic Civil War fort, Mobile Bay ferry to Dauphin Island, free parking. No lifeguards — bring supplies." }
+        ];
+
+        beaches.forEach(function(b) {
+            var popupImg = b.img ? '<img src="' + b.img + '" style="width:100%;height:140px;object-fit:cover;border-radius:8px;margin-bottom:8px;" alt="' + b.name + '">' : '';
+            var popupHTML = '<div style="width:260px;font-family:Inter,sans-serif;">' +
+                popupImg +
+                '<strong style="font-size:15px;color:#134057;">' + b.name + '</strong>' +
+                '<div style="color:#309d7e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin:4px 0 6px;">' + b.area + '</div>' +
+                '<p style="color:#555;font-size:12px;line-height:1.5;margin:0;">' + b.desc + '</p>' +
+                '</div>';
+            L.circleMarker([b.lat, b.lng], {
+                radius: 8, fillColor: '#309d7e', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
+            }).addTo(map).bindPopup(popupHTML, { maxWidth: 280 });
+        });
+    </script>
+</body>
+</html>

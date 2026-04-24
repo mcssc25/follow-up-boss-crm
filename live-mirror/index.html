@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Beach AL — Gulf Coast Real Estate Experts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sand: { 50: '#fdf8f0', 100: '#f5ead6', 200: '#ead3ab', 300: '#ddb87a', 400: '#d4a45e', 500: '#c48c3c', 600: '#a87030', 700: '#8a5828', 800: '#6e4622', 900: '#5a3a1e' },
+                        ocean: { 50: '#eef8fc', 100: '#d5eef7', 200: '#aaddf0', 300: '#6ec5e5', 400: '#38a8d4', 500: '#1e8dba', 600: '#17719a', 700: '#145b7d', 800: '#154b67', 900: '#134057' },
+                        seafoam: { 50: '#effaf6', 100: '#d8f3e8', 200: '#b4e6d4', 300: '#82d2b8', 400: '#51b899', 500: '#309d7e', 600: '#257f66', 700: '#216654', 800: '#1e5244', 900: '#1a4439' },
+                        warmgray: { 50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1' },
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        body: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Playfair Display', serif; }
+        html { scroll-behavior: smooth; }
+        .hero-gradient {
+            background: linear-gradient(160deg, rgba(19,64,87,0.65) 0%, rgba(30,100,140,0.4) 40%, rgba(196,140,60,0.25) 100%);
+        }
+        .stat-card {
+            backdrop-filter: blur(12px);
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+        .tile-overlay { background: linear-gradient(0deg, rgba(19,64,87,0.8) 0%, rgba(19,64,87,0.15) 50%, transparent 100%); }
+        .tile { transition: transform 0.4s; }
+        .tile:hover { transform: scale(1.03); }
+        .tile:hover img { transform: scale(1.1); }
+        .tile img { transition: transform 0.6s; }
+    </style>
+</head>
+<body class="bg-warmgray-50 text-gray-800">
+
+    <!-- NAVIGATION -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <span class="font-display text-2xl text-ocean-800">Big Beach <span class="text-sand-500">AL</span></span>
+            <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
+                <a href="#guide" class="hover:text-ocean-600 transition">Area Guide</a>
+                <a href="#team" class="hover:text-ocean-600 transition">Team</a>
+                <a href="/quiz/" class="hover:text-ocean-600 transition">Vacation Home</a>
+                <a href="/gulfshoressubdivisions/" class="hover:text-ocean-600 transition">Subdivisions</a>
+                <a href="#contact" class="bg-sand-500 hover:bg-sand-400 text-white px-6 py-2.5 rounded-lg transition font-semibold">Contact Us</a>
+            </div>
+            <button class="md:hidden text-ocean-800" onclick="document.getElementById('mobileMenu').classList.toggle('hidden')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 pb-4 space-y-3">
+            <a href="#guide" class="block text-gray-600 hover:text-ocean-600 py-2">Area Guide</a>
+            <a href="#team" class="block text-gray-600 hover:text-ocean-600 py-2">Team</a>
+            <a href="/quiz/" class="block text-gray-600 hover:text-ocean-600 py-2">Vacation Home</a>
+            <a href="/gulfshoressubdivisions/" class="block text-gray-600 hover:text-ocean-600 py-2">Subdivisions</a>
+            <a href="#contact" class="block bg-sand-500 text-white text-center py-3 rounded-lg font-semibold">Contact Us</a>
+        </div>
+    </nav>
+
+    <!-- HERO — Full-width beach image with light overlay -->
+    <section class="relative min-h-screen flex items-center pt-16">
+        <div class="absolute inset-0">
+            <img src="assets/gulf-shores-hero.webp" alt="Gulf Shores Beach" class="w-full h-full object-cover" style="object-position: 65% center;">
+            <div class="hero-gradient absolute inset-0"></div>
+        </div>
+        <div class="relative max-w-7xl mx-auto px-6 w-full py-20">
+            <div class="max-w-2xl">
+                <div class="inline-flex items-center stat-card rounded-full px-5 py-2.5 mb-8">
+                    <div class="w-2 h-2 bg-sand-400 rounded-full mr-3 animate-pulse"></div>
+                    <span class="text-white text-sm font-medium">Gulf Shores &middot; Orange Beach &middot; Fort Morgan</span>
+                </div>
+
+                <h1 class="font-display text-4xl md:text-6xl text-white leading-tight mb-6">
+                    The Gulf Coast Authority in Real Estate
+                </h1>
+
+                <p class="text-white/80 text-lg leading-relaxed mb-10 max-w-xl">
+                    The Big Beach AL team is your local team for buying, selling, and investing on Alabama's Gulf Coast. Real expertise. Real numbers. Real results.
+                </p>
+
+                <!-- Trust stats -->
+                <div class="flex gap-6 mb-10">
+                    <div class="stat-card rounded-xl px-6 py-4 text-center">
+                        <div class="font-display text-3xl text-sand-300">15+</div>
+                        <div class="text-white/60 text-xs mt-1 uppercase tracking-wider">Years Experience</div>
+                    </div>
+                    <div class="stat-card rounded-xl px-6 py-4 text-center">
+                        <div class="font-display text-3xl text-sand-300">200+</div>
+                        <div class="text-white/60 text-xs mt-1 uppercase tracking-wider">Families</div>
+                    </div>
+                    <div class="stat-card rounded-xl px-6 py-4 text-center">
+                        <div class="font-display text-3xl text-sand-300">$50M+</div>
+                        <div class="text-white/60 text-xs mt-1 uppercase tracking-wider">In Sales</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#find-home" class="bg-sand-500 hover:bg-sand-400 text-white px-8 py-4 rounded-lg text-lg font-semibold transition text-center shadow-lg">Start Your Search</a>
+                    <a href="#guide" class="stat-card hover:bg-white/20 text-white px-8 py-4 rounded-lg text-lg font-medium transition text-center">Explore the Area</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AREA GUIDE — Square tile grid -->
+    <section id="guide" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-16">
+                <p class="text-sand-500 text-sm font-bold tracking-widest uppercase mb-3">DISCOVER THE AREA</p>
+                <h2 class="font-display text-4xl md:text-5xl text-ocean-900 mb-4">Gulf Coast Living</h2>
+                <p class="text-gray-500 text-lg max-w-2xl">From world-class dining to dolphin cruises and concerts at The Wharf — this is why people fall in love with the Alabama Gulf Coast.</p>
+            </div>
+
+            <!-- Tile grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <a href="guide/beaches.html" class="tile col-span-2 row-span-2 rounded-2xl overflow-hidden relative cursor-pointer h-[400px] lg:h-auto block">
+                    <img src="https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&q=80" alt="Beach" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-8">
+                        <div>
+                            <span class="bg-sand-500 text-white text-xs font-bold px-3 py-1 rounded-lg">FEATURED</span>
+                            <h3 class="font-display text-2xl text-white mt-3">Beaches &amp; Waterfront</h3>
+                            <p class="text-white/70 text-sm mt-1">32 miles of sugar-white sand</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="guide/dining.html" class="tile rounded-2xl overflow-hidden relative cursor-pointer h-48 block">
+                    <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80" alt="Dining" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-5">
+                        <h3 class="font-display text-lg text-white">Dining</h3>
+                    </div>
+                </a>
+
+                <a href="guide/wharf.html" class="tile rounded-2xl overflow-hidden relative cursor-pointer h-48 block">
+                    <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&q=80" alt="Wharf" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-5">
+                        <h3 class="font-display text-lg text-white">The Wharf</h3>
+                    </div>
+                </a>
+
+                <a href="guide/family-fun.html" class="tile rounded-2xl overflow-hidden relative cursor-pointer h-48 block">
+                    <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&q=80" alt="Family" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-5">
+                        <h3 class="font-display text-lg text-white">Family Fun</h3>
+                    </div>
+                </a>
+
+                <a href="guide/dolphin-cruises.html" class="tile rounded-2xl overflow-hidden relative cursor-pointer h-48 block">
+                    <img src="https://images.unsplash.com/photo-1570481662006-a3a1374699e8?w=400&q=80" alt="Dolphins" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-5">
+                        <h3 class="font-display text-lg text-white">Dolphin Cruises</h3>
+                    </div>
+                </a>
+
+                <a href="guide/nightlife.html" class="tile rounded-2xl overflow-hidden relative cursor-pointer h-48 block">
+                    <img src="https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=400&q=80" alt="Nightlife" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-5">
+                        <h3 class="font-display text-lg text-white">Nightlife</h3>
+                    </div>
+                </a>
+
+                <a href="guide/fishing.html" class="tile rounded-2xl overflow-hidden relative cursor-pointer h-48 block">
+                    <img src="https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=400&q=80" alt="Deep Sea Fishing" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-5">
+                        <h3 class="font-display text-lg text-white">Deep Sea Fishing</h3>
+                    </div>
+                </a>
+
+                <a href="guide/golf.html" class="tile rounded-2xl overflow-hidden relative cursor-pointer h-48 block">
+                    <img src="https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=400&q=80" alt="Championship Golf" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-5">
+                        <h3 class="font-display text-lg text-white">Championship Golf</h3>
+                    </div>
+                </a>
+
+                <a href="guide/coffee.html" class="tile rounded-2xl overflow-hidden relative cursor-pointer h-48 block">
+                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80" alt="Coffee Scene" class="w-full h-full object-cover">
+                    <div class="tile-overlay absolute inset-0 flex items-end p-5">
+                        <h3 class="font-display text-lg text-white">Coffee Scene</h3>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- MEET THE TEAM -->
+    <section id="team" class="py-24 bg-sand-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-16">
+                <p class="text-sand-500 text-sm font-bold tracking-widest uppercase mb-3">YOUR LOCAL TEAM</p>
+                <h2 class="font-display text-4xl md:text-5xl text-ocean-900">Meet the Experts</h2>
+                <p class="text-gray-500 text-lg max-w-2xl mt-4">We didn't just move here — we built our lives here. And now we help other families do the same.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+
+                <!-- Kelly -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+                    <div class="h-80 overflow-hidden">
+                        <img src="assets/kelly.jpg" alt="Kelly Davis" class="w-full h-full object-cover object-top">
+                    </div>
+                    <div class="p-8">
+                        <span class="inline-block bg-seafoam-50 text-seafoam-600 text-xs font-bold px-3 py-1 rounded-lg mb-3">TEAM LEAD</span>
+                        <h3 class="font-display text-2xl text-ocean-900 mb-1">Kelly Davis</h3>
+                        <p class="text-seafoam-600 font-medium text-sm mb-4">Associate Broker &amp; Team Lead</p>
+                        <p class="text-gray-500 leading-relaxed text-sm mb-4">Kelly is the heart and engine of Big Beach AL. Her passion for fun, sun, and coastal living is contagious — and it's the reason our whole team ended up on the Gulf Coast in the first place. She has an eye for matching families with their dream beach home and a talent for making the whole process feel like an adventure, not a transaction.</p>
+                        <p class="text-gray-500 leading-relaxed text-sm mb-6">Behind the scenes, Kelly drives the team's marketing — from stunning property photography and social media content to creative campaigns that get homes sold fast. Follow along on Instagram to see what beach life really looks like.</p>
+                        <div class="flex gap-3">
+                            <a href="mailto:Kelly@bigbeachal.com" class="w-10 h-10 bg-ocean-600 hover:bg-ocean-700 rounded-lg flex items-center justify-center transition" title="Email Kelly">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </a>
+                            <a href="https://www.instagram.com/diy.davis/" target="_blank" class="w-10 h-10 rounded-lg flex items-center justify-center transition hover:opacity-80" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" title="Instagram">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                            </a>
+                            <a href="https://www.facebook.com/kelly.goodworth.davis" target="_blank" class="w-10 h-10 bg-[#1877F2] hover:bg-[#166FE5] rounded-lg flex items-center justify-center transition" title="Facebook">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dave -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+                    <div class="h-80 overflow-hidden">
+                        <img src="assets/dave.jpg" alt="Dave Davis" class="w-full h-full object-cover object-top">
+                    </div>
+                    <div class="p-8">
+                        <span class="inline-block bg-sand-50 text-sand-600 text-xs font-bold px-3 py-1 rounded-lg mb-3">THE NUMBERS GUY</span>
+                        <h3 class="font-display text-2xl text-ocean-900 mb-1">Dave Davis</h3>
+                        <p class="text-sand-600 font-medium text-sm mb-4">Lending Specialist &amp; Realtor</p>
+                        <p class="text-gray-500 leading-relaxed text-sm mb-4">When he's not on the water fishing, grilling on the deck, or running the boat, Dave is deep in spreadsheets — and he loves it. A numbers guy through and through, Dave has helped hundreds of investment buyers navigate the tricky world of vacation home financing and short-term rental markets.</p>
+                        <p class="text-gray-500 leading-relaxed text-sm mb-6">From pre-approval to closing, Dave makes sure you actually <em>understand</em> every number on the page — mortgage options, rental projections, carrying costs, and the real ROI of owning at the beach. No jargon, no surprises, just straight talk from someone who's done it himself.</p>
+                        <div class="flex gap-3">
+                            <a href="mailto:Dave@bigbeachal.com" class="w-10 h-10 bg-ocean-600 hover:bg-ocean-700 rounded-lg flex items-center justify-center transition" title="Email Dave">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </a>
+                            <a href="https://www.instagram.com/davedavismortgagebroker/" target="_blank" class="w-10 h-10 rounded-lg flex items-center justify-center transition hover:opacity-80" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" title="Instagram">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                            </a>
+                            <a href="https://www.facebook.com/davedavis99" target="_blank" class="w-10 h-10 bg-[#1877F2] hover:bg-[#166FE5] rounded-lg flex items-center justify-center transition" title="Facebook">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kerri -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+                    <div class="h-80 overflow-hidden">
+                        <img src="assets/kerri.jpg" alt="Kerri Nicketta" class="w-full h-full object-cover object-top">
+                    </div>
+                    <div class="p-8">
+                        <span class="inline-block bg-seafoam-50 text-seafoam-600 text-xs font-bold px-3 py-1 rounded-lg mb-3">BUYER'S AGENT</span>
+                        <h3 class="font-display text-2xl text-ocean-900 mb-1">Kerri Nicketta</h3>
+                        <p class="text-seafoam-600 font-medium text-sm mb-4">Expert Buyer Specialist &amp; Lead Buyer's Agent</p>
+                        <p class="text-gray-500 leading-relaxed text-sm mb-4">Kerri is the team's go-getter. Whether it's hopping on a boat, hitting a concert at The Wharf, or chasing her four amazing daughters around the beach, she brings that same energy to every client interaction. Always available, always responsive — Kerri is the one sending you video tours before you even ask.</p>
+                        <p class="text-gray-500 leading-relaxed text-sm mb-6">As our buyer's agent and transaction manager, Kerri guides you smoothly through the entire home buying process from first showing to closing day. She handles the details so you can focus on the excitement of finding your perfect beach home.</p>
+                        <div class="flex gap-3">
+                            <a href="mailto:Kerri@bigbeachal.com" class="w-10 h-10 bg-ocean-600 hover:bg-ocean-700 rounded-lg flex items-center justify-center transition" title="Email Kerri">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </a>
+                            <a href="https://www.instagram.com/kerri.nicketta/" target="_blank" class="w-10 h-10 rounded-lg flex items-center justify-center transition hover:opacity-80" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" title="Instagram">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                            </a>
+                            <a href="https://www.facebook.com/kerri.nicketta" target="_blank" class="w-10 h-10 bg-[#1877F2] hover:bg-[#166FE5] rounded-lg flex items-center justify-center transition" title="Facebook">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FIND YOUR PERFECT BEACH HOUSE -->
+    <section id="find-home" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-12">
+                <p class="text-sand-500 text-sm font-bold tracking-widest uppercase mb-3">EXPLORE 180+ PROPERTIES</p>
+                <h2 class="font-display text-4xl md:text-5xl text-ocean-900">Find Your Perfect Beach House</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Map in a contained card -->
+                <a href="https://bigbeachal.com/quiz" target="_blank" class="block relative rounded-2xl overflow-hidden shadow-xl group cursor-pointer border border-gray-200">
+                    <img src="assets/condo-search-preview.png" alt="Interactive condo search with map and filters" class="w-full h-auto">
+                    <div class="absolute inset-0 bg-ocean-900/0 group-hover:bg-ocean-900/40 transition-all duration-300 flex items-center justify-center rounded-2xl">
+                        <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-sand-500 text-white px-6 py-3 rounded-lg font-semibold text-lg shadow-lg">Take the Condo Quiz</span>
+                    </div>
+                </a>
+
+                <!-- Description + CTA -->
+                <div>
+                    <h3 class="font-display text-2xl text-ocean-900 mb-4">Take the Condo Quiz</h3>
+                    <p class="text-gray-600 text-lg leading-relaxed mb-8">
+                        Not sure where to start? Our interactive condo finder maps every building along the Gulf Coast. Filter by location, price, amenities, and rental potential to find your perfect fit.
+                    </p>
+
+                    <div class="space-y-5 mb-10">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-ocean-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-5 h-5 text-ocean-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-ocean-800 mb-1">Browse the Map</h4>
+                                <p class="text-gray-500 text-sm">Every condo from Fort Morgan to Orange Beach, pinned on a satellite map.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-ocean-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-5 h-5 text-ocean-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-ocean-800 mb-1">Filter by What Matters</h4>
+                                <p class="text-gray-500 text-sm">Price, bedrooms, gulf-front vs. bay-side, pet policy, pool, and more.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-ocean-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-5 h-5 text-ocean-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-ocean-800 mb-1">Get Matched</h4>
+                                <p class="text-gray-500 text-sm">See photos, prices, and amenities — then let us help you take the next step.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="https://bigbeachal.com/quiz" target="_blank" class="inline-block bg-sand-500 hover:bg-sand-400 text-white px-8 py-4 rounded-lg text-lg font-semibold transition shadow-lg hover:shadow-xl">
+                        Explore the Interactive Map &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXPLORE THE SUBDIVISIONS -->
+    <section id="subdivisions-preview" class="py-24 bg-warmgray-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-12">
+                <p class="text-sand-500 text-sm font-bold tracking-widest uppercase mb-3">EVERY NEIGHBORHOOD, MAPPED</p>
+                <h2 class="font-display text-4xl md:text-5xl text-ocean-900">Explore the Gulf Shores Subdivisions</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Map-style preview -->
+                <a href="/gulfshoressubdivisions/" class="block relative rounded-2xl overflow-hidden shadow-xl group cursor-pointer border border-gray-200">
+                    <img src="assets/subdivisions-preview.png" alt="Interactive Gulf Shores subdivision map" class="w-full h-auto">
+                    <div class="absolute inset-0 bg-ocean-900/0 group-hover:bg-ocean-900/40 transition-all duration-300 flex items-center justify-center rounded-2xl">
+                        <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-sand-500 text-white px-6 py-3 rounded-lg font-semibold text-lg shadow-lg">Explore Subdivisions</span>
+                    </div>
+                </a>
+
+                <!-- Description + CTA -->
+                <div>
+                    <h3 class="font-display text-2xl text-ocean-900 mb-4">Neighborhood Deep Research</h3>
+                    <p class="text-gray-600 text-lg leading-relaxed mb-8">
+                        Thinking about moving here, not just vacationing? Our subdivision guide maps every neighborhood from Fort Morgan to North Gulf Shores — with real stats on price, age, and build style, plus schools and landmarks.
+                    </p>
+
+                    <div class="space-y-5 mb-10">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-ocean-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-5 h-5 text-ocean-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-ocean-800 mb-1">33+ Neighborhoods Pinned</h4>
+                                <p class="text-gray-500 text-sm">Every subdivision with MLS-verified price range, average year built, and average square footage.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-ocean-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-5 h-5 text-ocean-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-ocean-800 mb-1">Schools &amp; Landmarks</h4>
+                                <p class="text-gray-500 text-sm">The new high school site, elementary, middle school, police, The Hangout, OWA, The Wharf, Tanger Outlets — see what's near each neighborhood.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-ocean-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-5 h-5 text-ocean-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V15a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-ocean-800 mb-1">Financing Built-In</h4>
+                                <p class="text-gray-500 text-sm">Each neighborhood is paired with Dave's loan-product match — Conventional, FHA, VA, or USDA — so you know what's possible before you tour.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="/gulfshoressubdivisions/" class="inline-block bg-ocean-700 hover:bg-ocean-800 text-white px-8 py-4 rounded-lg text-lg font-semibold transition shadow-lg hover:shadow-xl">
+                        Explore the Subdivisions Map &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="py-24 bg-sand-50">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="mb-16">
+                <p class="text-sand-500 text-sm font-bold tracking-widest uppercase mb-3">CLIENT RESULTS</p>
+                <h2 class="font-display text-4xl md:text-5xl text-ocean-900">What Our Clients Say</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl p-8 shadow-sm">
+                    <div class="flex text-sand-400 mb-4 text-lg">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="text-gray-600 leading-relaxed mb-6">"Kelly found us the perfect condo in Orange Beach. We were out-of-state buyers and she made us feel like locals from day one. Dave got us an incredible rate — the whole process was seamless."</p>
+                    <p class="font-semibold text-ocean-900 text-sm">The Martinez Family</p>
+                    <p class="text-gray-400 text-xs">Orange Beach Condo Buyer</p>
+                </div>
+                <div class="bg-white rounded-2xl p-8 shadow-sm">
+                    <div class="flex text-sand-400 mb-4 text-lg">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="text-gray-600 leading-relaxed mb-6">"We came down for vacation and fell in love. Kelly showed us 12 properties in one weekend and Dave had our financing figured out before we flew home. We closed in 30 days."</p>
+                    <p class="font-semibold text-ocean-900 text-sm">Jim &amp; Sarah P.</p>
+                    <p class="text-gray-400 text-xs">Gulf Shores Beach House Buyer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="py-24 bg-ocean-800">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div class="text-white">
+                    <h2 class="font-display text-4xl md:text-5xl mb-6">Ready to Make Your Move?</h2>
+                    <p class="text-ocean-200 text-lg leading-relaxed mb-8">Whether you're buying, investing, or just exploring — we'd love to hear from you. Honest advice, no pressure.</p>
+                    <div class="space-y-4 text-ocean-100">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-sand-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-sand-300" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                            </div>
+                            <span>(251) 289-1553</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-sand-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-sand-300" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                            </div>
+                            <span>hello@bigbeachal.com</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-8 shadow-xl">
+                    <h3 class="font-display text-2xl text-ocean-900 mb-6">Get in Touch</h3>
+                    <form id="contactForm" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="text" name="first_name" placeholder="First Name" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sand-400">
+                            <input type="text" name="last_name" placeholder="Last Name" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sand-400">
+                        </div>
+                        <input type="email" name="email" placeholder="Email" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sand-400">
+                        <input type="tel" name="phone" placeholder="Phone" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sand-400">
+                        <select name="interest" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-400 focus:outline-none focus:ring-2 focus:ring-sand-400">
+                            <option value="">I'm interested in...</option>
+                            <option value="vacation-home">Buying a vacation home</option>
+                            <option value="primary-home">Buying a primary home</option>
+                            <option value="str-investment">STR / Investment property</option>
+                            <option value="selling">Selling my property</option>
+                            <option value="exploring">Just exploring</option>
+                        </select>
+                        <textarea name="message" placeholder="Tell us about your goals..." rows="3" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sand-400"></textarea>
+                        <button type="submit" class="w-full bg-sand-500 hover:bg-sand-400 text-white py-4 rounded-xl font-semibold text-lg transition">Send Message</button>
+                    </form>
+                    <div id="contactSuccess" class="hidden text-center py-8">
+                        <div class="w-16 h-16 bg-seafoam-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-seafoam-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-ocean-900 mb-2">Message Sent!</h3>
+                        <p class="text-gray-500">We'll be in touch within 24 hours.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-ocean-900 text-ocean-300 py-12">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <span class="font-display text-xl text-white">Big Beach <span class="text-sand-400">AL</span></span>
+            <p class="text-sm">&copy; 2026 Big Beach AL &middot; Kelly Davis, Associate Broker &amp; Team Lead &middot; Dave Davis, Lending Specialist &amp; Realtor</p>
+            <div class="flex gap-3">
+                <a href="https://www.facebook.com/kelly.goodworth.davis" target="_blank" rel="noopener noreferrer" class="w-9 h-9 bg-ocean-800 hover:bg-sand-500 rounded-lg flex items-center justify-center transition">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+                <a href="https://www.instagram.com/diy.davis/" target="_blank" rel="noopener noreferrer" class="w-9 h-9 bg-ocean-800 hover:bg-sand-500 rounded-lg flex items-center justify-center transition">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+                <a href="https://www.youtube.com/@GulfShoresAlabamaRealEstate" target="_blank" rel="noopener noreferrer" class="w-9 h-9 bg-ocean-800 hover:bg-sand-500 rounded-lg flex items-center justify-center transition">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 mt-8 pt-8 border-t border-ocean-800">
+            <div class="flex flex-col items-center gap-4">
+                <img src="assets/dw-logo.png" alt="Dalton Wade Real Estate Group" class="h-10 opacity-70">
+                <p class="text-xs text-ocean-400 text-center">Realtors with Dalton Wade Real Estate Group &middot; Gulf Shores / Orange Beach Area</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        // Parse UTM parameters from URL
+        function getUtmParams() {
+            var params = new URLSearchParams(window.location.search);
+            return {
+                utm_source: params.get('utm_source') || '',
+                utm_medium: params.get('utm_medium') || '',
+                utm_campaign: params.get('utm_campaign') || '',
+                utm_content: params.get('utm_content') || ''
+            };
+        }
+
+        // Contact form submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var form = this;
+            var formData = new FormData(form);
+            var utm = getUtmParams();
+
+            var tags = [];
+            if (utm.utm_source) tags.push(utm.utm_source);
+
+            var sourceDetail = 'bigbeachal.com - ' + (formData.get('interest') || 'contact');
+
+            fetch('https://crm.bigbeachal.com/api/leads/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Api-Key': 'API_KEY_REDACTED_FROM_MIRROR'
+                },
+                body: JSON.stringify({
+                    first_name: formData.get('first_name') || '',
+                    last_name: formData.get('last_name') || '',
+                    email: formData.get('email') || '',
+                    phone: formData.get('phone') || '',
+                    source: 'landing_page',
+                    source_detail: sourceDetail,
+                    utm_source: utm.utm_source,
+                    utm_medium: utm.utm_medium,
+                    utm_campaign: utm.utm_campaign,
+                    utm_content: utm.utm_content,
+                    tags: tags,
+                    notes: formData.get('message') || ''
+                })
+            });
+
+            form.classList.add('hidden');
+            document.getElementById('contactSuccess').classList.remove('hidden');
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

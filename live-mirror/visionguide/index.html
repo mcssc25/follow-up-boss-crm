@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Beach AL — Your Next Chapter on the Gulf Coast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sand: { 50: '#fdf8f0', 100: '#f5ead6', 200: '#ead3ab', 300: '#ddb87a', 400: '#d4a45e', 500: '#c48c3c', 600: '#a87030', 700: '#8a5828', 800: '#6e4622', 900: '#5a3a1e' },
+                        ocean: { 50: '#eef8fc', 100: '#d5eef7', 200: '#aaddf0', 300: '#6ec5e5', 400: '#38a8d4', 500: '#1e8dba', 600: '#17719a', 700: '#145b7d', 800: '#154b67', 900: '#134057' },
+                        seafoam: { 50: '#effaf6', 100: '#d8f3e8', 200: '#b4e6d4', 300: '#82d2b8', 400: '#51b899', 500: '#309d7e', 600: '#257f66', 700: '#216654', 800: '#1e5244', 900: '#1a4439' },
+                        warmgray: { 50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1' },
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        body: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Playfair Display', serif; }
+        .hero-gradient { background: linear-gradient(160deg, rgba(19,64,87,0.75) 0%, rgba(30,100,140,0.5) 40%, rgba(196,140,60,0.3) 100%); }
+        .stat-card { backdrop-filter: blur(12px); background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); }
+        .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 20px rgba(196,140,60,0.3); } 50% { box-shadow: 0 0 40px rgba(196,140,60,0.5); } }
+    </style>
+</head>
+<body class="bg-white text-gray-800">
+
+    <!-- Sticky CTA Bar -->
+    <div id="stickyCta" class="fixed top-0 left-0 right-0 z-50 bg-ocean-800/95 backdrop-blur-sm text-white py-3 px-4 transform -translate-y-full transition-transform duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <p class="text-sm md:text-base font-medium">Ready to start your Gulf Coast chapter?</p>
+            <a href="#contact" class="bg-sand-500 hover:bg-sand-400 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all">Get Your Free Coastal Vision Guide &rarr;</a>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="absolute top-0 left-0 right-0 z-40 py-5 px-6">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="text-white font-display text-xl font-bold tracking-wide">Big Beach AL</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-8 text-white/90 text-sm font-medium">
+                <a href="#why-move" class="hover:text-white transition-colors">Why the Gulf Coast</a>
+                <a href="#method" class="hover:text-white transition-colors">Our Method</a>
+                <a href="#lifestyle" class="hover:text-white transition-colors">The Lifestyle</a>
+                <a href="#stories" class="hover:text-white transition-colors">Stories</a>
+                <a href="#contact" class="bg-white/20 hover:bg-white/30 px-5 py-2 rounded-full transition-all">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="relative min-h-screen flex items-center overflow-hidden">
+        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80')"></div>
+        <div class="hero-gradient absolute inset-0"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-6 py-32 md:py-0 w-full">
+            <div class="max-w-3xl">
+                <div class="inline-block bg-sand-500/20 border border-sand-400/40 rounded-full px-4 py-1.5 mb-6">
+                    <span class="text-sand-200 text-sm font-medium">Gulf Shores & Orange Beach, Alabama</span>
+                </div>
+
+                <h1 class="font-display text-4xl md:text-6xl lg:text-7xl text-white font-bold leading-tight mb-6">
+                    You've Earned<br>the Good Life.<br><span class="text-sand-300">Come Live It.</span>
+                </h1>
+
+                <p class="text-xl md:text-2xl text-white/80 font-light leading-relaxed mb-4 max-w-2xl">
+                    Trade the commute, the cold, and the chaos for sugar-white sand, no state income tax hassle, and a community that actually knows your name.
+                </p>
+                <p class="text-lg text-white/60 mb-10 max-w-xl">
+                    Gulf Shores isn't just where you vacation. It's where you finally live the way you always said you would &mdash; once the time was right. The time is right.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4 mb-16">
+                    <a href="#contact" class="bg-sand-500 hover:bg-sand-400 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl text-center pulse-glow">
+                        Get Your Free Coastal Vision Guide
+                    </a>
+                    <a href="#why-move" class="border-2 border-white/30 hover:border-white/60 text-white px-8 py-4 rounded-full text-lg font-medium transition-all text-center">
+                        Why People Are Moving Here
+                    </a>
+                </div>
+
+                <!-- Hero Stats -->
+                <div class="grid grid-cols-3 gap-4 max-w-lg">
+                    <div class="stat-card rounded-xl p-4 text-center">
+                        <div class="text-2xl md:text-3xl font-bold text-white">265+</div>
+                        <div class="text-xs text-white/60 mt-1">Sunny Days/Year</div>
+                    </div>
+                    <div class="stat-card rounded-xl p-4 text-center">
+                        <div class="text-2xl md:text-3xl font-bold text-white">40%</div>
+                        <div class="text-xs text-white/60 mt-1">Lower Cost of Living</div>
+                    </div>
+                    <div class="stat-card rounded-xl p-4 text-center">
+                        <div class="text-2xl md:text-3xl font-bold text-white">32 mi</div>
+                        <div class="text-xs text-white/60 mt-1">of White Sand Beach</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/40 animate-bounce">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+        </div>
+    </section>
+
+    <!-- EMOTIONAL HOOK -->
+    <section class="py-20 md:py-28 px-6 bg-warmgray-50">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <span class="text-sand-600 font-semibold text-sm tracking-widest uppercase mb-4 block">The Moment It Clicks</span>
+                    <h2 class="font-display text-3xl md:text-5xl text-gray-900 font-bold leading-tight mb-6">
+                        The kids are grown. The house is quiet. Now what?
+                    </h2>
+                    <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                        You spent decades building a career, raising a family, and doing the responsible thing. The mortgage got paid. The kids graduated. And somewhere along the way, you started dreaming about the beach &mdash; not for a week, but for <span class="font-semibold text-gray-900">the rest of your life.</span>
+                    </p>
+                    <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                        You don't need another vacation. You need a place where your grandkids beg to visit, where you wake up to the sound of waves instead of an alarm, and where "rush hour" means the pelicans are out.
+                    </p>
+                    <p class="text-xl text-ocean-700 font-semibold">
+                        This isn't retirement. It's your next chapter.
+                    </p>
+                </div>
+                <div class="relative">
+                    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                        <div class="text-center mb-6">
+                            <span class="text-gray-400 text-sm font-medium uppercase tracking-wider">What You're Really Leaving Behind</span>
+                        </div>
+                        <div class="space-y-5">
+                            <div class="flex items-center gap-4 border-b border-gray-100 pb-4">
+                                <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-gray-800">The 45-minute commute</div>
+                                    <div class="text-sm text-gray-400">Replaced by a 5-minute walk to the beach</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 border-b border-gray-100 pb-4">
+                                <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-gray-800">5 months of gray skies</div>
+                                    <div class="text-sm text-gray-400">Replaced by 265+ days of sunshine</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 border-b border-gray-100 pb-4">
+                                <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-gray-800">High taxes & high stress</div>
+                                    <div class="text-sm text-gray-400">Replaced by lower costs & slower pace</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-gray-800">A too-big house for two people</div>
+                                    <div class="text-sm text-gray-400">Replaced by a home the whole family wants to visit</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHY GULF SHORES -->
+    <section id="why-move" class="py-20 md:py-28 px-6 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-ocean-500 font-semibold text-sm tracking-widest uppercase mb-4 block">Why People Are Choosing Gulf Shores</span>
+                <h2 class="font-display text-3xl md:text-5xl text-gray-900 font-bold mb-6">
+                    Everything You Love About the Beach.<br>None of What You Don't.
+                </h2>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto">
+                    Gulf Shores and Orange Beach offer the coastal lifestyle without the tourist-trap prices, the overcrowding, or the pretension.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <div class="bg-gradient-to-br from-ocean-50 to-white rounded-2xl p-8 border border-ocean-100 hover:shadow-lg transition-shadow">
+                    <div class="w-14 h-14 bg-ocean-100 rounded-xl flex items-center justify-center mb-5">
+                        <svg class="w-7 h-7 text-ocean-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">A Real Community</h3>
+                    <p class="text-gray-600 leading-relaxed">This isn't a transient resort town. Gulf Shores has a year-round community of families, retirees, and small business owners who chose to be here. Neighbors wave. People know your name at the coffee shop.</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-seafoam-50 to-white rounded-2xl p-8 border border-seafoam-100 hover:shadow-lg transition-shadow">
+                    <div class="w-14 h-14 bg-seafoam-100 rounded-xl flex items-center justify-center mb-5">
+                        <svg class="w-7 h-7 text-seafoam-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Your Dollar Goes Further</h3>
+                    <p class="text-gray-600 leading-relaxed">Cost of living runs 20&ndash;40% below major metros. Property taxes are among the lowest in the nation. Social Security and pensions are tax-free in Alabama. Your money simply goes further here.</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-sand-50 to-white rounded-2xl p-8 border border-sand-100 hover:shadow-lg transition-shadow">
+                    <div class="w-14 h-14 bg-sand-100 rounded-xl flex items-center justify-center mb-5">
+                        <svg class="w-7 h-7 text-sand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">The Family Magnet</h3>
+                    <p class="text-gray-600 leading-relaxed">Your kids may have moved away &mdash; but give them a reason to come back. A beach house on the Gulf is the kind of place grandkids grow up talking about. Holiday dinners hit different with a sunset view.</p>
+                </div>
+            </div>
+
+            <!-- More reasons grid -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-6">
+                    <div class="w-10 h-10 bg-ocean-100 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                        <svg class="w-5 h-5 text-ocean-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-1">Easy to Get To</h4>
+                        <p class="text-sm text-gray-600">Gulf Shores International Airport (JKA) offers regional flights right in town. Pensacola International (PNS) is 45 minutes away with direct flights from most major cities. Drive from Atlanta in 5 hours, Nashville in 7, Dallas in 8.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-6">
+                    <div class="w-10 h-10 bg-ocean-100 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                        <svg class="w-5 h-5 text-ocean-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-1">Top-Rated Healthcare Nearby</h4>
+                        <p class="text-sm text-gray-600">South Baldwin Regional Medical Center is local. USA Health and Sacred Heart in Pensacola are a short drive. Quality care without big-city hassle.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-6">
+                    <div class="w-10 h-10 bg-ocean-100 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                        <svg class="w-5 h-5 text-ocean-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-1">Sugar-White Sand, Year-Round</h4>
+                        <p class="text-sm text-gray-600">Consistently rated among the best beaches in America. The sand is pure quartz crystal &mdash; cool to the touch even in summer. Winters are mild enough for beach walks in January.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-6">
+                    <div class="w-10 h-10 bg-ocean-100 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                        <svg class="w-5 h-5 text-ocean-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-1">Things to Actually Do</h4>
+                        <p class="text-sm text-gray-600">World-class fishing, golf courses, The Wharf entertainment district, fresh seafood, kayaking, and a growing food scene. You won't be bored &mdash; unless you want to be.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LIFESTYLE GALLERY -->
+    <section id="lifestyle" class="py-20 md:py-28 px-6 bg-gradient-to-br from-ocean-800 via-ocean-900 to-gray-900 text-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-sand-400 font-semibold text-sm tracking-widest uppercase mb-4 block">A Day in the Life</span>
+                <h2 class="font-display text-3xl md:text-5xl font-bold mb-6">
+                    What a Tuesday Looks Like<br>When You Live Here
+                </h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                    <div class="text-sand-400 text-sm font-semibold mb-2">7:00 AM</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Coffee on the Balcony</h3>
+                    <p class="text-white/60 text-sm">Watch the dolphins play while the rest of the country sits in traffic. The sun is already warm.</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                    <div class="text-sand-400 text-sm font-semibold mb-2">9:30 AM</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Morning Beach Walk</h3>
+                    <p class="text-white/60 text-sm">Three miles of sand, barely anyone on it. The off-season is the locals' best-kept secret.</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                    <div class="text-sand-400 text-sm font-semibold mb-2">12:00 PM</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Lunch at the Marina</h3>
+                    <p class="text-white/60 text-sm">Fresh catch, outdoor seating, water views. The kind of Tuesday that used to require taking PTO.</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                    <div class="text-sand-400 text-sm font-semibold mb-2">5:30 PM</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Sunset from Your Deck</h3>
+                    <p class="text-white/60 text-sm">The sky goes gold, then pink, then purple. You're not on vacation. This is just where you live now.</p>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <p class="text-ocean-200 text-lg italic font-display">"The first month, I kept feeling like I was on vacation. By the third month, I realized &mdash; this is just my life now."</p>
+                <p class="text-ocean-400 text-sm mt-3">&mdash; Former Chicago resident, now 3 years in Gulf Shores</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE METHOD -->
+    <section id="method" class="py-20 md:py-28 px-6 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-ocean-500 font-semibold text-sm tracking-widest uppercase mb-4 block">How It Works</span>
+                <h2 class="font-display text-3xl md:text-5xl text-gray-900 font-bold mb-6">
+                    The Big Beach Method
+                </h2>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto">
+                    Moving to a new state is a big decision. We don't just find you a house &mdash; we help you build a plan for this entire transition, from first call to first sunset on your new porch.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="relative group">
+                    <div class="absolute -top-4 -left-4 w-16 h-16 bg-ocean-100 rounded-2xl flex items-center justify-center text-ocean-600 font-display text-2xl font-bold group-hover:bg-ocean-500 group-hover:text-white transition-all">1</div>
+                    <div class="bg-gray-50 rounded-2xl p-8 pt-16 h-full border border-gray-100 group-hover:border-ocean-200 group-hover:shadow-lg transition-all">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Coastal Vision Guide</h3>
+                        <p class="text-gray-600 leading-relaxed mb-4">
+                            We start with your life &mdash; not a listing. What does your ideal day look like? How close to the water? Do you want a neighborhood with other full-time residents? We define what "home" means for your next chapter.
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-500">
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Lifestyle priorities & must-haves</li>
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Neighborhood & community fit</li>
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Budget & financial planning</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <div class="absolute -top-4 -left-4 w-16 h-16 bg-seafoam-100 rounded-2xl flex items-center justify-center text-seafoam-600 font-display text-2xl font-bold group-hover:bg-seafoam-500 group-hover:text-white transition-all">2</div>
+                    <div class="bg-gray-50 rounded-2xl p-8 pt-16 h-full border border-gray-100 group-hover:border-seafoam-200 group-hover:shadow-lg transition-all">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Curated Property Match</h3>
+                        <p class="text-gray-600 leading-relaxed mb-4">
+                            No scrolling Zillow at midnight. We hand-pick properties that match your vision &mdash; the things you can't see in a listing, like which streets flood, which HOAs are well-run, and where the full-time residents actually live.
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-500">
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Local-only knowledge & insights</li>
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Video tours for remote buyers</li>
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Honest pros & cons for every option</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <div class="absolute -top-4 -left-4 w-16 h-16 bg-sand-100 rounded-2xl flex items-center justify-center text-sand-600 font-display text-2xl font-bold group-hover:bg-sand-500 group-hover:text-white transition-all">3</div>
+                    <div class="bg-gray-50 rounded-2xl p-8 pt-16 h-full border border-gray-100 group-hover:border-sand-200 group-hover:shadow-lg transition-all">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Keys-in-Hand Transition</h3>
+                        <p class="text-gray-600 leading-relaxed mb-4">
+                            We manage the entire out-of-state purchase &mdash; and go further. Need a contractor? A doctor? Know where to get your car registered? We connect you to everything you need to actually settle in, not just close a deal.
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-500">
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Remote closing coordination</li>
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Local services & vendor network</li>
+                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-seafoam-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> New-resident welcome package</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section id="stories" class="py-20 md:py-28 px-6 bg-warmgray-50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-ocean-500 font-semibold text-sm tracking-widest uppercase mb-4 block">They Made the Move</span>
+                <h2 class="font-display text-3xl md:text-5xl text-gray-900 font-bold mb-6">
+                    Stories from People Who Were<br>Right Where You Are Now
+                </h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-1 mb-4">
+                        <span class="text-yellow-400 text-lg">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed mb-6 italic">
+                        "We talked about 'moving to the beach someday' for 15 years. Kelly made it real. She found us a place in a neighborhood full of other transplants our age. Our grandkids have already been down three times this year."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-ocean-100 rounded-full flex items-center justify-center text-ocean-600 font-bold text-sm">B&L</div>
+                        <div>
+                            <div class="font-semibold text-gray-900 text-sm">Bob & Linda K.</div>
+                            <div class="text-gray-400 text-xs">Moved from Chicago, IL &bull; 2024</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-1 mb-4">
+                        <span class="text-yellow-400 text-lg">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed mb-6 italic">
+                        "I was terrified of buying sight-unseen from 800 miles away. Kelly did video walkthroughs of every property, gave me the honest downsides of each one, and connected me with a contractor before I even closed. I felt like I had a friend on the ground."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-seafoam-100 rounded-full flex items-center justify-center text-seafoam-600 font-bold text-sm">D</div>
+                        <div>
+                            <div class="font-semibold text-gray-900 text-sm">Diane M.</div>
+                            <div class="text-gray-400 text-xs">Moved from Columbus, OH &bull; 2025</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-1 mb-4">
+                        <span class="text-yellow-400 text-lg">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed mb-6 italic">
+                        "We considered Destin and Myrtle Beach too. Kelly showed us why Gulf Shores had the best mix of affordability, community, and quality of life. We're paying half what our house in New Jersey cost us, and we're on the water."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-sand-100 rounded-full flex items-center justify-center text-sand-600 font-bold text-sm">T&P</div>
+                        <div>
+                            <div class="font-semibold text-gray-900 text-sm">Tom & Pat S.</div>
+                            <div class="text-gray-400 text-xs">Moved from Bergen County, NJ &bull; 2024</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="py-20 md:py-28 px-6 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-sand-100 to-ocean-100 rounded-3xl p-4">
+                        <img src="/assets/gulf-shores-aerial.webp" alt="Gulf Shores coastline aerial view" class="rounded-2xl w-full h-80 object-cover">
+                    </div>
+                    <div class="absolute -bottom-6 -right-6 bg-white rounded-2xl shadow-xl p-5 border border-gray-100">
+                        <div class="text-sm text-gray-500">Families Relocated</div>
+                        <div class="text-3xl font-bold text-ocean-700">150+</div>
+                        <div class="text-xs text-gray-400">to the Gulf Coast</div>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-ocean-500 font-semibold text-sm tracking-widest uppercase mb-4 block">Built on Experience</span>
+                    <h2 class="font-display text-3xl md:text-4xl text-gray-900 font-bold leading-tight mb-6">
+                        We Made This Move Ourselves.
+                    </h2>
+                    <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                        We didn't grow up here. We chose it. Years ago, we left the suburbs, the traffic, and the winters behind to build our life on the Gulf Coast. We know what it feels like to dream about this move &mdash; and what it takes to actually make it happen.
+                    </p>
+                    <p class="text-lg text-gray-600 leading-relaxed mb-8">
+                        Now we help others do the same thing. Not with a sales pitch, but with the kind of honest, local knowledge we wish we'd had. We'll tell you which streets flood, which neighborhoods have the best community, and whether a house is actually worth the asking price.
+                    </p>
+                    <div class="flex items-center gap-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-ocean-700">10+</div>
+                            <div class="text-xs text-gray-400">Years on the Gulf</div>
+                        </div>
+                        <div class="w-px h-12 bg-gray-200"></div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-ocean-700">98%</div>
+                            <div class="text-xs text-gray-400">Client Satisfaction</div>
+                        </div>
+                        <div class="w-px h-12 bg-gray-200"></div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-ocean-700">150+</div>
+                            <div class="text-xs text-gray-400">Families Relocated</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LEAD CAPTURE -->
+    <section id="contact" class="py-20 md:py-28 px-6 bg-gradient-to-br from-ocean-800 via-ocean-900 to-gray-900 text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-sand-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-ocean-400/10 rounded-full blur-3xl"></div>
+
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="font-display text-3xl md:text-5xl font-bold leading-tight mb-6">
+                        Get Your Free<br>Coastal Vision<br>Guide
+                    </h2>
+                    <p class="text-lg text-ocean-200 leading-relaxed mb-8">
+                        A personalized look at what your Gulf Coast life could actually look like &mdash; neighborhoods that fit your lifestyle, homes in your budget, and an honest cost-of-living comparison to where you are now.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-sand-500/20 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-sand-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            </div>
+                            <span class="text-ocean-100">Neighborhood recommendations based on your lifestyle</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-sand-500/20 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-sand-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            </div>
+                            <span class="text-ocean-100">Hand-picked listings that match your vision</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-sand-500/20 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-sand-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            </div>
+                            <span class="text-ocean-100">Cost-of-living comparison: your city vs. Gulf Shores</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-8 md:p-10 text-gray-800 shadow-2xl">
+                    <div class="text-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-900">Start Your Coastal Vision Guide</h3>
+                        <p class="text-sm text-gray-400 mt-1">Takes 30 seconds. We'll be in touch within 24 hours.</p>
+                    </div>
+                    <form id="leadForm" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                <input type="text" name="first_name" placeholder="John" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition-all text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                <input type="text" name="last_name" placeholder="Smith" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition-all text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" name="email" placeholder="john@example.com" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition-all text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                            <input type="tel" name="phone" placeholder="(555) 123-4567" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition-all text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Where are you moving from?</label>
+                            <input type="text" name="moving_from" placeholder="City, State" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition-all text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Timeline</label>
+                            <select name="timeline" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-ocean-400 focus:ring-2 focus:ring-ocean-100 outline-none transition-all text-sm text-gray-600">
+                                <option value="ASAP">As soon as possible</option>
+                                <option value="3-6-months">3&ndash;6 months</option>
+                                <option value="6-12-months">6&ndash;12 months</option>
+                                <option value="1-2-years">1&ndash;2 years out</option>
+                                <option value="just-browsing">Just dreaming for now</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-sand-500 hover:bg-sand-400 text-white py-4 rounded-xl font-semibold text-lg transition-all shadow-lg hover:shadow-xl mt-2">
+                            Get My Free Coastal Vision Guide &rarr;
+                        </button>
+                        <p class="text-xs text-gray-400 text-center">No spam. No pressure. Just honest answers about Gulf Coast living.</p>
+                    </form>
+
+                    <div id="formSuccess" class="hidden text-center py-8">
+                        <div class="w-16 h-16 bg-seafoam-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-seafoam-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Your Coastal Vision Guide Is Ready!</h3>
+                        <p class="text-gray-500 mb-4">Your guide should be opening now. If it didn't, click below to download it.</p>
+                        <a href="Big_Beach_AL_Guide.pdf" target="_blank" class="inline-block bg-sand-500 hover:bg-sand-400 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl no-underline">Download Your Coastal Vision Guide</a>
+                        <p class="text-gray-400 text-sm mt-4">We'll be in touch soon!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 py-12 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center space-x-2">
+                    <span class="text-white font-display text-lg font-bold">Big Beach AL</span>
+                    <span class="text-gray-500 text-sm">&bull; Gulf Shores, Alabama</span>
+                </div>
+                <div class="flex items-center gap-6 text-sm text-gray-400">
+                    <a href="#why-move" class="hover:text-white transition-colors">Why Gulf Shores</a>
+                    <a href="#method" class="hover:text-white transition-colors">Our Method</a>
+                    <a href="#lifestyle" class="hover:text-white transition-colors">The Lifestyle</a>
+                    <a href="#contact" class="hover:text-white transition-colors">Contact</a>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <a href="https://www.facebook.com/kelly.goodworth.davis" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="Facebook">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/diy.davis/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="Instagram">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    </a>
+                    <a href="https://www.youtube.com/@GulfShoresAlabamaRealEstate" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="YouTube">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col items-center gap-4">
+                <img src="/assets/dw-logo.png" alt="Dalton Wade Real Estate Group" class="h-10 opacity-70">
+                <p class="text-xs text-gray-500 text-center">Realtors with Dalton Wade Real Estate Group &middot; Gulf Shores / Orange Beach Area</p>
+                <p class="text-xs text-gray-500">&copy; 2026 The Big Beach Method | Gulf Shores, Alabama. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        const stickyCta = document.getElementById('stickyCta');
+        const heroSection = document.querySelector('section');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > heroSection.offsetHeight - 100) {
+                stickyCta.classList.remove('-translate-y-full');
+            } else {
+                stickyCta.classList.add('-translate-y-full');
+            }
+        });
+
+        // Parse UTM parameters from URL
+        function getUtmParams() {
+            var params = new URLSearchParams(window.location.search);
+            return {
+                utm_source: params.get('utm_source') || '',
+                utm_medium: params.get('utm_medium') || '',
+                utm_campaign: params.get('utm_campaign') || '',
+                utm_content: params.get('utm_content') || ''
+            };
+        }
+
+        document.getElementById('leadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var form = this;
+            var formData = new FormData(form);
+            var utm = getUtmParams();
+
+            var tags = [];
+            if (utm.utm_source) tags.push(utm.utm_source);
+
+            var sourceDetail = 'bigbeachal.com - ' + (formData.get('timeline') || '');
+
+            // Send to CRM (auto-enrolls in drip campaign)
+            fetch('https://crm.bigbeachal.com/api/leads/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Api-Key': 'API_KEY_REDACTED_FROM_MIRROR'
+                },
+                body: JSON.stringify({
+                    first_name: formData.get('first_name') || '',
+                    last_name: formData.get('last_name') || '',
+                    email: formData.get('email') || '',
+                    phone: formData.get('phone') || '',
+                    source: 'landing_page',
+                    source_detail: sourceDetail,
+                    utm_source: utm.utm_source,
+                    utm_medium: utm.utm_medium,
+                    utm_campaign: utm.utm_campaign,
+                    utm_content: utm.utm_content,
+                    tags: tags,
+                    campaign_id: 2
+                })
+            });
+
+            // Show success and deliver PDF
+            form.classList.add('hidden');
+            document.getElementById('formSuccess').classList.remove('hidden');
+            window.open('Big_Beach_AL_Guide.pdf', '_blank');
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

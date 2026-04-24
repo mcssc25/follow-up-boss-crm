@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- v2 CRM -->
+    <title>The "Big Beach" Method | Gulf Shores Real Estate</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap');
+
+        :root {
+            --primary: #1a757b;
+            --primary-light: #26a69a;
+            --secondary: #f77f62;
+            --accent: #fcece8;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Hero Section */
+        header {
+            position: relative;
+            height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--white);
+            margin-bottom: 60px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.7);
+        }
+
+        .hero-content {
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 80%;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        header h2 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        /* Section Styling */
+        section {
+            background: var(--white);
+            padding: 60px;
+            border-radius: 24px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .section-header h3 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: var(--secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.875rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Grid Layouts */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .image-card {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .image-card:hover {
+            transform: scale(1.02);
+        }
+
+        .image-card img {
+            width: 100%;
+            display: block;
+            border-radius: 20px;
+        }
+
+        /* Phase List */
+        .method-phases {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .phase-item {
+            display: flex;
+            gap: 20px;
+            padding: 30px;
+            background: var(--accent);
+            border-radius: 20px;
+            border-left: 6px solid var(--secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .phase-item:hover {
+            transform: translateX(10px);
+        }
+
+        .phase-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--secondary);
+            line-height: 1;
+        }
+
+        .phase-content h4 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Highlight Section */
+        .highlight {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: var(--white);
+            padding: 80px 40px;
+            text-align: center;
+            border-radius: 24px;
+            margin-bottom: 40px;
+        }
+
+        .highlight p {
+            font-size: 1.5rem;
+            font-weight: 300;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .highlight strong {
+            font-weight: 700;
+            color: #fff;
+            display: block;
+            margin-top: 20px;
+            font-size: 1.8rem;
+        }
+
+        /* Testimonials */
+        .testimonial {
+            font-style: italic;
+            border-left: 4px solid var(--secondary);
+            padding-left: 30px;
+            margin: 40px 0;
+            font-size: 1.25rem;
+            color: var(--text-light);
+        }
+
+        .author {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: var(--text);
+            font-style: normal;
+        }
+
+        /* CTA */
+        .cta-box {
+            background: var(--text);
+            color: var(--white);
+            padding: 80px 40px;
+            text-align: center;
+            border-radius: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box h3 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .form-group option {
+            color: #000;
+            background: #fff;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--secondary);
+            color: var(--white);
+            padding: 18px 48px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(247, 127, 98, 0.3);
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(247, 127, 98, 0.4);
+            background: #ff8e75;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 2.5rem;
+            }
+
+            section {
+                padding: 30px;
+            }
+
+            .hero-content {
+                max-width: 95%;
+            }
+        }
+    </style>
+    <!-- BOLDTRAIL PIXEL PLACEHOLDER - PASTE PIXEL HERE -->
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <img src="assets/living_room.png" alt="Gulf Shores Coastal Home" class="hero-img">
+            <div class="hero-content">
+                <span class="tagline">Exclusive Real Estate System</span>
+                <h1>The "Big Beach" Method</h1>
+                <h2>Your Gateway to a Purposeful Life on the Gulf Coast</h2>
+            </div>
+        </header>
+
+        <section id="vision">
+            <div class="grid">
+                <div>
+                    <span class="tagline">The Why</span>
+                    <h3>The Dream of the Beach House</h3>
+                    <p>Your kids are getting older. The youngest is finishing high school, and you realize they will
+                        soon have their own lives. You want more than just a house; you want a <strong>permanent
+                            legacy</strong>.</p>
+                    <p style="margin-top:20px;">Imagine a place where your children (and grandchildren) actually want to
+                        visit. A sanctuary where you can smell the ocean air instead of hearing traffic. A smart
+                        investment that turns taxes into lifestyle assets.</p>
+                </div>
+                <div class="image-card">
+                    <img src="assets/family_beach.png" alt="Family Connection">
+                </div>
+            </div>
+        </section>
+
+        <div class="highlight">
+            <p>"Taking a short trip isn't enough anymore. You need a permanent place for your family to grow."</p>
+            <strong>Stop Renting. Start Belonging.</strong>
+        </div>
+
+        <section id="method">
+            <div class="section-header">
+                <span class="tagline">The Process</span>
+                <h3>The "Big Beach" Method</h3>
+                <p>A proven 3-phase system to find and transition into your perfect coastal home.</p>
+            </div>
+
+            <div class="method-phases">
+                <div class="phase-item">
+                    <div class="phase-number">01</div>
+                    <div class="phase-content">
+                        <h4>The Coastal Vision Blueprint</h4>
+                        <p>We define exactly how the house will serve your family's future, balancing lifestyle goals
+                            with smart investment principles.</p>
+                    </div>
+                </div>
+                <div class="phase-item">
+                    <div class="phase-number">02</div>
+                    <div class="phase-content">
+                        <h4>The Curated Property Match</h4>
+                        <p>We filter through the noise to find only the best homes that fit your strict rules for
+                            quality and value, specifically in Gulf Shores.</p>
+                    </div>
+                </div>
+                <div class="phase-item">
+                    <div class="phase-number">03</div>
+                    <div class="phase-content">
+                        <h4>The 'Keys-in-Hand' Transition</h4>
+                        <p>We handle the complexities of out-of-state buying so you can simply show up and start living
+                            the beach life.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="story">
+            <div class="grid">
+                <div class="image-card">
+                    <img src="assets/pollbeach.jpg" alt="Gulf Shores Beach Property">
+                </div>
+                <div>
+                    <span class="tagline">Our Story</span>
+                    <h3>Built on Experience</h3>
+                    <p>A few years ago, we were exactly where you are. Tired of high taxes and a busy suburban grind.
+                        Moving to the Gulf Coast changed everything for us. It wasn't just a financial move; it was a
+                        lifestyle revolution.</p>
+                    <p style="margin-top:20px;">Today, we use our personal journey and real estate expertise to help
+                        other families achieve the same peace and freedom we found here.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="testimonial">
+            "Kelly helped us find the perfect beach house in Gulf Shores. It was so easy, and now our kids beg to visit
+            every weekend!"
+            <span class="author">— The Thompson Family</span>
+        </div>
+
+        <div class="cta-box" id="cta-section">
+            <h3>Ready for the Beach?</h3>
+            <p style="margin-bottom: 30px;">Fill out the form below to receive your Coastal Vision Blueprint.</p>
+
+            <form id="lead-form">
+                <div class="form-group">
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="full-name" name="Name" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="Email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="Phone" placeholder="Enter your phone number">
+                </div>
+                <div class="form-group">
+                    <label for="timeline">When are you looking to buy?</label>
+                    <select id="timeline" name="Timeline">
+                        <option value="ASAP">As soon as possible</option>
+                        <option value="3-6-months">3-6 Months</option>
+                        <option value="6-12-months">6-12 Months</option>
+                        <option value="just-browsing">Just browsing</option>
+                    </select>
+                </div>
+                <input type="hidden" name="Source" value="BigBeachAL.com">
+                <input type="hidden" name="Hashtags" value="#BigBeach">
+
+                <button type="submit" class="cta-button" id="submit-btn">Get Your Free Coastal Vision Blueprint</button>
+            </form>
+
+            <!-- Success Message (hidden by default) -->
+            <div id="success-message" style="display:none; animation: fadeIn 0.8s ease-out;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🏖️</div>
+                <h3 style="margin-bottom: 15px;">You're One Step Closer to the Beach!</h3>
+                <p style="font-size: 1.15rem; opacity: 0.9;">We've received your information and will be in touch
+                    shortly with your personalized Coastal Vision Blueprint.</p>
+                <p style="margin-top: 20px; font-weight: 600; color: var(--secondary);">Talk soon!</p>
+            </div>
+        </div>
+
+        <script>
+            // Parse UTM parameters from URL
+            function getUtmParams() {
+                var params = new URLSearchParams(window.location.search);
+                return {
+                    utm_source: params.get('utm_source') || '',
+                    utm_medium: params.get('utm_medium') || '',
+                    utm_campaign: params.get('utm_campaign') || '',
+                    utm_content: params.get('utm_content') || ''
+                };
+            }
+
+            document.getElementById('lead-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                var btn = document.getElementById('submit-btn');
+                var form = this;
+                btn.textContent = 'Sending...';
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+
+                var formData = new FormData(form);
+
+                // Gather UTM parameters
+                var utm = getUtmParams();
+
+                // Build tags list
+                var tags = [];
+                if (utm.utm_source) {
+                    tags.push(utm.utm_source);
+                }
+
+                // Build source_detail with UTM info
+                var sourceDetail = 'bigbeachal.com - ' + (formData.get('Timeline') || '');
+
+                // Send to CRM (auto-enrolls in drip campaign)
+                var fullName = formData.get('Name') || '';
+                var nameParts = fullName.trim().split(' ');
+                fetch('https://crm.bigbeachal.com/api/leads/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Api-Key': 'API_KEY_REDACTED_FROM_MIRROR'
+                    },
+                    body: JSON.stringify({
+                        first_name: nameParts[0] || '',
+                        last_name: nameParts.slice(1).join(' ') || '',
+                        email: formData.get('Email') || '',
+                        phone: formData.get('Phone') || '',
+                        source: 'landing_page',
+                        source_detail: sourceDetail,
+                        utm_source: utm.utm_source,
+                        utm_medium: utm.utm_medium,
+                        utm_campaign: utm.utm_campaign,
+                        utm_content: utm.utm_content,
+                        tags: tags,
+                        campaign_id: 2
+                    })
+                });
+
+                // Show success message
+                setTimeout(function () {
+                    form.style.display = 'none';
+                    document.getElementById('success-message').style.display = 'block';
+                }, 500);
+            });
+        </script>
+
+        <footer>
+            <p>&copy; 2026 The Big Beach Method | Gulf Shores, Alabama</p>
+        </footer>
+    </div>
+
+</body>
+
+</html>
