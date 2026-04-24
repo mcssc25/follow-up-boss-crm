@@ -412,3 +412,14 @@ LOGGING = {
         },
     },
 }
+
+# ---------------------------------------------------------------------------
+# Lead routing (two-funnel)
+# ---------------------------------------------------------------------------
+
+# Track-aware agent assignment for two-funnel lead routing.
+# Maps track name to a list of usernames. Lookup is case-sensitive.
+TRACK_AGENTS = {
+    'track1': ['dave', 'kelly'],     # Relocation funnel
+    'track2': ['kelly', 'kerri'],    # Vacation/condo funnel
+}
