@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.accounts.models import Team
 from apps.campaigns.models import Campaign, CampaignStep
@@ -45,11 +45,17 @@ TODO_BODY = "<p>TODO: Kelly + Dave to write — see Section 6 of content-funnel-
 class Command(BaseCommand):
     help = 'Creates the Track 1 — Relocation Welcome (12-week) email campaign'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Replace existing campaign steps even if the campaign already exists.',
+        )
+
     def handle(self, *args, **options):
         team = Team.objects.first()
         if not team:
-            self.stdout.write(self.style.ERROR('No team found in database.'))
-            return
+            raise CommandError('No team found in database.')
 
         campaign, created = Campaign.objects.get_or_create(
             name="Track 1 — Relocation Welcome",
@@ -60,7 +66,12 @@ class Command(BaseCommand):
         )
 
         if not created:
-            self.stdout.write(self.style.WARNING('Campaign already exists. Replacing steps...'))
+            if not options['force']:
+                raise CommandError(
+                    f'Campaign "{campaign.name}" already exists with {campaign.steps.count()} step(s). '
+                    f'Pass --force to delete and recreate them. Existing admin edits will be lost.'
+                )
+            self.stdout.write(self.style.WARNING('--force passed: replacing existing steps...'))
             campaign.steps.all().delete()
 
         steps = [
