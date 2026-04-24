@@ -3,173 +3,994 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relocation Guide | Big Beach AL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+    <title>The 2026 Gulf Shores Relocation Guide | Big Beach AL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         @page { size: letter; margin: 0; }
         :root {
             --ocean-deep: #0B3D5B;
+            --ocean-mid: #1A6B8A;
             --ocean-light: #3DA5C9;
             --sand: #F5E6D3;
             --sand-light: #FFF8F0;
+            --sand-warm: #FAF1E3;
             --sunset-gold: #E8A838;
-            --text: #333333;
+            --sunset-amber: #C8861E;
+            --text-dark: #1F2937;
+            --text-mid: #4B5563;
+            --text-light: #6B7280;
+            --border-soft: #E8E2D5;
         }
 
-        body { font-family: 'Raleway', sans-serif; color: var(--text); background: #eee; line-height: 1.6; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            color: var(--text-dark);
+            background: #eee;
+            line-height: 1.55;
+            font-size: 11pt;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; color: var(--ocean-deep); line-height: 1.15; font-weight: 700; }
+        h2 { font-size: 30pt; margin-bottom: 0.25in; letter-spacing: -0.5px; }
+        h3 { font-size: 16pt; margin: 0.25in 0 0.12in; }
+        h4 { font-size: 12.5pt; margin: 0.18in 0 0.08in; color: var(--ocean-mid); }
+        p { margin-bottom: 0.12in; color: var(--text-mid); }
+        strong { color: var(--ocean-deep); font-weight: 600; }
+        ul { margin: 0.08in 0 0.15in 0.3in; }
+        li { margin-bottom: 0.05in; color: var(--text-mid); }
 
         .page {
-            width: 8.5in;
-            height: 11in;
-            background: white;
-            margin: 20px auto;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 8.5in; height: 11in; background: white;
+            margin: 20px auto; position: relative; overflow: hidden;
+            box-shadow: 0 0 25px rgba(0,0,0,0.12);
             page-break-after: always;
+            display: flex; flex-direction: column;
+        }
+        .page:last-child { page-break-after: auto; }
+
+        .content { padding: 0.65in 0.65in 0.55in; flex: 1; display: flex; flex-direction: column; }
+
+        /* Page header bar (small) */
+        .page-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 0.18in; border-bottom: 1px solid var(--border-soft); margin-bottom: 0.28in;
+            font-size: 8.5pt; color: var(--text-light); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;
+        }
+        .page-header .brand { color: var(--ocean-deep); font-weight: 700; font-family: 'Playfair Display', serif; font-size: 12pt; letter-spacing: 0.5px; text-transform: none; }
+        .page-header .brand span { color: var(--sunset-gold); }
+
+        .page-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 0.15in; border-top: 1px solid var(--border-soft); margin-top: auto;
+            font-size: 8pt; color: var(--text-light); letter-spacing: 1px;
         }
 
-        /* Cover */
+        .eyebrow {
+            color: var(--ocean-light); font-weight: 700; text-transform: uppercase;
+            letter-spacing: 2.5px; font-size: 8.5pt; margin-bottom: 0.1in;
+        }
+
+        /* COVER */
         .cover {
-            background: var(--ocean-deep);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: white;
+            background: var(--ocean-deep); color: white;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; position: relative; padding: 0;
         }
-
-        .cover-img {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover;
-            opacity: 0.4;
+        .cover-img-bg {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; opacity: 0.5;
         }
+        .cover-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,61,91,0.5) 0%, rgba(11,61,91,0.85) 100%); }
+        .cover-content { position: relative; z-index: 2; padding: 1.2in 0.8in; max-width: 6.8in; }
+        .cover-eyebrow {
+            color: var(--sunset-gold); font-weight: 700; letter-spacing: 6px; font-size: 9pt;
+            text-transform: uppercase; margin-bottom: 0.45in;
+        }
+        .cover h1 {
+            font-family: 'Playfair Display', serif; font-size: 56pt; line-height: 1.05;
+            color: white; margin-bottom: 0.35in; letter-spacing: -2px;
+        }
+        .cover h1 .ital { display: block; font-style: italic; color: var(--sunset-gold); font-weight: 500; font-size: 0.7em; margin-top: 0.1in; }
+        .cover-tag {
+            font-family: 'Cormorant Garamond', serif; font-style: italic;
+            font-size: 18pt; color: rgba(255,255,255,0.9); margin: 0.4in auto 0.8in; max-width: 5in; line-height: 1.4;
+        }
+        .cover-line { width: 80px; height: 2px; background: var(--sunset-gold); margin: 0.5in auto; }
+        .cover-meta {
+            position: absolute; bottom: 0.7in; left: 0; right: 0;
+            color: rgba(255,255,255,0.85); font-size: 9pt; letter-spacing: 3px;
+            text-transform: uppercase; font-weight: 600;
+        }
+        .cover-meta .brand { font-family: 'Playfair Display', serif; font-size: 18pt; letter-spacing: 1px; text-transform: none; color: white; display: block; margin-bottom: 0.1in; font-weight: 700; }
+        .cover-meta .brand span { color: var(--sunset-gold); }
 
-        .cover-content { position: relative; z-index: 1; padding: 60px; }
-        .cover h1 { font-family: 'Playfair Display', serif; font-size: 50px; margin: 20px 0; }
-        .cover h2 { font-weight: 300; letter-spacing: 4px; text-transform: uppercase; font-size: 14px; color: var(--sand); }
-        .accent-line { width: 80px; height: 2px; background: var(--sunset-gold); margin: 20px auto; }
+        /* TOC */
+        .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35in 0.5in; margin-top: 0.3in; }
+        .toc-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            border-bottom: 1px dotted var(--border-soft); padding-bottom: 0.1in;
+        }
+        .toc-row .num { color: var(--sunset-gold); font-family: 'Playfair Display', serif; font-weight: 700; font-size: 11pt; min-width: 0.3in; }
+        .toc-row .title { flex: 1; padding: 0 0.1in; color: var(--text-dark); font-weight: 500; font-size: 10.5pt; }
+        .toc-row .pg { color: var(--text-light); font-weight: 600; font-size: 9.5pt; }
 
-        /* Page Layout */
-        .content { padding: 0.8in 0.8in; }
-        h3 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--ocean-deep); margin-bottom: 20px; position: relative; }
-        h3::after { content: ''; position: absolute; bottom: -8px; left: 0; width: 40px; height: 3px; background: var(--sunset-gold); }
+        /* Hero photo + caption */
+        .hero-img {
+            width: 100%; height: 3.4in; object-fit: cover;
+            border-radius: 8px; margin: 0.15in 0 0.25in;
+        }
+        .hero-img.tall { height: 4.2in; }
 
-        .accent-block {
-            background: var(--sand-light);
+        /* Two-column layout */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35in; margin-top: 0.15in; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.2in; margin-top: 0.15in; }
+
+        /* Stat boxes */
+        .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.12in; margin: 0.2in 0; }
+        .stat {
+            background: var(--sand-light); padding: 0.16in 0.12in; border-radius: 8px;
+            border: 1px solid var(--border-soft); text-align: center;
+        }
+        .stat .num { font-family: 'Playfair Display', serif; color: var(--ocean-deep); font-size: 18pt; font-weight: 700; line-height: 1.1; }
+        .stat .lbl { font-size: 7.5pt; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.04in; font-weight: 600; }
+
+        /* Pull quote / accent */
+        .pullquote {
             border-left: 4px solid var(--sunset-gold);
-            padding: 25px;
-            margin: 30px 0;
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.2rem;
-            font-style: italic;
-            color: var(--ocean-deep);
+            background: var(--sand-light); padding: 0.18in 0.22in; margin: 0.2in 0;
+            font-family: 'Cormorant Garamond', serif; font-style: italic;
+            font-size: 13pt; color: var(--ocean-deep); border-radius: 0 6px 6px 0;
         }
+        .pullquote cite { display: block; font-style: normal; font-family: 'Raleway', sans-serif; font-size: 8pt; color: var(--text-light); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 0.08in; font-weight: 600; }
 
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
-        .box { padding: 20px; border-radius: 12px; border: 1px solid rgba(11, 61, 91, 0.1); }
-        .box h4 { font-family: 'Playfair Display', serif; color: var(--ocean-deep); margin-bottom: 10px; }
-
-        .footer {
-            position: absolute;
-            bottom: 40px; left: 0.8in; right: 0.8in;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-            font-size: 11px;
-            color: #999;
-            display: flex;
-            justify-content: space-between;
+        /* Callout box */
+        .callout {
+            background: var(--ocean-deep); color: white; padding: 0.22in 0.25in;
+            border-radius: 8px; margin: 0.2in 0;
         }
+        .callout h4 { color: var(--sunset-gold); margin-top: 0; font-size: 11pt; text-transform: uppercase; letter-spacing: 1.5px; }
+        .callout p { color: rgba(255,255,255,0.9); margin-bottom: 0.08in; font-size: 10pt; }
 
-        .checklist li { margin-bottom: 10px; list-style: none; position: relative; padding-left: 25px; font-size: 14px; }
-        .checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--sunset-gold); font-weight: 800; }
-
-        @media print {
-            body { background: none; }
-            .page { margin: 0; box-shadow: none; }
+        /* Neighborhood cards */
+        .nhood {
+            display: grid; grid-template-columns: 2.4in 1fr; gap: 0.2in;
+            margin-bottom: 0.22in; border: 1px solid var(--border-soft); border-radius: 8px; overflow: hidden;
         }
+        .nhood img { width: 100%; height: 100%; object-fit: cover; min-height: 1.7in; }
+        .nhood-body { padding: 0.16in 0.18in 0.18in; }
+        .nhood-body h4 { margin: 0 0 0.04in; color: var(--ocean-deep); font-size: 13pt; }
+        .nhood-body .meta { font-size: 8pt; color: var(--ocean-light); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 0.08in; }
+        .nhood-body p { font-size: 9.5pt; color: var(--text-mid); margin-bottom: 0.06in; line-height: 1.45; }
+        .nhood-body .price { font-family: 'Playfair Display', serif; color: var(--sunset-amber); font-size: 11pt; font-weight: 700; margin-top: 0.06in; }
+
+        /* Half-image+body block */
+        .photo-with-body { display: grid; grid-template-columns: 3in 1fr; gap: 0.25in; align-items: stretch; margin: 0.2in 0; }
+        .photo-with-body img { width: 100%; height: 100%; object-fit: cover; min-height: 2.4in; border-radius: 8px; }
+        .photo-with-body .body p { font-size: 10pt; }
+
+        /* Photo strip */
+        .photo-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.1in; margin: 0.15in 0; }
+        .photo-strip img { width: 100%; height: 1.6in; object-fit: cover; border-radius: 6px; }
+        .photo-strip-cap { font-size: 8pt; color: var(--text-light); text-align: center; margin-top: 0.05in; font-style: italic; }
+
+        /* Timeline */
+        .timeline-row {
+            display: grid; grid-template-columns: 1.1in 1fr; gap: 0.25in;
+            padding: 0.16in 0; border-bottom: 1px solid var(--border-soft);
+        }
+        .timeline-row:last-child { border-bottom: none; }
+        .timeline-row .when { color: var(--sunset-amber); font-family: 'Playfair Display', serif; font-weight: 700; font-size: 12pt; text-align: right; }
+        .timeline-row .what h4 { margin: 0 0 0.04in; color: var(--ocean-deep); font-size: 11pt; }
+        .timeline-row .what p { font-size: 9.5pt; margin-bottom: 0; }
+
+        /* Mini list with arrows */
+        ul.arrows { list-style: none; margin-left: 0; }
+        ul.arrows li { padding-left: 0.25in; position: relative; font-size: 10pt; }
+        ul.arrows li::before { content: "→"; color: var(--sunset-gold); font-weight: 700; position: absolute; left: 0; }
+
+        /* Team cards */
+        .team-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.18in; margin: 0.25in 0; }
+        .team-card { text-align: center; }
+        .team-card img { width: 1.4in; height: 1.4in; border-radius: 50%; object-fit: cover; margin: 0 auto 0.1in; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.12); }
+        .team-card h4 { margin: 0; font-size: 11pt; }
+        .team-card .role { color: var(--ocean-light); font-size: 8pt; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin: 0.04in 0; }
+        .team-card p { font-size: 9pt; margin: 0; }
+
+        /* Big number block */
+        .big-num { font-family: 'Playfair Display', serif; color: var(--sunset-gold); font-size: 32pt; font-weight: 700; line-height: 1; }
+
+        /* Q&A list (Quick Answers page) */
+        .qa { padding: 0.13in 0; border-bottom: 1px solid var(--border-soft); }
+        .qa:last-child { border-bottom: none; }
+        .qa .q { font-family: 'Playfair Display', serif; color: var(--ocean-deep); font-size: 11pt; font-weight: 700; margin-bottom: 0.04in; }
+        .qa .a { font-size: 9.5pt; color: var(--text-mid); }
+        .qa .a strong { color: var(--ocean-mid); }
+
+        @media print { body { background: white; } .page { margin: 0; box-shadow: none; } }
     </style>
 </head>
 <body>
 
-    <!-- PAGE 1: COVER -->
-    <div class="page cover">
-        <img src="beach_hero.png" class="cover-img">
-        <div class="cover-content">
-            <h2>The "Big Beach" Method</h2>
-            <h1>Find Your Family's<br>Gathering Place</h1>
-            <div class="accent-line"></div>
-            <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic; color: var(--sand);">A smart lifestyle investment for your family’s wealth.</p>
+<!-- ════════════════════════════════════════════════════════ PAGE 1: COVER -->
+<div class="page cover">
+    <img src="beach_hero.png" class="cover-img-bg" alt="">
+    <div class="cover-overlay"></div>
+    <div class="cover-content">
+        <div class="cover-eyebrow">2026 Edition</div>
+        <h1>The Gulf Shores<span class="ital">Relocation Guide.</span></h1>
+        <div class="cover-line"></div>
+        <p class="cover-tag">Honest answers to the questions out-of-state buyers actually ask. Neighborhoods, schools, taxes, insurance, and the 12-month timeline real families follow.</p>
+    </div>
+    <div class="cover-meta">
+        <span class="brand">Big Beach <span>AL</span></span>
+        Kelly Davis · Dave Davis · Kerri Nicketta
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 2: WELCOME -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>Welcome</span></div>
+
+        <div class="eyebrow">Why we wrote this</div>
+        <h2>We've helped a lot of families make this exact move.</h2>
+
+        <p>Most of the "moving to Gulf Shores" content online is written by people who don't live here. They write "10 reasons to retire to the beach" and never mention what an actual property tax bill looks like, why insurance is the conversation that breaks deals, or which neighborhoods feed which schools.</p>
+
+        <p>We got tired of repeating the same answers in every initial call, so we wrote them all down. The result is the 17-page guide you're reading right now — the same document we send every serious out-of-state buyer before they ever fly in for a tour.</p>
+
+        <img src="family_gathering.png" class="hero-img" alt="Family on the Gulf Shores beach">
+
+        <div class="pullquote">
+            "If you're 6 to 18 months out, this guide will save you weeks of research. If you're 30 days out and ready to fly down, it'll make our first call far more productive."
+            <cite>— Kelly Davis, Associate Broker</cite>
+        </div>
+
+        <h4>What this guide covers</h4>
+        <p style="font-size: 10pt;">Quick-answers to the most-asked questions. The financial reality (taxes, insurance, the Fortified program). Featured neighborhoods. Schools and the new Gulf Shores High School. Beaches, parks, boating, fishing, dining, daily life. Public safety. Hurricane and weather honesty. The 12-month relocation timeline.</p>
+
+        <h4>What it deliberately doesn't cover</h4>
+        <p style="font-size: 10pt;">"10 reasons" filler, vague lifestyle prose, anything we can't back up with a number, address, or recent transaction. If you want a brochure, our website has photos. This is the document for serious buyers.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 2</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 3: TABLE OF CONTENTS -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>Contents</span></div>
+
+        <div class="eyebrow">Inside this guide</div>
+        <h2>What you'll find on every page.</h2>
+        <p style="margin-bottom: 0.2in;">Skim the section that matters most to you right now. Come back to the rest when you need it.</p>
+
+        <div class="toc-grid">
+            <div class="toc-row"><span class="num">01</span><span class="title">Quick Answers — top 12 questions</span><span class="pg">04</span></div>
+            <div class="toc-row"><span class="num">02</span><span class="title">The Financial Reality (taxes)</span><span class="pg">05</span></div>
+            <div class="toc-row"><span class="num">03</span><span class="title">The Financial Reality (insurance)</span><span class="pg">06</span></div>
+            <div class="toc-row"><span class="num">04</span><span class="title">Featured Neighborhoods</span><span class="pg">07</span></div>
+            <div class="toc-row"><span class="num">05</span><span class="title">More Neighborhoods</span><span class="pg">08</span></div>
+            <div class="toc-row"><span class="num">06</span><span class="title">Schools &amp; the new $139M HS</span><span class="pg">09</span></div>
+            <div class="toc-row"><span class="num">07</span><span class="title">Beaches, Parks &amp; Outdoor Life</span><span class="pg">10</span></div>
+            <div class="toc-row"><span class="num">08</span><span class="title">Boating, Fishing &amp; the ICW</span><span class="pg">11</span></div>
+            <div class="toc-row"><span class="num">09</span><span class="title">Entertainment &amp; Festivals</span><span class="pg">12</span></div>
+            <div class="toc-row"><span class="num">10</span><span class="title">Dining, Groceries, Daily Life</span><span class="pg">13</span></div>
+            <div class="toc-row"><span class="num">11</span><span class="title">Public Safety</span><span class="pg">14</span></div>
+            <div class="toc-row"><span class="num">12</span><span class="title">Weather &amp; Hurricane Reality</span><span class="pg">15</span></div>
+            <div class="toc-row"><span class="num">13</span><span class="title">Airport &amp; Getting Around</span><span class="pg">16</span></div>
+            <div class="toc-row"><span class="num">14</span><span class="title">The 12-Month Timeline</span><span class="pg">17</span></div>
+        </div>
+
+        <div class="callout" style="margin-top: 0.4in;">
+            <h4>Want the full subdivision database?</h4>
+            <p>Browse all 33 Gulf Shores subdivisions — with maps, schools, drive times, and stats — at <strong style="color: white;">bigbeachal.com/gulfshoressubdivisions</strong>.</p>
+        </div>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 3</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 4: QUICK ANSWERS -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>01 · Quick Answers</span></div>
+
+        <div class="eyebrow">Section 01</div>
+        <h2>The 12 questions every relocator asks us.</h2>
+
+        <div class="qa"><div class="q">What are property taxes like?</div><div class="a">Alabama has the <strong>2nd lowest property taxes in the country</strong>. A $500K home in Gulf Shores runs roughly <strong>$1,800/year</strong>. Page 5.</div></div>
+
+        <div class="qa"><div class="q">What's the income tax?</div><div class="a">Alabama has a state income tax of 2–5%, but <strong>Social Security and most pension income is exempt</strong>. For most retirees moving from CA, NY, IL it feels like a tax cut. Page 5.</div></div>
+
+        <div class="qa"><div class="q">How bad is hurricane insurance?</div><div class="a">Wind/flood premiums are real — but a "<strong>Fortified Gold</strong>" certified home can save 40–55% on wind premiums. Most newer construction qualifies. Page 6.</div></div>
+
+        <div class="qa"><div class="q">Are the schools good?</div><div class="a"><strong>Yes — "A" rated district, score of 95.</strong> Brand-new $139M Gulf Shores High School opens Fall 2026. Specialty academies in marine biology, aviation, robotics. Page 9.</div></div>
+
+        <div class="qa"><div class="q">Is the new high school done?</div><div class="a">287,000 sq ft on County Road 8. <strong>Doors open Fall 2026.</strong> Most of the new families are clustering in Aventura, Stonegate, and Raley Farms for the school zone. Page 9.</div></div>
+
+        <div class="qa"><div class="q">Where's the closest hospital?</div><div class="a"><strong>South Baldwin Regional Medical Center in Foley</strong>, 12–15 minutes north. Full-service ER, 112 beds. USA Health and Mobile Infirmary are 60 min west. Page 13.</div></div>
+
+        <div class="qa"><div class="q">What's the airport situation?</div><div class="a"><strong>Jack Edwards (JKA) right in town</strong> with 13 Allegiant nonstops. Pensacola (PNS) for the major carriers — 55-min scenic drive. Page 16.</div></div>
+
+        <div class="qa"><div class="q">Can I buy without flying down 4 times?</div><div class="a">Yes. Most of our out-of-state buyers fly down <strong>once or twice total</strong>. We send video tours, vet inspections, coordinate the closing. Page 17.</div></div>
+
+        <div class="qa"><div class="q">What about year-round vs seasonal?</div><div class="a">Off-season (Oct–April) is <strong>quieter and arguably better</strong> than tourist season. Locals love when the crowds leave. Page 12.</div></div>
+
+        <div class="qa"><div class="q">Can I have a boat?</div><div class="a">Yes. Public launches are everywhere, marinas are well-stocked, the ICW runs through town. Both inshore (Wolf Bay, Mobile Bay) and offshore (Perdido Pass) are easy access. Page 11.</div></div>
+
+        <div class="qa"><div class="q">How are property values trending?</div><div class="a">Gulf Shores has been one of the <strong>fastest-growing coastal markets in the Southeast</strong>. New construction in Aventura and Stonegate has appreciated steadily; we'll send current comps when you're closer.</div></div>
+
+        <div class="qa"><div class="q">When should I start the process?</div><div class="a"><strong>9–18 months before</strong> your target move date is the sweet spot. Lets you visit in two seasons (Feb and July tell different stories), lock financing without rushing, and time your current home sale. Page 17.</div></div>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 4</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 5: FINANCIAL REALITY (TAXES) -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>02 · The Financial Reality (Taxes)</span></div>
+
+        <div class="eyebrow">Section 02</div>
+        <h2>The taxes are why people move here.</h2>
+
+        <p>Alabama's tax structure is one of the most relocator-friendly in the country. For families coming from California, Illinois, New York, New Jersey, or Texas, the property tax savings alone often cover the cost of moving in the first year.</p>
+
+        <div class="stat-row">
+            <div class="stat"><div class="num">2nd</div><div class="lbl">Lowest property tax in US</div></div>
+            <div class="stat"><div class="num">~$1,800</div><div class="lbl">Tax on $500K home</div></div>
+            <div class="stat"><div class="num">$0</div><div class="lbl">Tax on Social Security</div></div>
+            <div class="stat"><div class="num">4%</div><div class="lbl">State sales tax</div></div>
+        </div>
+
+        <h3>Property tax — real numbers</h3>
+        <p>Baldwin County millage rates are among the lowest in the nation. The same $500,000 home that costs roughly <strong>$9,000/year</strong> in Houston or Chicago, or <strong>$13,000+/year</strong> in parts of New Jersey, runs about <strong>$1,800/year</strong> in Gulf Shores. A $1M home is roughly $3,600/year. There is also a homestead exemption that further reduces this for primary residences.</p>
+
+        <div class="callout">
+            <h4>Watch out: Non-Homestead Rate</h4>
+            <p>If you buy as a second home or investment property and don't file for homestead exemption (because it's not your primary residence), your tax bill can roughly double. We'll walk you through the homestead filing in your first 30 days.</p>
+        </div>
+
+        <h3>Income tax — gentler than it looks</h3>
+        <p>Alabama's state income tax tops out at 5%, but the rules are much more retirement-friendly than the headline number suggests:</p>
+        <ul class="arrows">
+            <li><strong>Social Security income: exempt</strong> from state tax</li>
+            <li><strong>Most defined-benefit pensions: exempt</strong> (federal, military, state, and certain private)</li>
+            <li>401(k) and IRA distributions: taxable, but at the lower bracket rate</li>
+            <li>No estate tax, no inheritance tax</li>
+        </ul>
+
+        <h3>Sales tax — the one place we're average</h3>
+        <p>State sales tax is 4%, but Gulf Shores adds a city portion. Combined rate is around <strong>10%</strong> on most goods, with food taxed at a reduced rate. It's higher than some states but offset by everything else.</p>
+
+        <h3>What you'll actually save</h3>
+        <p>For a typical relocating family with a $700K home and a household income of $150K, the year-one tax savings vs leaving California or Illinois usually lands in the <strong>$8,000 to $18,000 range</strong>. We've helped families calculate their specific number — happy to do that for you on a quick call.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 5</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 6: FINANCIAL REALITY (INSURANCE) -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>03 · The Financial Reality (Insurance)</span></div>
+
+        <div class="eyebrow">Section 03</div>
+        <h2>The insurance conversation that breaks most deals.</h2>
+
+        <p>This is the section nobody else writes honestly. Coastal insurance is real money, and ignoring it during your search is how relocators end up shocked at closing. Here's the actual breakdown.</p>
+
+        <h3>The 3-policy stack</h3>
+        <p>Most coastal Alabama homeowners carry three separate policies (or one combined product that breaks down into these):</p>
+
+        <div class="three-col">
+            <div style="background: var(--sand-light); padding: 0.18in; border-radius: 8px; border: 1px solid var(--border-soft);">
+                <h4 style="margin-top: 0;">Homeowners</h4>
+                <p style="font-size: 9.5pt; margin-bottom: 0;">Standard fire, theft, liability. Roughly $1,500–$3,500/yr on a $500K home depending on age and construction.</p>
+            </div>
+            <div style="background: var(--sand-light); padding: 0.18in; border-radius: 8px; border: 1px solid var(--border-soft);">
+                <h4 style="margin-top: 0;">Wind &amp; Hail</h4>
+                <p style="font-size: 9.5pt; margin-bottom: 0;">Separate coastal policy. Typically $2,000–$6,000/yr — but Fortified Gold homes can drop this 40–55%.</p>
+            </div>
+            <div style="background: var(--sand-light); padding: 0.18in; border-radius: 8px; border: 1px solid var(--border-soft);">
+                <h4 style="margin-top: 0;">Flood</h4>
+                <p style="font-size: 9.5pt; margin-bottom: 0;">NFIP or private. Required only if you're in a flood zone or financing requires it. $400–$2,500/yr depending on zone.</p>
+            </div>
+        </div>
+
+        <h3>The Fortified program — your single biggest lever</h3>
+        <p>The IBHS Fortified Construction standard is the most important acronym in coastal real estate. A "Fortified Gold" certified home is built (or retrofitted) to withstand hurricane-force wind through specific roof, sheathing, and connection requirements. Alabama law mandates that insurers <strong>provide a substantial discount</strong> on wind premiums for Fortified-certified homes.</p>
+
+        <ul class="arrows">
+            <li><strong>Fortified Roof</strong> — the entry-level cert. Roughly 30% discount.</li>
+            <li><strong>Fortified Silver</strong> — adds wall-to-roof connections. ~40% discount.</li>
+            <li><strong>Fortified Gold</strong> — full structural cert. <strong>45–55% wind premium discount</strong>.</li>
+        </ul>
+
+        <p>Most new construction in Aventura, Stonegate, Raley Farms, and the Bon Secour developments comes Fortified Gold by default. Older homes can be retrofitted (~$8K–$25K) and the savings often pay it back in 4–6 years.</p>
+
+        <div class="callout">
+            <h4>The right question to ask any listing</h4>
+            <p>Before you fall in love with a house, ask: "What's the Fortified designation, and can I see the certificate?" If the answer is no, we'll model what insurance will actually cost so you don't get surprised at closing.</p>
+        </div>
+
+        <h3>Flood zones — not as scary as the maps look</h3>
+        <p>Flood zone designations vary block by block. Most of Aventura, Craft Farms, Stonegate, and the inland subdivisions are in <strong>Zone X</strong> (preferred risk) — flood insurance optional and cheap. Beach-front and lagoon-adjacent properties are higher zones with mandatory coverage. We pull the FEMA flood map for every property you consider.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 6</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 7: FEATURED NEIGHBORHOODS -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>04 · Featured Neighborhoods</span></div>
+
+        <div class="eyebrow">Section 04</div>
+        <h2>Where most relocating families land.</h2>
+        <p>These four account for the majority of out-of-state buyers we work with. The full database of 33 Gulf Shores subdivisions is at bigbeachal.com/gulfshoressubdivisions.</p>
+
+        <div class="nhood">
+            <img src="neighborhood_aventura.png" alt="Aventura">
+            <div class="nhood-body">
+                <div class="meta">West Gulf Shores · Newer construction · Family-focused</div>
+                <h4>Aventura</h4>
+                <p>The crown jewel for new growth. Modern Craftsman homes, all built Fortified Gold or better, on small-to-mid lots with a community pool and sidewalks. <strong>Five minutes from the new high school campus.</strong> Where most relocating families with school-age kids end up.</p>
+                <div class="price">$335K – $815K · ~400 homesites · HOA ~$100/mo</div>
+            </div>
+        </div>
+
+        <div class="nhood">
+            <img src="neighborhood_peninsula.png" alt="The Peninsula">
+            <div class="nhood-body">
+                <div class="meta">Fort Morgan Rd · Gated · Golf · Bayview</div>
+                <h4>The Peninsula</h4>
+                <p>Quiet, gated, golf-course living with a private beach club on Mobile Bay. 27-hole Arnold Palmer course, tennis, indoor/outdoor pools, fishing pier. Skews older, fewer kids, more luxury. The choice for empty-nesters who want space and seclusion within minutes of downtown.</p>
+                <div class="price">$406K – $1.6M · ~350 homesites · HOA ~$450+/mo</div>
+            </div>
+        </div>
+
+        <div class="nhood">
+            <img src="neighborhood_craftfarms.png" alt="Craft Farms">
+            <div class="nhood-body">
+                <div class="meta">North Gulf Shores · Established · Two golf courses</div>
+                <h4>Craft Farms</h4>
+                <p>The established choice. Mature live oaks, two championship golf courses, and a more traditional Southern-coastal feel. Wider price spread than Aventura — older homes are excellent value, newer customs are luxury. Master-planned with a clubhouse, resort pool, and easy shopping access.</p>
+                <div class="price">$355K – $1.55M · ~500 homesites · HOA Moderate</div>
+            </div>
+        </div>
+
+        <div class="nhood">
+            <img src="https://bigbeachal.com/relocation-guide/subdivision-photos/martyn-woods-entrance.webp" alt="Martyn Woods">
+            <div class="nhood-body">
+                <div class="meta">West Intracoastal · Gated · Wooded · Acreage</div>
+                <h4>Martyn Woods</h4>
+                <p>One of the few places in Gulf Shores where you can find <strong>large wooded estate lots (1+ acre)</strong> behind a gate. Mature trees, tennis courts, real privacy. The choice for buyers who want a real Southern estate feel rather than a tract neighborhood.</p>
+                <div class="price">$505K – $1.65M · ~150 homesites · HOA Moderate</div>
+            </div>
+        </div>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 7</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 8: MORE NEIGHBORHOODS -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>05 · More Neighborhoods</span></div>
+
+        <div class="eyebrow">Section 05</div>
+        <h2>The other 29.</h2>
+        <p>These are the next-tier options we recommend depending on your price point, lifestyle, or proximity needs. The full interactive map with stats and photos is at <strong>bigbeachal.com/gulfshoressubdivisions</strong>.</p>
+
+        <h3>If schools are the #1 priority</h3>
+        <ul class="arrows">
+            <li><strong>Stonegate Estates</strong> — In the new HS zone, larger lots than Aventura, lower price entry. $424K–$549K.</li>
+            <li><strong>Raley Farms</strong> — Brand new construction, families with elementary-age kids, walkable. $342K–$510K.</li>
+            <li><strong>Savannah Point</strong> — New construction, near new HS, community pool. $395K–$539K.</li>
+            <li><strong>Osprey Landing</strong> — Established family enclave near new HS campus. $335K–$420K.</li>
+        </ul>
+
+        <h3>If beach access is the #1 priority</h3>
+        <ul class="arrows">
+            <li><strong>Kiva Dunes</strong> — Direct beach + golf resort, world-famous course. $750K–$5M+.</li>
+            <li><strong>The Beach Club Cottages</strong> — Walk to beach, full resort amenities, strong rental potential. $765K–$1.15M.</li>
+            <li><strong>Surfside Shores</strong> — Direct beach access, Fort Morgan, mix of vacation and primary. $305K–$2.2M.</li>
+            <li><strong>Cabana Beach</strong> — Quiet Fort Morgan beach community, raised-beach homes. $500K–$1.13M.</li>
+        </ul>
+
+        <h3>If value is the #1 priority</h3>
+        <ul class="arrows">
+            <li><strong>Crimson Ridge</strong> — Solid amenities, near-city, established family neighborhood. $230K–$350K.</li>
+            <li><strong>Gulf Pines</strong> — Established cottage community minutes from beach. $215K–$450K.</li>
+            <li><strong>Lagoon Mobile Home</strong> — Manufactured housing along the lagoon. Rare entry point. $130K–$240K.</li>
+            <li><strong>Ancient Oaks</strong> — Stunning oak canopy, central, established. $319K–$440K.</li>
+        </ul>
+
+        <h3>If boating / waterfront is the #1 priority</h3>
+        <ul class="arrows">
+            <li><strong>Waterways</strong> — Brand new ICW boating community with marina/docks and deep-water access. $890K–$1.79M.</li>
+            <li><strong>Laguna Key</strong> — Upscale Fort Morgan with gulf access, large raised-beach homes. $851K–$3.35M.</li>
+            <li><strong>Ponce De Leon Court</strong> — Beach Boulevard with direct beach access positions. $680K–$2.88M.</li>
+        </ul>
+
+        <div class="callout">
+            <h4>Browse all 33 with the interactive map</h4>
+            <p>Side-by-side stats, school zones, drive times, and photos for every Gulf Shores subdivision: <strong style="color: white;">bigbeachal.com/gulfshoressubdivisions</strong></p>
+        </div>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 8</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 9: SCHOOLS -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>06 · Schools</span></div>
+
+        <div class="eyebrow">Section 06</div>
+        <h2>The $139M leap.</h2>
+
+        <img src="school_render.png" class="hero-img" alt="New Gulf Shores High School render">
+
+        <p>Gulf Shores City Schools (GSCS) split off from the Baldwin County district in 2019 to build a more focused, better-funded local system. The "A" rating they hold today is the result of a multi-year capital campaign that culminates Fall 2026 with the new high school opening.</p>
+
+        <div class="stat-row">
+            <div class="stat"><div class="num">"A"</div><div class="lbl">District Rating (95)</div></div>
+            <div class="stat"><div class="num">$139M</div><div class="lbl">New HS investment</div></div>
+            <div class="stat"><div class="num">2026</div><div class="lbl">New HS opens (Fall)</div></div>
+            <div class="stat"><div class="num">287K</div><div class="lbl">Sq ft new HS campus</div></div>
+        </div>
+
+        <h3>The new Gulf Shores High School (Fall 2026)</h3>
+        <p>Located on County Road 8 between Aventura and Stonegate. A <strong>287,000 sq ft collegiate-style campus</strong> designed for 1,000+ students. The school is built around specialty academies, not just a generic comprehensive curriculum:</p>
+        <ul class="arrows">
+            <li><strong>Bio-medical Academy</strong> — pipeline to nursing and medical careers</li>
+            <li><strong>Marine Biology Academy</strong> — leveraging the actual coast outside the door</li>
+            <li><strong>Robotics &amp; Engineering</strong> — STEAM-focused labs and competition teams</li>
+            <li><strong>Aviation Hub</strong> — direct ties to Jack Edwards Airport pilot training</li>
+            <li><strong>Music Production</strong> — the south's best high school audio program (ambitious)</li>
+            <li><strong>Dolphin Athletic Center</strong> — two competition gyms, 18,000 sq ft field house</li>
+        </ul>
+
+        <h3>Elementary &amp; middle (already strong)</h3>
+        <ul class="arrows">
+            <li><strong>Gulf Shores Elementary (PreK–5)</strong> — STEAM emphasis, makerspaces, coding, i-Ready personalized instruction</li>
+            <li><strong>Gulf Shores Middle (6–8)</strong> — Honors courses, experiential outdoor learning, strong electives (band, newspaper, art)</li>
+        </ul>
+        <p>When the new HS opens, the existing HS building becomes the new MS campus, and the current MS campus becomes an expansion of GSES. The whole district shifts up by one building.</p>
+
+        <h3>Private &amp; charter options</h3>
+        <p>If GSCS isn't the right fit, <strong>Snook Christian Academy</strong> (Foley, K–12) and <strong>Bayshore Christian School</strong> (Fairhope, ~30 min) are the closest established privates. There's no charter school in Gulf Shores proper. For college: <strong>Coastal Alabama Community College</strong> has a Gulf Shores campus and dual-enrollment program with the high school.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 9</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 10: BEACHES & OUTDOOR -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>07 · Beaches &amp; Outdoors</span></div>
+
+        <div class="eyebrow">Section 07</div>
+        <h2>Not just sand. A protected ecological network.</h2>
+
+        <img src="https://bigbeachal.com/gulfshoresinfo/assets/relocation/gulf_shores_beaches_parks.png" class="hero-img" alt="Gulf Shores beaches and parks">
+
+        <h3>Gulf State Park — the crown jewel</h3>
+        <p>The defining feature of Gulf Shores. <strong>6,500 acres</strong> of state-protected park, including <strong>3.5 miles of pristine, undeveloped white-sand beach</strong> right in the middle of town. Unlike Florida's coastline where high-rises dominate every inch, Gulf Shores keeps the beach mostly open. Park entry is free; vehicle parking is by ParkMobile app.</p>
+
+        <h3>The Hugh S. Branyon Backcountry Trail</h3>
+        <p>Arguably the greatest outdoor amenity on the coast. A <strong>28+ mile network of paved, ADA-accessible paths and wooden boardwalks</strong> through nine different ecosystems — pine forests, freshwater marshes, coastal dunes, all in one afternoon. Common to spot whitetail deer, bobcats, bald eagles, and alligators (safely from the boardwalks) while you ride or jog.</p>
+
+        <div class="pullquote">
+            "When people imagine retiring to the beach, this is what they're imagining without knowing the name. The Backcountry Trail is the answer to 'what do you do all day?'"
+        </div>
+
+        <h3>Little Lagoon</h3>
+        <p>On the west side of Gulf Shores sits <strong>Little Lagoon — 2,480 acres</strong> of shallow, brackish water (mostly 4–6 feet deep). It connects to the Gulf via Lagoon Pass and is highly favored by locals for kayaking, paddleboarding, and chasing speckled trout without dealing with open-ocean surf. The "Little Lagoon Restoration Project" is constantly expanding oyster reefs and living shorelines — water quality has been improving year over year.</p>
+
+        <h3>Beach access points</h3>
+        <p>Public beach access is everywhere. Major access points include <strong>Gulf Place</strong> (downtown — restrooms, parking, pavilion), <strong>Lake Shelby</strong> (state park beach area), <strong>The Hangout</strong> (restaurant + main public beach), and <strong>Romar Beach</strong> (Orange Beach side). Most subdivisions also have either dedicated access easements or short drives to public access.</p>
+
+        <h3>Wildlife &amp; conservation</h3>
+        <p>Sea turtle nesting season runs <strong>May through October</strong> (Loggerheads, mostly). Share the Beach is a volunteer program; turtle nests are marked off and lights-out rules are enforced. <strong>Bon Secour National Wildlife Refuge</strong> protects 7,000+ acres west of Fort Morgan — birding, hiking, undeveloped beach. <strong>Fort Morgan Historical Site</strong> at the western tip is a full Civil War-era fort and ferry landing.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 10</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 11: BOATING & FISHING -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>08 · Boating &amp; Fishing</span></div>
+
+        <div class="eyebrow">Section 08</div>
+        <h2>Defined by water.</h2>
+
+        <img src="https://bigbeachal.com/gulfshoresinfo/assets/relocation/gulf_shores_boating_fishing.png" class="hero-img" alt="Boating and fishing in Gulf Shores">
+
+        <p>Gulf Shores and Orange Beach are literally defined by water. The <strong>Intracoastal Waterway (ICW)</strong> runs right through the center of town, acting as an aquatic highway that connects Mobile Bay to Perdido Bay. For boaters, this means you can dock-and-dine, island-hop, or transit without ever entering open ocean.</p>
+
+        <h3>Public launches</h3>
+        <ul class="arrows">
+            <li><strong>The Launch at ICW (Orange Beach)</strong> — brand new, massive facility with 1,700 ft of water frontage, 6 boat launches, huge parking. The best public launch on the coast.</li>
+            <li><strong>Boggy Point</strong> — favored for immediate proximity to Perdido Pass (the gateway to the open Gulf).</li>
+            <li><strong>Mo's Landing &amp; Canal Park</strong> — classic, easy-access launches in Gulf Shores for back-bay fishing and cruising.</li>
+            <li><strong>Cotton Bayou</strong> — quieter launch, popular for kayaks and small craft.</li>
+        </ul>
+
+        <h3>The fishing fleet</h3>
+        <p>The charter fleet is legendary. <strong>Offshore deep sea fleets</strong> operate heavily out of Orange Beach Marina and Zeke's Landing, taking anglers 10–30 miles out for Red Snapper, Grouper, Mahi-mahi, and Yellowfin Tuna. Red Snapper season is short and competitive — Memorial Day weekend is opening day.</p>
+        <p><strong>Inshore guides</strong> operate in the bays (Wolf Bay, Perdido Bay, Mobile Bay) targeting Redfish, Speckled Trout, Flounder, and Sheepshead. You don't need a boat — half-day inshore trips run $400–$650 for a party of 2–3 and routinely produce limits.</p>
+
+        <h3>Owning a boat here</h3>
+        <ul class="arrows">
+            <li><strong>Alabama boater registration</strong> required for any motorized vessel. Walk-in at the courthouse or online via outdooralabama.com.</li>
+            <li><strong>Boater Safety Card</strong> required for anyone born after April 28, 1954 (state law).</li>
+            <li>Wet-slip rates at major marinas: $13–$22 per foot per month.</li>
+            <li>Dry-stack storage: $200–$450/mo depending on boat size.</li>
+            <li>Most newer subdivisions (Waterways, Laguna Key) include private docks or community marinas.</li>
+        </ul>
+
+        <h3>Fuel docks &amp; boat services</h3>
+        <p>Major fuel docks: <strong>Saunders Yachtworks</strong> and <strong>Sportsman Marina</strong> (Orange Beach), <strong>Bear Point Marina</strong> (Wolf Bay). Local mechanics: Reds Marine, GSO Marine. The boating economy here is mature — anything you need is within 10 minutes.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 11</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 12: ENTERTAINMENT -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>09 · Entertainment &amp; Festivals</span></div>
+
+        <div class="eyebrow">Section 09</div>
+        <h2>The "permanent vacation" infrastructure.</h2>
+
+        <img src="https://bigbeachal.com/gulfshoresinfo/assets/relocation/gulf_shores_entertainment_attractions.png" class="hero-img" alt="Entertainment in Gulf Shores">
+
+        <h3>The Wharf Amphitheater (Orange Beach)</h3>
+        <p>The <strong>10,000-seat outdoor amphitheater</strong> is the premier music venue on the Gulf Coast. The C Spire Concert Series brings A-list talent — recent and upcoming acts include <strong>Dave Matthews Band, Chris Stapleton, Jelly Roll, Willie Nelson, Eric Church, Riley Green, Dierks Bentley, and Old Dominion</strong>. The surrounding district has a Ferris wheel, laser light shows, and 30+ restaurants and shops.</p>
+
+        <h3>OWA Parks &amp; Resort (Foley, 15 min north)</h3>
+        <p>A mega-destination featuring a full-scale amusement park (<strong>The Park at OWA</strong>), an indoor water park (<strong>Tropic Falls</strong>), and a walkable "Downtown" district filled with dining, live music, and the OWA Adventure Hotel. Annual passes are reasonable for families.</p>
+
+        <h3>Waterville USA &amp; Alabama Gulf Coast Zoo</h3>
+        <p><strong>Waterville USA</strong> — 20-acre waterpark + amusement park a few blocks off the beach. FlowRider, wave pool, go-karts. <strong>Gulf Coast Zoo</strong> recently relocated to a massive modern facility in Gulf Shores and is famous for "up-close" animal encounters and lemur interactions.</p>
+
+        <h3>The festival calendar</h3>
+        <ul class="arrows">
+            <li><strong>Hangout Music Festival (May)</strong> — three days of national headliners on the public beach. 40,000+ attendees.</li>
+            <li><strong>National Shrimp Festival (October)</strong> — the area's signature event. 200+ vendors, music, headliners, food. ~250,000 attendees over four days.</li>
+            <li><strong>Bama Coast Cruisin' (April + November)</strong> — classic car shows that take over The Wharf. Massive draw.</li>
+            <li><strong>Coastal Christmas (December)</strong> — town-wide light displays, parade, and the Sertoma Christmas Boat Parade on the ICW.</li>
+            <li><strong>Mardi Gras (Feb/March)</strong> — Mobile and Fairhope have the bigger parades, but Gulf Shores has its own (the Mystic Krewe of the Marauders) and it's much more relaxed.</li>
+            <li><strong>Frank Brown International Songwriters' Festival (Nov)</strong> — 200+ songwriters performing in restaurants and bars across the Gulf Coast for 10 days.</li>
+        </ul>
+
+        <h3>Off-season is honestly better</h3>
+        <p>October through April, you have the beaches, restaurants, and roads largely to yourself. Most of the festivals happen in the shoulder seasons. A few restaurants close briefly in January for renovations — but everything else is open and uncrowded.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 12</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 13: DINING & DAILY LIFE -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>10 · Dining &amp; Daily Life</span></div>
+
+        <div class="eyebrow">Section 10</div>
+        <h2>Where the locals actually eat.</h2>
+
+        <img src="https://bigbeachal.com/gulfshoresinfo/assets/relocation/gulf_shores_dining_shopping.png" class="hero-img" alt="Dining and shopping in Gulf Shores">
+
+        <h3>Locals' favorite restaurants</h3>
+        <ul class="arrows">
+            <li><strong>The Sloop</strong> — Tucked under the Gulf Shores bridge. Incredible Philly cheesesteaks, craft drinks, "pirate sports bar" vibe. The ultimate local hideaway.</li>
+            <li><strong>Fish River Grill #3</strong> — Famous for "Swamp Soup" and a proudly funky atmosphere. Best authentic burgers, gator bites, and Cajun baskets in town.</li>
+            <li><strong>DeSoto's Seafood Kitchen</strong> — Decades of fresh-catch daily specials. Locals' lunch standard.</li>
+            <li><strong>Tacky Jacks</strong> — Has tourists but a massive local favorite for breakfast before fishing trips and world-famous Bushwackers.</li>
+            <li><strong>Sea-N-Suds</strong> — Built on pylons over the sand. Affordable burgers, cold beer, fried shrimp since the 1970s.</li>
+            <li><strong>Cosmo's (Orange Beach)</strong> — Upscale-casual, creative menu, the date-night standard.</li>
+            <li><strong>Doc's Seafood Shack</strong> — Classic Cajun seafood, no-frills, locals-only feel.</li>
+            <li><strong>Voodoo BBQ &amp; Grill</strong> — Solid BBQ in a tourist-heavy area where it's hard to find good BBQ.</li>
+        </ul>
+
+        <h3>Coffee, breakfast &amp; brunch</h3>
+        <p><strong>The Coffee Loft</strong> (downtown), <strong>Souvenir Coffee</strong>, and <strong>Tropical Smoothie Cafe</strong> are the morning go-tos. <strong>Hazel's Nook</strong> for breakfast biscuits. <strong>The Pink Pony Pub</strong> for a beach-bar Bloody Mary. <strong>Big Beach Brewing</strong> is the local craft brewery and runs food trucks Thurs–Sun.</p>
+
+        <h3>Groceries — the power grid</h3>
+        <p>Gulf Shores' grocery infrastructure is overbuilt for 100,000+ summer visitors, which means in the off-season locals have shockingly good access:</p>
+        <ul class="arrows">
+            <li><strong>Rouses Market (Hwy 59)</strong> — regional favorite for culinary purists. Best seafood and butcher in town. Local Conecuh sausage, boil pots, Gulf shrimp.</li>
+            <li><strong>Publix (Hwy 59)</strong> — Pub Subs, excellent bakery, pristine produce.</li>
+            <li><strong>Walmart Supercenter (E Fort Morgan Rd)</strong> — primary one-stop for west-side locals.</li>
+            <li><strong>Target (Pritchett Dr)</strong> — home decor, clothing, Drive-Up service, in-store Starbucks.</li>
+        </ul>
+
+        <h3>Healthcare</h3>
+        <p><strong>South Baldwin Regional Medical Center</strong> in Foley (12–15 min north) is the local hospital — full-service ER, 112 beds, primary surgery. For specialized care, <strong>USA Health</strong> and <strong>Mobile Infirmary</strong> are about 60 min west in Mobile. <strong>Pulmonary &amp; Sleep</strong> specialists in town. <strong>Urgent Care of South Baldwin</strong> for non-emergencies. Multiple dental practices and excellent veterinary care (Gulf Shores Animal Hospital, Coastal Animal Hospital).</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 13</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 14: PUBLIC SAFETY -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>11 · Public Safety</span></div>
+
+        <div class="eyebrow">Section 11</div>
+        <h2>One of the best-resourced small-city police departments in the country.</h2>
+
+        <img src="https://bigbeachal.com/gulfshoresinfo/assets/relocation/gulf_shores_public_safety.png" class="hero-img" alt="Public safety">
+
+        <h3>Gulf Shores Police Department</h3>
+        <p>The Gulf Shores Police Department (GSPD) holds the prestigious <strong>CALEA Gold Standard accreditation</strong> — a distinction held by only a tiny fraction of departments nationwide. In recent tracking, the department's average <strong>priority response time was 3 minutes 36 seconds</strong> — exceptional for a coastal community that triples in summer.</p>
+
+        <div class="stat-row">
+            <div class="stat"><div class="num">CALEA</div><div class="lbl">Gold Accredited</div></div>
+            <div class="stat"><div class="num">3:36</div><div class="lbl">Avg priority response (min:sec)</div></div>
+            <div class="stat"><div class="num">24/7</div><div class="lbl">Marine Unit on water</div></div>
+            <div class="stat"><div class="num">Flock</div><div class="lbl">Camera network</div></div>
+        </div>
+
+        <h3>Proactive policing technology</h3>
+        <ul class="arrows">
+            <li><strong>Flock Safety Cameras</strong> — automated license plate readers at every major intersection, park, and school. Stolen vehicles, missing persons, AMBER alerts get hits within minutes.</li>
+            <li><strong>Dedicated Marine Unit</strong> — full-time squad on the ICW handling boater safety, water rescues, and wildlife emergencies.</li>
+            <li><strong>Citizens' Police Academy &amp; Youth Academy</strong> — community-engagement programs that consistently fill up.</li>
+        </ul>
+
+        <h3>Beach safety &amp; lifeguards</h3>
+        <p>The Beach Safety division runs a strict <strong>colored flag system</strong> (Green to Double Red) and free text alerts. Sign up: <strong>text ALBEACHES to 888-777</strong>. Lifeguards run extensive UTV and Waverunner patrols and are among the best-trained in the Southeast.</p>
+
+        <div class="callout">
+            <h4>Crime stats</h4>
+            <p>Per the FBI Uniform Crime Report and city data, Gulf Shores' violent crime rate is significantly below the Alabama state average. Property crime spikes mildly in summer (predictable — visitor-heavy neighborhoods) but most subdivisions report year-over-year declines. The biggest "safety issue" most residents talk about is summer traffic, not crime.</p>
+        </div>
+
+        <h3>Fire &amp; EMS</h3>
+        <p>Gulf Shores Fire-Rescue has three stations and a fast response across the city, with mutual aid from Orange Beach and Foley. The Marine Unit doubles as a water-rescue response. EMS is contracted through Med-Star with primary transport to South Baldwin Regional in Foley.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 14</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 15: WEATHER & HURRICANES -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>12 · Weather &amp; Hurricanes</span></div>
+
+        <div class="eyebrow">Section 12</div>
+        <h2>The honest weather conversation.</h2>
+
+        <img src="https://bigbeachal.com/gulfshoresinfo/assets/relocation/gulf_shores_hurricanes_weather.png" class="hero-img" alt="Weather and hurricanes">
+
+        <h3>The year-round weather picture</h3>
+        <p>Gulf Shores has a humid subtropical climate. <strong>Mild winters, hot humid summers, ~230+ sunny days/year</strong>. Average highs by month:</p>
+
+        <div class="three-col">
+            <div style="background: var(--sand-light); padding: 0.14in; border-radius: 6px; border: 1px solid var(--border-soft); text-align: center;">
+                <h4 style="margin-top: 0; color: var(--ocean-mid); font-size: 10pt;">Winter</h4>
+                <p style="font-size: 9pt; margin: 0;"><strong>Dec–Feb</strong><br>60–65°F highs<br>40–48°F lows<br>Snow: ~once/decade</p>
+            </div>
+            <div style="background: var(--sand-light); padding: 0.14in; border-radius: 6px; border: 1px solid var(--border-soft); text-align: center;">
+                <h4 style="margin-top: 0; color: var(--ocean-mid); font-size: 10pt;">Spring/Fall</h4>
+                <p style="font-size: 9pt; margin: 0;"><strong>Mar–May / Oct–Nov</strong><br>72–82°F highs<br>The pleasant months<br>Beach weather, low crowds</p>
+            </div>
+            <div style="background: var(--sand-light); padding: 0.14in; border-radius: 6px; border: 1px solid var(--border-soft); text-align: center;">
+                <h4 style="margin-top: 0; color: var(--ocean-mid); font-size: 10pt;">Summer</h4>
+                <p style="font-size: 9pt; margin: 0;"><strong>Jun–Sep</strong><br>88–92°F highs<br>~80% humidity<br>Daily afternoon thunder</p>
+            </div>
+        </div>
+
+        <h3>Hurricane season — June 1 to November 30</h3>
+        <p>Hurricanes are a fact of coastal life. <strong>Don't pretend otherwise.</strong> Major storms in recent memory: Ivan (2004), Katrina (2005, glancing), Sally (2020 — direct hit, significant damage), and a long quiet stretch since.</p>
+        <p>Modern Gulf Shores manages this with: highly drilled, phased evacuation plans (county and city in lockstep), strict building codes (Fortified construction is essentially default for new builds), pre-positioned utility crews from neighboring states during named-storm threats, and a city app for real-time alerts.</p>
+
+        <div class="callout">
+            <h4>What hurricane prep actually looks like for residents</h4>
+            <p>You'll have plywood or panels for windows (or impact-rated windows in newer construction). You'll keep a 5-day supply of water and shelf-stable food. You'll know your evacuation route (most coastal residents go north to Montgomery or northeast to Atlanta). The reality is less dramatic than the news makes it look — most years, you don't evacuate at all.</p>
+        </div>
+
+        <h3>Heat &amp; humidity (the actual hard part)</h3>
+        <p>July and August are intensely hot and humid — prepare to live in air conditioning or in the pool. Outdoor activities shift to early morning or evening. The trade-off: you have water in every direction.</p>
+
+        <h3>Traffic seasons</h3>
+        <p>From <strong>Spring Break through Labor Day</strong>, Highway 59 (the main north-south road in town) becomes congested. Locals master the back roads — County Road 8, Foley Beach Express, neighborhood cut-throughs. After Labor Day, traffic disappears almost overnight and stays gone until the next March.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 15</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 16: AIRPORT -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>13 · Airport &amp; Getting Around</span></div>
+
+        <div class="eyebrow">Section 13</div>
+        <h2>You're more connected than you'd guess.</h2>
+
+        <h3>Jack Edwards (JKA) — right in town</h3>
+        <p>The local airport, just north of the Intracoastal Waterway, is rapidly becoming a real regional hub. The city is executing a <strong>$15 million terminal expansion</strong> by Fentress Architects (breaking ground summer 2026, completion target May 2027) — adding gate areas, expanded baggage claim, and multi-aircraft simultaneous boarding.</p>
+
+        <h4>Allegiant nonstop destinations from JKA (13 routes)</h4>
+        <div class="two-col">
+            <div>
+                <ul class="arrows">
+                    <li>Springfield, MO</li>
+                    <li>Louisville, KY</li>
+                    <li>Huntsville, AL</li>
+                    <li>Omaha, NE</li>
+                    <li>Oklahoma City, OK</li>
+                    <li>Appleton, WI</li>
+                    <li>Des Moines, IA</li>
+                </ul>
+            </div>
+            <div>
+                <ul class="arrows">
+                    <li>Knoxville, TN</li>
+                    <li>Nashville, TN</li>
+                    <li>Kansas City, MO</li>
+                    <li>St. Louis / Belleville, IL</li>
+                    <li>Cincinnati, OH</li>
+                    <li>Bentonville (XNA), AR</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Pensacola International (PNS) — 55 minutes east</h3>
+        <p>For destinations Allegiant doesn't fly, locals use PNS. <strong>Delta, American, Southwest, and United</strong> all run daily flights with national connectivity. The drive over the Lillian Bridge into Florida is genuinely scenic — most locals consider it pleasant, not a chore.</p>
+
+        <h3>Mobile Regional (MOB) — 70 minutes west</h3>
+        <p>Smaller, less convenient, but useful for occasional Delta or American hub connections to Atlanta and Charlotte that PNS doesn't have.</p>
+
+        <h3>Driving distances (because Gulf Shores is also a great hub for road trips)</h3>
+        <div class="stat-row">
+            <div class="stat"><div class="num">55min</div><div class="lbl">Pensacola</div></div>
+            <div class="stat"><div class="num">1h 10m</div><div class="lbl">Mobile</div></div>
+            <div class="stat"><div class="num">3h 30m</div><div class="lbl">New Orleans</div></div>
+            <div class="stat"><div class="num">4h 30m</div><div class="lbl">Atlanta</div></div>
+        </div>
+
+        <h3>Local transportation</h3>
+        <p>Gulf Shores is built around the car. There's no public transit beyond a seasonal beach trolley. Uber and Lyft are reliable in the high season but spotty in the off-season. Bicycling on the Backcountry Trail and beach paths is a way of life — many residents own a beach cruiser AND a regular bike.</p>
+
+        <p>For longer rides: <strong>Amtrak's Crescent line</strong> connects Mobile to Atlanta, NYC, and New Orleans. Greyhound runs out of Mobile and Pensacola.</p>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 16</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 17: 12-MONTH TIMELINE -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>14 · The 12-Month Timeline</span></div>
+
+        <div class="eyebrow">Section 14</div>
+        <h2>The roadmap most successful out-of-state buyers follow.</h2>
+
+        <p>Most of our successful relocations start the conversation 9–18 months before the move actually happens. Here's the typical timeline:</p>
+
+        <div class="timeline-row">
+            <div class="when">Months<br>12–9</div>
+            <div class="what">
+                <h4>Visit in two seasons</h4>
+                <p>Come down once in <strong>February</strong> and once in <strong>June or July</strong>. Off-season Gulf Shores is a totally different city than peak summer Gulf Shores. Most relocators love both — but you should see both before signing.</p>
+            </div>
+        </div>
+
+        <div class="timeline-row">
+            <div class="when">Months<br>9–6</div>
+            <div class="what">
+                <h4>Identify your top 3 neighborhoods</h4>
+                <p>Drive every subdivision on your list. Visit at different times of day (a Tuesday evening tells you something a Saturday afternoon doesn't). We can drive you, or send video walk-throughs if you can't be here.</p>
+            </div>
+        </div>
+
+        <div class="timeline-row">
+            <div class="when">Months<br>6–3</div>
+            <div class="what">
+                <h4>Lock in financing &amp; insurance pre-quotes</h4>
+                <p>Talk to a coastal lender (Dave Davis runs this side personally — he's both your Realtor and a licensed lending specialist). Get insurance pre-quotes on 2–3 candidate homes so you know your real cost before any offer. Resolve any pre-approval questions while you have time.</p>
+            </div>
+        </div>
+
+        <div class="timeline-row">
+            <div class="when">Months<br>3–1</div>
+            <div class="what">
+                <h4>Sell your current home (if applicable)</h4>
+                <p>List your existing home with enough runway to avoid a forced sale. We can recommend agents in your current city (we have a national referral network). Decide on the bridge: rent for 60 days here? Stay with family? Lease your current place for a few months?</p>
+            </div>
+        </div>
+
+        <div class="timeline-row">
+            <div class="when">Month 1</div>
+            <div class="what">
+                <h4>Move-in week</h4>
+                <p>Closing happens (most of our out-of-state closings are remote via Power of Attorney). We'll meet your moving truck, hand you keys, walk you through the home, and have a list of recommended utility setup, internet, and basic logistics so day one is calm.</p>
+            </div>
+        </div>
+
+        <div class="timeline-row">
+            <div class="when">Month 2+</div>
+            <div class="what">
+                <h4>The first 90 days</h4>
+                <p>File homestead exemption (saves you on taxes year one). Update driver's license, vehicle registration. Find your routine — the right grocery store, the right doctor, the right gym, the right coffee. We check in weekly during this period.</p>
+            </div>
+        </div>
+
+        <div class="page-footer"><span>BIG BEACH AL · 2026 RELOCATION GUIDE</span><span>Page 17</span></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ PAGE 18: NEXT STEPS -->
+<div class="page">
+    <div class="content">
+        <div class="page-header"><span class="brand">Big Beach <span>AL</span></span><span>Next Steps</span></div>
+
+        <div class="eyebrow">Ready when you are</div>
+        <h2>Let's talk.</h2>
+        <p>You've now got the same baseline information we send every serious out-of-state buyer. Whatever your timeline — 6 weeks or 18 months — the next move is a conversation.</p>
+
+        <div class="team-row">
+            <div class="team-card">
+                <img src="https://bigbeachal.com/assets/kelly.jpg" alt="Kelly Davis">
+                <h4>Kelly Davis</h4>
+                <div class="role">Associate Broker · Team Lead</div>
+                <p>Primary contact for relocation buyers. Lives in Gulf Shores year-round.</p>
+            </div>
+            <div class="team-card">
+                <img src="https://bigbeachal.com/assets/dave.jpg" alt="Dave Davis">
+                <h4>Dave Davis</h4>
+                <div class="role">Realtor · Lending Specialist</div>
+                <p>Handles the financial side: financing, insurance, the structural review.</p>
+            </div>
+            <div class="team-card">
+                <img src="https://bigbeachal.com/assets/kerri.jpg" alt="Kerri Nicketta">
+                <h4>Kerri Nicketta</h4>
+                <div class="role">Expert Buyer Specialist</div>
+                <p>Deep-knowledge buyer's agent. Runs vacation/condo side.</p>
+            </div>
+        </div>
+
+        <h3>Three ways to start</h3>
+        <div class="three-col">
+            <div style="background: var(--ocean-deep); color: white; padding: 0.22in; border-radius: 8px;">
+                <h4 style="color: var(--sunset-gold); margin-top: 0; font-size: 10pt;">1 · Quick call</h4>
+                <p style="color: white; font-size: 9.5pt; margin: 0;">15-minute "Relocation Strategy" call. Map your timeline, identify which neighborhoods fit. No sales pitch.</p>
+                <p style="color: white; font-size: 9pt; margin-top: 0.1in;"><strong style="color: var(--sunset-gold);">Book at:</strong><br>crm.bigbeachal.com/<br>schedule/beach-house-<br>buyer-consult</p>
+            </div>
+            <div style="background: var(--ocean-mid); color: white; padding: 0.22in; border-radius: 8px;">
+                <h4 style="color: var(--sunset-gold); margin-top: 0; font-size: 10pt;">2 · Browse subdivisions</h4>
+                <p style="color: white; font-size: 9.5pt; margin: 0;">Interactive map of all 33 Gulf Shores subdivisions with stats, schools, drive times, and photos.</p>
+                <p style="color: white; font-size: 9pt; margin-top: 0.1in;"><strong style="color: var(--sunset-gold);">Visit:</strong><br>bigbeachal.com/<br>gulfshoressubdivisions</p>
+            </div>
+            <div style="background: var(--ocean-light); color: white; padding: 0.22in; border-radius: 8px;">
+                <h4 style="color: white; margin-top: 0; font-size: 10pt;">3 · Reply to this email</h4>
+                <p style="color: white; font-size: 9.5pt; margin: 0;">Email that delivered this guide goes straight to Kelly. Just reply with your #1 question.</p>
+                <p style="color: white; font-size: 9pt; margin-top: 0.1in;"><strong>Email:</strong><br>info@bigbeachal.com<br><strong>Phone:</strong><br>251-289-1553</p>
+            </div>
+        </div>
+
+        <div class="pullquote" style="margin-top: 0.3in;">
+            "We've made the move ourselves, and we've helped a lot of families do it too. Whatever your timeline, we'd love to help you find your gathering place on the Gulf Coast."
+            <cite>— Kelly, Dave &amp; Kerri</cite>
+        </div>
+
+        <div class="page-footer">
+            <span><strong style="color: var(--ocean-deep);">Big Beach AL</strong> · Realtors with Dalton Wade Real Estate Group · Gulf Shores, AL</span>
+            <span>Page 18 / END</span>
         </div>
     </div>
-
-    <!-- PAGE 2: THE STORY -->
-    <div class="page">
-        <div class="content">
-            <h3>We were exactly where you are.</h3>
-            <p style="font-size: 14px; margin-top: 20px;">For years, we lived in a busy area, tired of the constant traffic and soaring property taxes. We worked hard for our money, but we weren’t seeing it turn into the life we actually wanted. We wanted more than just a change of scenery—we wanted a dream beach home.</p>
-            
-            <div class="accent-block">
-                "The real problem wasn't that we needed a vacation. It was that taking a short trip wasn't enough anymore. We needed a permanent place for our family to grow."
-            </div>
-
-            <p style="font-size: 14px;">That first home changed everything. It became our safe place. We loved sneaking away for weekends so much that we eventually traded the city for life at the beach forever. Today, we use what we know to help other families do the same thing.</p>
-
-            <h3 style="margin-top: 40px;">The Financial Reality</h3>
-            <div class="grid">
-                <div class="box">
-                    <h4>Smart Wealth</h4>
-                    <p style="font-size: 13px;">Alabama has the 2nd lowest property taxes in the US. A $500k home here costs ~ $1,800/yr in taxes. Your money simply goes further here than in 30A or Florida.</p>
-                </div>
-                <div class="box">
-                    <h4>Gold Fortified</h4>
-                    <p style="font-size: 13px;">Buying a Gold Fortified home isn't just about safety; it's a financial move. It can reduce your insurance premiums by up to 50%.</p>
-                </div>
-            </div>
-        </div>
-        <div class="footer">
-            <span>Big Beach AL | Relocation Intelligence</span>
-            <span>Page 2</span>
-        </div>
-    </div>
-
-    <!-- PAGE 3: THE METHOD -->
-    <div class="page">
-        <div class="content">
-            <h3>Looking for your "Gathering Place"</h3>
-            <p style="font-size: 14px;">We focus on neighborhoods where families can actually gather. These aren't just subdivisions; they're the backdrop for your next decade of memories.</p>
-            
-            <div class="grid">
-                <div class="box" style="background: var(--sand-light);">
-                    <h4>Aventura</h4>
-                    <p style="font-size: 13px;">The crown jewel for new growth. Modern, Gold-Fortified homes just minutes from the new high school. It's safe, solar-ready, and family-first.</p>
-                </div>
-                <div class="box" style="background: var(--sand-light);">
-                    <h4>The Peninsula</h4>
-                    <p style="font-size: 13px;">Luxury, gated, and serene. If you want a private beach and a world-class golf course right outside your door, this is the destination.</p>
-                </div>
-            </div>
-
-            <h3 style="margin-top: 40px;">Your 12-Month Roadmap</h3>
-            <ul class="checklist" style="margin-top: 20px;">
-                <li><strong>Months 12-9:</strong> Visit during the "off-season" to see the locals' life.</li>
-                <li><strong>Months 9-6:</strong> Identify your Top 3 neighborhoods (we'll help you tour them).</li>
-                <li><strong>Months 6-3:</strong> Secure your financing with a local lender who knows coastal rules.</li>
-                <li><strong>Months 3-0:</strong> Move in. Start making those memories.</li>
-            </ul>
-
-            <div class="box" style="margin-top: 40px; background: var(--ocean-deep); color: white;">
-                <h4 style="color: var(--sunset-gold);">Ready for the beach?</h4>
-                <p style="font-size: 14px;">If you're ready to find your family's gathering place, reach out and let's book a call. We've made the move ourselves, and we'd love to help you do it too.</p>
-            </div>
-        </div>
-        <div class="footer">
-            <span>Big Beach AL | Relocation Intelligence</span>
-            <span>Page 3</span>
-        </div>
-    </div>
+</div>
 
 </body>
 </html>
