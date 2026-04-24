@@ -86,3 +86,57 @@ class LeadCaptureAPITest(TestCase):
         self.assertEqual(response.status_code, 201)
         contact = Contact.objects.get(email='jane@test.com')
         self.assertTrue(contact.enrollments.filter(campaign=campaign).exists())
+
+    def test_subdivision_form_assigns_track1_agent(self):
+        """A lead from source='subdivision_form' must go to a Track 1 agent."""
+        from django.test import override_settings
+        with override_settings(TRACK_AGENTS={'track1': ['agent1'], 'track2': ['agent2']}):
+            response = self.client.post(
+                '/api/leads/',
+                json.dumps({
+                    'first_name': 'Relo',
+                    'email': 'relo@test.com',
+                    'source': 'subdivision_form',
+                }),
+                content_type='application/json',
+                HTTP_X_API_KEY=self.api_key.key,
+            )
+            self.assertEqual(response.status_code, 201)
+            contact = Contact.objects.get(email='relo@test.com')
+            self.assertEqual(contact.assigned_to.username, 'agent1')
+
+    def test_quiz_form_assigns_track2_agent(self):
+        """A lead from source='condo_quiz' must go to a Track 2 agent."""
+        from django.test import override_settings
+        with override_settings(TRACK_AGENTS={'track1': ['agent1'], 'track2': ['agent2']}):
+            response = self.client.post(
+                '/api/leads/',
+                json.dumps({
+                    'first_name': 'Vaca',
+                    'email': 'vaca@test.com',
+                    'source': 'condo_quiz',
+                }),
+                content_type='application/json',
+                HTTP_X_API_KEY=self.api_key.key,
+            )
+            self.assertEqual(response.status_code, 201)
+            contact = Contact.objects.get(email='vaca@test.com')
+            self.assertEqual(contact.assigned_to.username, 'agent2')
+
+    def test_utm_campaign_track1_overrides_source(self):
+        """utm_campaign=track1-relocation should route to Track 1 even with generic source."""
+        from django.test import override_settings
+        with override_settings(TRACK_AGENTS={'track1': ['agent1'], 'track2': ['agent2']}):
+            response = self.client.post(
+                '/api/leads/',
+                json.dumps({
+                    'first_name': 'Utm',
+                    'email': 'utm@test.com',
+                    'source': 'landing_page',
+                    'utm_campaign': 'track1-relocation',
+                }),
+                content_type='application/json',
+                HTTP_X_API_KEY=self.api_key.key,
+            )
+            contact = Contact.objects.get(email='utm@test.com')
+            self.assertEqual(contact.assigned_to.username, 'agent1')

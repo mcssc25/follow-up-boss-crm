@@ -65,6 +65,15 @@ def capture_lead(request):
         utm_string = ' | '.join(utm_parts)
         source_detail = f"{source_detail} | {utm_string}" if source_detail else utm_string
 
+    # Detect track for agent assignment.
+    # Source field takes priority; falls back to utm_campaign tag.
+    source = data.get('source', 'landing_page')
+    track = None
+    if source == 'subdivision_form' or 'track1' in utm_campaign:
+        track = 'track1'
+    elif source == 'condo_quiz' or 'track2' in utm_campaign:
+        track = 'track2'
+
     # --- Feature 3: Duplicate Lead Detection ---
     email = data.get('email', '').strip()
     existing_contact = None
@@ -101,7 +110,7 @@ def capture_lead(request):
             source=data.get('source', 'landing_page'),
             source_detail=source_detail,
             team=team,
-            assigned_to=round_robin_assign(team),
+            assigned_to=round_robin_assign(team, track=track),
         )
 
         # Log activity
