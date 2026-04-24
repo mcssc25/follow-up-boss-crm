@@ -36,6 +36,11 @@ class Contact(models.Model):
         ('referral', 'Referral'),
         ('zillow', 'Zillow'),
         ('realtor', 'Realtor.com'),
+        ('subdivision_form', 'Subdivision Page (Track 1)'),
+        ('condo_quiz', 'Condo Quiz (Track 2)'),
+        ('lead_magnet_relocation', 'Lead Magnet — Relocation Guide'),
+        ('lead_magnet_condo', 'Lead Magnet — Condo Cheat Sheet'),
+        ('bio_splitter', 'IG Bio Splitter Page'),
         ('other', 'Other'),
     ]
 
@@ -44,7 +49,7 @@ class Contact(models.Model):
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
-    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='manual')
+    source = models.CharField(max_length=50, choices=SOURCE_CHOICES, default='manual')
     source_detail = models.CharField(max_length=200, blank=True)
     assigned_to = models.ForeignKey(
         settings.AUTH_USER_MODEL,
