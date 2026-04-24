@@ -155,13 +155,21 @@ def capture_lead(request):
             target=send_results_email, args=(contact, results_url), daemon=True
         ).start()
 
-    # Auto-enroll in campaign if specified
+    # Auto-enroll in campaign if specified.
+    # Accepts either campaign_id (preferred when caller knows the ID) or
+    # campaign_name (preferred for static forms — env-portable).
     campaign_id = data.get('campaign_id')
-    if campaign_id:
+    campaign_name = data.get('campaign_name')
+    if campaign_id or campaign_name:
         try:
-            campaign = Campaign.objects.get(
-                id=campaign_id, team=team, is_active=True
-            )
+            if campaign_id:
+                campaign = Campaign.objects.get(
+                    id=campaign_id, team=team, is_active=True
+                )
+            else:
+                campaign = Campaign.objects.get(
+                    name=campaign_name, team=team, is_active=True
+                )
             # Check not already actively enrolled
             already_enrolled = CampaignEnrollment.objects.filter(
                 contact=contact,

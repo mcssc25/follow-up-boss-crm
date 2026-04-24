@@ -140,3 +140,26 @@ class LeadCaptureAPITest(TestCase):
             )
             contact = Contact.objects.get(email='utm@test.com')
             self.assertEqual(contact.assigned_to.username, 'agent1')
+
+    def test_auto_enroll_by_campaign_name(self):
+        """A lead with campaign_name (not campaign_id) should auto-enroll in the named campaign."""
+        campaign = Campaign.objects.create(
+            name="Track 1 — Relocation Welcome", team=self.team, created_by=self.agent1
+        )
+        CampaignStep.objects.create(
+            campaign=campaign, order=1, delay_days=0, delay_hours=0,
+            subject="Welcome", body="Hi",
+        )
+        response = self.client.post(
+            '/api/leads/',
+            json.dumps({
+                'first_name': 'NameRoute',
+                'email': 'name@test.com',
+                'campaign_name': 'Track 1 — Relocation Welcome',
+            }),
+            content_type='application/json',
+            HTTP_X_API_KEY=self.api_key.key,
+        )
+        self.assertEqual(response.status_code, 201)
+        contact = Contact.objects.get(email='name@test.com')
+        self.assertTrue(contact.enrollments.filter(campaign=campaign).exists())
