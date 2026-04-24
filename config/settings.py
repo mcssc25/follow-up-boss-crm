@@ -420,7 +420,10 @@ LOGGING = {
 # Track-aware agent assignment for two-funnel lead routing.
 # Maps track name to a list of usernames. Lookup is case-sensitive.
 # Production usernames are email-based for Kelly/Kerri; Dave Davis is `admin`.
+# NOTE: 'admin' (Dave Davis) is currently OUT of Track 1 because his Gmail
+# OAuth refresh token is revoked — sends silently fail. Re-add 'admin' once
+# Dave reconnects Gmail in the CRM (settings/integrations page).
 TRACK_AGENTS = {
-    'track1': ['admin', 'kellykanedavis@gmail.com'],                    # Relocation: Dave Davis + Kelly
+    'track1': ['kellykanedavis@gmail.com'],                             # Relocation: Kelly (Dave temporarily removed)
     'track2': ['kellykanedavis@gmail.com', 'kerrinicketta@gmail.com'],  # Vacation/condo: Kelly + Kerri
 }
