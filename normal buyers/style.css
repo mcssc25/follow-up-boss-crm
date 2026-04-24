@@ -1,0 +1,163 @@
+:root {
+    --primary: #0077b6;
+    --secondary: #00b4d8;
+    --accent: #caf0f8;
+    --dark: #001219;
+    --light: #f8f9fa;
+    --glass: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text: #333;
+    --text-light: #666;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+    background-color: #f8f9fa;
+    color: var(--text);
+    overflow: hidden; /* Header + Main fill height */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+h1 { font-size: 2.5rem; letter-spacing: -1px; }
+header p { opacity: 0.8; margin-bottom: 20px; }
+
+.search-bar {
+    max-width: 500px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 2px;
+}
+
+.search-bar input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 12px 25px;
+    color: white;
+    outline: none;
+}
+
+.container-split {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.results-panel {
+    width: 450px;
+    overflow-y: auto;
+    padding: 20px;
+    background: white;
+    border-right: 1px solid #eee;
+    scroll-behavior: smooth;
+}
+
+.map-panel {
+    flex: 1;
+    position: relative;
+    background: #e5e5e5;
+}
+
+#neighborhood-map {
+    width: 100%;
+    height: 100%;
+}
+
+.map-overlay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: white;
+    padding: 10px 25px;
+    border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--primary);
+}
+
+.neighborhood-card {
+    background: white;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.neighborhood-card.active {
+    border-color: var(--primary);
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(0,119,182,0.15);
+}
+
+.card-image { height: 180px; width: 100%; object-fit: cover; }
+.card-content { padding: 20px; }
+.card-area { font-size: 0.75rem; color: var(--primary); font-weight: 800; text-transform: uppercase; }
+.card-title { font-size: 1.3rem; margin: 5px 0; }
+.card-price { font-size: 0.9rem; font-weight: 600; color: #666; }
+
+.card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 15px 0; }
+.tag { background: #f0f4f8; padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 40px;
+    width: 90%;
+    max-width: 800px;
+    border-radius: 30px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.close-btn { position: absolute; top: 20px; right: 25px; font-size: 30px; cursor: pointer; }
+
+/* Scrollbar */
+.results-panel::-webkit-scrollbar { width: 6px; }
+.results-panel::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+
+@media (max-width: 900px) {
+    .container-split { flex-direction: column-reverse; }
+    .results-panel { width: 100%; height: 300px; }
+    .map-panel { height: 400px; }
+    body { overflow: auto; height: auto; }
+}

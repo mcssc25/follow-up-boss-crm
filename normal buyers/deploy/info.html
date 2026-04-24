@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Gulf Shores Relocation Guide | Big Beach AL</title>
+    <meta name="description" content="Moving to Gulf Shores, AL? A master guide covering everything from schools and public safety to fishing, boating, the zoo, and local beaches.">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0077b6;
+            --secondary: #00b4d8;
+            --dark: #001219;
+            --text: #2d3436;
+            --gold: #ffb900;
+            --accent: #caf0f8;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        body { background:#fff; color:var(--text); line-height:1.6; }
+
+        header {
+            background: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { font-weight: 800; font-size: 1.4rem; color: var(--dark); text-decoration: none; }
+        .logo span { color: var(--primary); }
+
+        .hero { padding: 90px 20px 50px; text-align: center; max-width: 1000px; margin: 0 auto; }
+        .eyebrow { color: var(--gold); font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 15px; display: block; }
+        h1 { font-size: 4rem; font-weight: 800; color: var(--dark); line-height: 1.1; margin-bottom: 25px; letter-spacing: -1.5px; }
+        .hero p { font-size: 1.3rem; color: #636e72; max-width: 800px; margin: 0 auto; }
+
+        /* THE GRID */
+        .info-grid {
+            display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px;
+            max-width: 1300px; margin: 20px auto 120px; padding: 0 20px;
+        }
+        .card {
+            position: relative; border-radius: 28px; overflow: hidden; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-height: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: var(--dark);
+        }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,119,182,0.2); }
+        .card img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; transition: transform 0.8s ease; opacity: 0.85; }
+        .card:hover img { transform: scale(1.08); opacity: 1; }
+        
+        .card-overlay {
+            position: absolute; inset: 0; 
+            background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,18,25,0.95) 100%);
+            padding: 30px; display: flex; flex-direction: column; justify-content: flex-end;
+            color: white; point-events: none;
+        }
+        .badge { background: var(--gold); color: var(--dark); padding: 5px 12px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; align-self: flex-start; margin-bottom: 15px; }
+        .card h3 { font-size: 1.7rem; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
+        .card p { font-size: 0.95rem; opacity: 0.85; font-weight: 500; }
+
+        .card.huge { grid-column: span 12; min-height: 480px; }
+        .card.large { grid-column: span 8; min-height: 440px; }
+        .card.med { grid-column: span 4; }
+        .card.wide { grid-column: span 6; }
+        .card.square { grid-column: span 4; min-height: 400px; }
+
+        /* MODAL */
+        .modal-bg {
+            display:none; position:fixed; inset:0; z-index:2000;
+            background:rgba(0,18,25,0.85); backdrop-filter:blur(12px);
+            padding: 20px; overflow-y: auto;
+        }
+        .modal-content {
+            background:white; max-width:1050px; margin: 40px auto; border-radius:32px;
+            overflow:hidden; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5); position: relative;
+        }
+        @keyframes slideUp { from { transform:translateY(50px) scale(0.98); opacity:0; } to { transform:translateY(0) scale(1); opacity:1; } }
+
+        .modal-header { height: 420px; position: relative; }
+        .modal-header img { width:100%; height:100%; object-fit:cover; }
+        .modal-header-text { position: absolute; bottom: 0; left: 0; right: 0; padding: 50px; background: linear-gradient(0deg, rgba(0,18,25,0.95) 0%, transparent 100%); color: white; }
+        .modal-header-text h2 { font-size: 3.2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
+        .modal-header-text p { font-size: 1.2rem; opacity: 0.9; max-width: 800px; }
+
+        .modal-body { padding: 50px; }
+        .modal-grid { display: grid; grid-template-columns: 2.3fr 1fr; gap: 60px; }
+        
+        .modal-main h4 { margin-top: 35px; margin-bottom: 15px; color: var(--primary); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; font-weight: 800; }
+        .modal-main h4:first-child { margin-top: 0; }
+        .modal-main p { margin-bottom: 24px; font-size: 1.15rem; color: #444; line-height: 1.7; }
+        
+        .feature-block { background: #fcfcfc; border-radius: 20px; padding: 30px; border: 1px solid #f0f0f0; margin: 30px 0; }
+        .feature-block h5 { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: var(--dark); }
+        .feature-block ul { list-style: none; }
+        .feature-block li { margin-bottom: 16px; display: flex; gap: 15px; font-size: 1.05rem; color: #555; line-height: 1.5; }
+        .feature-block li::before { content: "→"; color: var(--secondary); font-weight: 800; }
+
+        .modal-sidebar { position: sticky; top: 30px; height: fit-content; }
+        .sidebar-card { background: var(--dark); color: white; padding: 35px; border-radius: 24px; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .sidebar-card h5 { color: var(--gold); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+        .fact-row { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
+        .fact-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .fact-label { opacity: 0.7; font-size: 0.95rem; }
+        .fact-value { font-weight: 700; text-align: right; font-size: 0.95rem; }
+
+        .close-btn { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px); border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 32px; cursor: pointer; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; color: var(--dark); transition: transform 0.2s; }
+        .close-btn:hover { transform: scale(1.1); background: white; }
+
+        @media (max-width: 1000px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .card.huge, .card.large, .card.med, .card.wide, .card.square { grid-column: span 12; min-height: 350px; }
+            h1 { font-size: 2.8rem; }
+            .modal-grid { grid-template-columns: 1fr; gap: 40px; }
+            .modal-header { height: 300px; }
+            .modal-header-text h2 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="/" class="logo">BIG BEACH <span>AL</span></a>
+</header>
+
+<main>
+    <section class="hero">
+        <span class="eyebrow">The Master Archive</span>
+        <h1>The Ultimate Gulf Coast Relocation Guide.</h1>
+        <p>A comprehensive, hyper-local dive into every aspect of living in Gulf Shores. We've mapped out the schools, the secret marinas, the best grocery stores, and the truth about hurricane season.</p>
+    </section>
+
+    <div class="info-grid">
+        
+        <!-- Parks & Ecology (NEW) -->
+        <div class="card huge" onclick="openInfo('beaches')">
+            <img src="./assets/relocation/gulf_shores_beaches_parks.png" alt="Beaches and Parks">
+            <div class="card-overlay">
+                <span class="badge">Ecology & Outdoors</span>
+                <h3>Beaches, State Parks & The Lagoon</h3>
+                <p>3.5 miles of pristine protected park sand, the 28-mile Backcountry Trail, and the Little Lagoon ecosystem.</p>
+            </div>
+        </div>
+
+        <!-- Schools -->
+        <div class="card wide" onclick="openInfo('schools')">
+            <img src="./assets/relocation/gulf_shores_schools_education.png" alt="Schools">
+            <div class="card-overlay">
+                <span class="badge">Education</span>
+                <h3>The $140M Learning Revolution</h3>
+                <p>The state-of-the-art High School opening in 2026 and the district's rapid ascent.</p>
+            </div>
+        </div>
+
+        <!-- Boating & Fishing (NEW) -->
+        <div class="card wide" onclick="openInfo('boating')">
+            <img src="./assets/relocation/gulf_shores_boating_fishing.png" alt="Boating and Fishing">
+            <div class="card-overlay">
+                <span class="badge">Marine Life</span>
+                <h3>Boating, Marinas & Fishing</h3>
+                <p>Navigating the Intracoastal Waterway, public launches, and the deep sea charter fleets.</p>
+            </div>
+        </div>
+
+        <!-- Entertainment (NEW) -->
+        <div class="card square" onclick="openInfo('entertainment')">
+            <img src="./assets/relocation/gulf_shores_entertainment_attractions.png" alt="Entertainment">
+            <div class="card-overlay">
+                <span class="badge">Attractions</span>
+                <h3>Concerts, Theme Parks & The Zoo</h3>
+                <p>The Wharf Amphitheater, Waterville USA, and OWA Parks & Resort.</p>
+            </div>
+        </div>
+
+        <!-- Dining -->
+        <div class="card large" onclick="openInfo('dining')">
+            <img src="./assets/relocation/gulf_shores_dining_shopping.png" alt="Dining">
+            <div class="card-overlay">
+                <span class="badge">Local Flavor</span>
+                <h3>The "Locals-Only" Dining Archive</h3>
+                <p>Skip the tourist traps. Where to find the real Bushwackers, Swamp Soup, and cheesesteaks.</p>
+            </div>
+        </div>
+
+        <!-- Shopping -->
+        <div class="card med" onclick="openInfo('shopping')">
+            <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80" alt="Shopping">
+            <div class="card-overlay">
+                <span class="badge">Everyday Ops</span>
+                <h3>The Grocery Power-Grid</h3>
+                <p>Rouses, Publix, Target, and the essentials for establishing your coastal routine.</p>
+            </div>
+        </div>
+
+        <!-- Safety -->
+        <div class="card large" onclick="openInfo('safety')">
+            <img src="./assets/relocation/gulf_shores_public_safety.png" alt="Safety">
+            <div class="card-overlay">
+                <span class="badge">Public Protection</span>
+                <h3>Safety, Police & Infrastructure</h3>
+                <p>CALEA Gold accredited police, Flock camera networks, and the Marine Unit.</p>
+            </div>
+        </div>
+
+        <!-- Weather -->
+        <div class="card wide" onclick="openInfo('weather')">
+            <img src="./assets/relocation/gulf_shores_hurricanes_weather.png" alt="Weather">
+            <div class="card-overlay">
+                <span class="badge">Climate Realities</span>
+                <h3>Hurricanes & Insurability</h3>
+                <p>The truth about Fortified Roofs, humidity spikes, and seasonal traffic realities.</p>
+            </div>
+        </div>
+        
+        <!-- Travel -->
+        <div class="card wide" onclick="openInfo('airport')">
+            <img src="https://images.unsplash.com/photo-1436491865332-7a61a109c0f2?w=800&q=80" alt="Airport">
+            <div class="card-overlay">
+                <span class="badge">Connections</span>
+                <h3>The Airport Masterplan</h3>
+                <p>JKA's 13 nonstop commercial destinations and the $15M terminal expansion.</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="modal-bg" id="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeInfo()">&times;</button>
+        <div class="modal-header" id="modalHeader">
+            <img src="" id="modalImg">
+            <div class="modal-header-text">
+                <h2 id="modalTitle"></h2>
+                <p id="modalSubtitle"></p>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="modal-main" id="modalContent"></div>
+                <div class="modal-sidebar" id="modalSidebar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const content = {
+    beaches: {
+        title: "Beaches, Parks & Ecology",
+        subtitle: "It's not just sand. It's a massive, protected ecological network right in your backyard.",
+        img: "./assets/relocation/gulf_shores_beaches_parks.png",
+        main: `
+            <h4>The Crown Jewel: Gulf State Park</h4>
+            <p>Unlike many coastal towns where high-rises dominate every inch of sand, Gulf Shores is anchored by the 6,500-acre Gulf State Park. This provides residents with over 3.5 miles of untouched, federally protected white-sand beaches right in the middle of the city.</p>
+            
+            <div class="feature-block">
+                <h5>The Hugh S. Branyon Backcountry Trail</h5>
+                <p>This is arguably the greatest outdoor amenity in the region. It's a 28+ mile network of paved, ADA-accessible paths and wooden boardwalks that weave through nine different ecosystems.</p>
+                <ul>
+                    <li><strong>Ecosystems:</strong> Ride your bike through towering pine forests, freshwater marshes, and coastal dunes all in one afternoon.</li>
+                    <li><strong>Wildlife:</strong> It's common to spot whitetail deer, bobcats, bald eagles, and alligators (safely from the boardwalks) while jogging or commuting.</li>
+                </ul>
+            </div>
+
+            <h4>Little Lagoon</h4>
+            <p>On the west side of Gulf Shores sits Little Lagoon—a 2,480-acre body of shallow, brackish water (mostly 4-6 feet deep). It connects to the Gulf via Lagoon Pass and is highly favored by locals for kayaking, paddle-boarding, and chasing speckled trout without dealing with open-ocean surf.</p>
+            <p>Because the city is deeply invested in the ecology, major initiatives (like the "Little Lagoon Restoration Project") are constantly expanding oyster reefs, living shorelines, and water quality.</p>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Outdoor Stats</h5>
+                <div class="fact-row"><span class="fact-label">State Park Size</span><span class="fact-value">6,500 Acres</span></div>
+                <div class="fact-row"><span class="fact-label">Trail System</span><span class="fact-value">28+ Paved Miles</span></div>
+                <div class="fact-row"><span class="fact-label">Lagoon Size</span><span class="fact-value">2,480 Acres</span></div>
+                <div class="fact-row"><span class="fact-label">Beach Parking</span><span class="fact-value">ParkMobile App</span></div>
+            </div>
+        `
+    },
+    boating: {
+        title: "Boating & Marina Culture",
+        subtitle: "Accessing the Intracoastal Waterway (ICW), the bays, and the deep blue of the Gulf of Mexico.",
+        img: "./assets/relocation/gulf_shores_boating_fishing.png",
+        main: `
+            <h4>The Intracoastal Waterway (ICW)</h4>
+            <p>Gulf Shores and Orange Beach are literally defined by water. The ICW runs right through the center of town, acting as a massive aquatic highway connecting Mobile Bay to Perdido Bay. For boaters, this means you can dock-and-dine at restaurants, island-hop, or transit without ever hitting the open ocean.</p>
+            
+            <div class="feature-block">
+                <h5>Public Launches & Access</h5>
+                <ul>
+                    <li><strong>The Launch at ICW (Orange Beach):</strong> A brand new, massive facility with 1,700 feet of water frontage, 6 boat launches, and incredible parking infrastructure.</li>
+                    <li><strong>Boggy Point:</strong> Highly favored for its immediate proximity to Perdido Pass (your gateway to the Gulf).</li>
+                    <li><strong>Mo's Landing / Canal Park:</strong> Classic, easy-access launches in Gulf Shores for back-bay fishing and cruising.</li>
+                </ul>
+            </div>
+
+            <h4>The Fishing Capital</h4>
+            <p>The charter fleet in this area is legendary. <strong>Offshore/Deep Sea fleets</strong> operate heavily out of Orange Beach Marina and Zeke's Landing, taking anglers 10-30 miles out for Red Snapper, Grouper, and Mahi. <strong>Inshore Guides</strong> operate in the bays (Wolf Bay, Perdido Bay, Mobile Bay) targeting Redfish, Speckled Trout, and Flounder. Whether you own a 30-foot center console or a 14-foot skiff, the infrastructure here is world-class.</p>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Maritime Access</h5>
+                <div class="fact-row"><span class="fact-label">Gulf Access</span><span class="fact-value">Perdido Pass</span></div>
+                <div class="fact-row"><span class="fact-label">Best New Ramp</span><span class="fact-value">The Launch at ICW</span></div>
+                <div class="fact-row"><span class="fact-label">Inshore Target</span><span class="fact-value">Redfish & Trout</span></div>
+                <div class="fact-row"><span class="fact-label">Offshore Target</span><span class="fact-value">Red Snapper</span></div>
+            </div>
+        `
+    },
+    entertainment: {
+        title: "Concerts, Zoos & Attractions",
+        subtitle: "The major venues and entertainment districts that make Gulf Coast living feel like a permanent vacation.",
+        img: "./assets/relocation/gulf_shores_entertainment_attractions.png",
+        main: `
+            <h4>The Wharf Amphitheater</h4>
+            <p>Located in Orange Beach, The Wharf is a massive entertainment district anchored by a 10,000-seat outdoor amphitheater. It is the premier music venue on the Gulf Coast. The C Spire Concert Series routinely brings in A-list talent—names like Dave Matthews Band, Chris Stapleton, Jelly Roll, and Willie Nelson. The district also features a Ferris Wheel, laser light shows, and dozens of high-end boutiques and restaurants.</p>
+            
+            <div class="feature-block">
+                <h5>Family Entertainment Districts</h5>
+                <ul>
+                    <li><strong>Alabama Gulf Coast Zoo:</strong> Recently relocated to a massive, modern facility in Gulf Shores, this zoo is famous for its "up-close" animal encounters, lemur interactions, and highly dedicated conservation staff.</li>
+                    <li><strong>OWA Parks & Resort (Foley):</strong> Just north of Gulf Shores, OWA is a mega-destination featuring a full-scale amusement park (The Park at OWA), an indoor water park (Tropic Falls), and a massive "Downtown" walkable district filled with dining and live music.</li>
+                    <li><strong>Waterville USA:</strong> A Gulf Shores staple. A massive 20-acre waterpark and amusement park located just a few blocks off the beach. Featuring a FlowRider, wave pools, and go-karts.</li>
+                </ul>
+            </div>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Major Attractions</h5>
+                <div class="fact-row"><span class="fact-label">Amphitheater</span><span class="fact-value">The Wharf (10k seats)</span></div>
+                <div class="fact-row"><span class="fact-label">Amusement Park</span><span class="fact-value">OWA (Foley)</span></div>
+                <div class="fact-row"><span class="fact-label">Water Park</span><span class="fact-value">Waterville USA</span></div>
+                <div class="fact-row"><span class="fact-label">Animal Park</span><span class="fact-value">Gulf Coast Zoo</span></div>
+            </div>
+        `
+    },
+    schools: {
+        title: "The $140 Million Leap",
+        subtitle: "Analyzing the rapid ascent of Gulf Shores City Schools.",
+        img: "./assets/relocation/gulf_shores_schools_education.png",
+        main: `
+            <h4>The New Gulf Shores High School</h4>
+            <p>Scheduled to open in <strong>Fall 2026</strong>, the new 287,000 sq. ft. campus on County Road 8 is the centerpiece of a $200M+ district-wide capital plan. It isn't just a building; it's a collegiate-style facility designed for 1,000+ students.</p>
+            
+            <div class="feature-block">
+                <h5>High School Advancements</h5>
+                <ul>
+                    <li><strong>Flexible Learning Studios:</strong> Adjustable "studios" that can fit 20 or 200 students, catering to specific project-based learning.</li>
+                    <li><strong>Specialized Academies:</strong> Labs for Bio-medical, Marine Biology, Robotics, and Music Production.</li>
+                    <li><strong>Aviation Hub:</strong> Direct pipelines to pilot training and aviation technology.</li>
+                    <li><strong>Dolphin Athletic Center:</strong> Two competition gyms and an 18,000 sq ft field house for year-round training.</li>
+                </ul>
+            </div>
+
+            <h4>Elementary & Middle Schools (An "A" District)</h4>
+            <p>Gulf Shores City Schools consistently maintains an "A" rating (scoring 95 in the latest state report cards). As the high school moves, the entire district shifts to optimize space.</p>
+            
+            <div class="feature-block">
+                <h5>Middle & Elementary Excellence</h5>
+                <ul>
+                    <li><strong>Gulf Shores Elementary (PreK-5):</strong> Emphasizes STEAM (Science, Tech, Engineering, Arts, Math) with dedicated makerspaces, coding courses, and i-Ready personalized instruction. The current Middle School campus will soon become an expansion of GSES.</li>
+                    <li><strong>Gulf Shores Middle (6-8):</strong> Focused on whole-child adolescent development offering experiential outdoor learning, honors courses, and a massive array of electives (band, newspaper, art). They will move into the renovated facility currently acting as the High School.</li>
+                </ul>
+            </div>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Quick Stats</h5>
+                <div class="fact-row"><span class="fact-label">District Rating</span><span class="fact-value">"A" (95 Score)</span></div>
+                <div class="fact-row"><span class="fact-label">New HS Opening</span><span class="fact-value">Fall 2026</span></div>
+                <div class="fact-row"><span class="fact-label">New HS Cost</span><span class="fact-value">$139.4M</span></div>
+                <div class="fact-row"><span class="fact-label">GSCS Formed</span><span class="fact-value">2019</span></div>
+            </div>
+        `
+    },
+    dining: {
+        title: "Where the Locals Actually Eat",
+        subtitle: "The definitive guide to bypassing the tourist queues and eating like a resident.",
+        img: "./assets/relocation/gulf_shores_dining_shopping.png",
+        main: `
+            <h4>The Secret "Local" List</h4>
+            <p>While the coast is full of fantastic, massive tourist restaurants with corresponding wait times, locals know where to find the real flavor and a laid-back vibe.</p>
+
+            <div class="feature-block">
+                <h5>Hidden Gems & Coastal Staples</h5>
+                <ul>
+                    <li><strong>The Sloop:</strong> Tucked under the Gulf Shores bridge. Incredible Philly cheesesteaks, craft drinks, and a "Pirate Sports Bar" vibe. This is the ultimate local hideaway.</li>
+                    <li><strong>Fish River Grill #3:</strong> Famous for "Swamp Soup" and their proudly "funky redneck" atmosphere. The best authentic burgers, gator bites, and Cajun baskets in town.</li>
+                    <li><strong>DeSoto’s Seafood Kitchen:</strong> Known over decades for their fresh-catch daily specials. Excellent lunch menu that locals swear by.</li>
+                    <li><strong>Tacky Jacks:</strong> It definitely has tourists, but it's a massive local favorite for grabbing breakfast before a fishing trip or grabbing its world-famous "Bushwackers" at the Waterway.</li>
+                    <li><strong>Sea-N-Suds:</strong> Literally built on pylons over the sand. Affordable burgers, cold beer, and fried shrimp since the 1970s.</li>
+                </ul>
+            </div>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Local Pro-Tips</h5>
+                <div class="fact-row"><span class="fact-label">Best B-Fast</span><span class="fact-value">Tacky Jacks</span></div>
+                <div class="fact-row"><span class="fact-label">Best Burger</span><span class="fact-value">The Sloop</span></div>
+                <div class="fact-row"><span class="fact-label">Cajun/Gator</span><span class="fact-value">Fish River Grill</span></div>
+                <div class="fact-row"><span class="fact-label">Daily Catch</span><span class="fact-value">DeSoto's</span></div>
+            </div>
+        `
+    },
+    shopping: {
+        title: "Day-to-Day Essentials",
+        subtitle: "How residents navigate massive grocery demands and daily logistics.",
+        img: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80",
+        main: `
+            <h4>The Grocery Power Grid</h4>
+            <p>Relocating means finding your new routine. Gulf Shores is anchored by a high-end grocery grid capable of supporting 100,000+ summer visitors, meaning the infrastructure is over-built for off-season locals.</p>
+
+            <div class="feature-block">
+                <h5>The Main Players</h5>
+                <ul>
+                    <li><strong>Rouses Market (Gulf Shores Pkwy):</strong> The absolute regional favorite for culinary purists. Best seafood and butcher counters in town. If you need local Conecuh sausage, massive boiling pots, or Gulf shrimp to cook at home, start here.</li>
+                    <li><strong>Publix (Gulf Shores Pkwy):</strong> Located convenient to Hwy 59. Famous for the "Pub Sub" deli, excellent bakery, and pristine produce. Exceptionally clean.</li>
+                    <li><strong>Walmart Supercenter (E Fort Morgan Rd):</strong> The primary one-stop shop for locals on the west side. Essential for household basics, quick apparel, and coastal sporting goods.</li>
+                </ul>
+            </div>
+
+            <h4>General Shopping & Retail</h4>
+            <p><strong>Target</strong> is the local go-to for home decor and clothing—complete with a Starbucks inside and speedy Drive-Up services. For major fashion retail, the <strong>Tanger Outlets</strong> in Foley is just a 15-minute drive north and offers over 120 big-name stores without ever crossing into Florida.</p>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Essential Access</h5>
+                <div class="fact-row"><span class="fact-label">Rouses</span><span class="fact-value">Hwy 59</span></div>
+                <div class="fact-row"><span class="fact-label">Publix</span><span class="fact-value">Hwy 59 / CR 4</span></div>
+                <div class="fact-row"><span class="fact-label">Walmart</span><span class="fact-value">Ft Morgan Rd</span></div>
+                <div class="fact-row"><span class="fact-label">Target</span><span class="fact-value">Pritchett Dr</span></div>
+            </div>
+        `
+    },
+    safety: {
+        title: "Public Protection & Safety",
+        subtitle: "Reviewing the elite infrastructure keeping Gulf Shores citizens protected.",
+        img: "./assets/relocation/gulf_shores_public_safety.png",
+        main: `
+            <h4>Elite Police Force</h4>
+            <p>The Gulf Shores Police Department (GSPD) holds the prestigious <strong>CALEA Gold Standard accreditation</strong>—a distinction held by only a tiny fraction of departments nationwide. In recent tracking, their average priority response time was a staggering 3 minutes and 36 seconds.</p>
+            
+            <div class="feature-block">
+                <h5>Proactive Policing Technology</h5>
+                <ul>
+                    <li><strong>Flock Safety Cameras:</strong> GSPD utilizes advanced license plate reading and surveillance tech at all major intersections, parks, and schools to rapidly identify threats, track stolen vehicles, and locate missing persons before incidents escalate.</li>
+                    <li><strong>Dedicated Marine Unit:</strong> A full-time squad dedicated entirely to boater safety, water rescues, and wildlife emergencies on the busy Intracoastal Waterway.</li>
+                    <li><strong>Community Engagement:</strong> GSPD runs highly successful Citizens' Police Academies, a Youth Academy, and an Explorers Program to integrate directly with residents.</li>
+                </ul>
+            </div>
+
+            <h4>Beach Safety & Lifeguards</h4>
+            <p>Our Beach Safety division manages the strict colored flag system (Green to Double Red) and text-alerts. The lifeguards here are among the best in the Southeast, operating extensive rapid-response UTV and Waverunner patrols to prevent aquatic incidents before they happen.</p>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Public Safety Facts</h5>
+                <div class="fact-row"><span class="fact-label">Accreditation</span><span class="fact-value">CALEA Gold</span></div>
+                <div class="fact-row"><span class="fact-label">Response Time</span><span class="fact-value">~3.5 Mins</span></div>
+                <div class="fact-row"><span class="fact-label">Flag Alerts</span><span class="fact-value">Text ALBEACHES to 888-777</span></div>
+            </div>
+        `
+    },
+    weather: {
+        title: "Weather, Traffic & Insurability",
+        subtitle: "The honest realities, hurdles, and costs of living on the water.",
+        img: "./assets/relocation/gulf_shores_hurricanes_weather.png",
+        main: `
+            <h4>The Hurricane Reality</h4>
+            <p>Hurricanes are a fact of life on the Gulf Coast. However, Gulf Shores manages these threats with highly drilled, phased evacuation plans and extreme engineering. Modern homes here are built to stringent codes.</p>
+            
+            <div class="feature-block">
+                <h5>Insurance & "Fortified" Construction</h5>
+                <ul>
+                    <li><strong>Property Insurance:</strong> Because of the location, your 'Wind & Hail' and Flood insurance premiums will be significantly higher than in inland states.</li>
+                    <li><strong>The Fortified Program:</strong> The best way to combat insurance costs is by buying (or renovating) a home with a <strong>'Fortified Gold' or 'Fortified Roof' designation</strong>. This IBHS standard dramatically strengthens the home against extreme wind and is legally mandated to provide massive discounts on your insurance premiums in Alabama.</li>
+                </ul>
+            </div>
+
+            <h4>Heat, Humidity, and Hwy 59</h4>
+            <p>July and August are intensely hot and humid—prepare to live in your air conditioning or the pool. The secondary "pain point" is seasonal tourist traffic. From Spring Break through Labor Day, Highway 59 becomes highly congested. Locals survive by mastering the "back roads"—utilizing County Road 8, the Foley Beach Express, and neighborhood cut-throughs to bypass the gridlock.</p>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Reality Check</h5>
+                <div class="fact-row"><span class="fact-label">Hurricane Season</span><span class="fact-value">June 1 - Nov 30</span></div>
+                <div class="fact-row"><span class="fact-label">Highest Premium</span><span class="fact-value">Wind & Hail</span></div>
+                <div class="fact-row"><span class="fact-label">Cost Mitigator</span><span class="fact-value">Fortified Roof Cert</span></div>
+            </div>
+        `
+    },
+    airport: {
+        title: "Aviation & Connection Access",
+        subtitle: "A $15M terminal expansion and expanding commercial flight networks.",
+        img: "https://images.unsplash.com/photo-1436491865332-7a61a109c0f2?w=800&q=80",
+        main: `
+            <h4>The Rise of Gulf Shores International (JKA)</h4>
+            <p>Located right in town (just north of the Intracoastal), JKA is rapidly becoming a major regional hub. The city is executing a <strong>$15 Million terminal expansion</strong> by Fentress Architects (breaking ground in Summer 2026) to add new gate areas, expanded baggage claims, and multi-aircraft capacity by May 2027.</p>
+            
+            <div class="feature-block">
+                <h5>Booming Commercial Flights via Allegiant</h5>
+                <p style="font-size: 1.05rem; margin-bottom: 12px;">Allegiant Air now provides direct, seasonal nonstop flights to <strong>13 destinations</strong>, making visiting family out of state incredibly easy for residents.</p>
+                <ul>
+                    <li><strong>New Destinations:</strong> Springfield (MO), Louisville (KY), Huntsville (AL), Omaha (NE), Oklahoma City (OK).</li>
+                    <li><strong>Established Routes:</strong> Appleton (WI), Des Moines (IA), Knoxville (TN), Nashville (TN), Kansas City (MO), St. Louis/Belleville (IL), Cincinnati (OH), and Bentonville (XNA).</li>
+                </ul>
+            </div>
+
+            <h4>Pensacola International (PNS)</h4>
+            <p>For destinations not covered by Allegiant, most locals rely on Pensacola International Airport (PNS). It's a remarkably easy 50-60 minute scenic drive across the state line and features all major daily carriers including Delta, American, Southwest, and United.</p>
+        `,
+        sidebar: `
+            <div class="sidebar-card">
+                <h5>Flight Access</h5>
+                <div class="fact-row"><span class="fact-label">JKA Nonstops</span><span class="fact-value">13 Cities</span></div>
+                <div class="fact-row"><span class="fact-label">JKA Terminal</span><span class="fact-value">$15M Expansion</span></div>
+                <div class="fact-row"><span class="fact-label">PNS Drive</span><span class="fact-value">~55 Minutes</span></div>
+            </div>
+        `
+    }
+};
+
+function openInfo(slug) {
+    const data = content[slug] || { title: "Research in Progress", subtitle:"", img: "", main: "<p>Coming soon...</p>", sidebar: "" };
+    document.getElementById('modalTitle').innerText = data.title;
+    document.getElementById('modalSubtitle').innerText = data.subtitle;
+    document.getElementById('modalImg').src = data.img;
+    document.getElementById('modalContent').innerHTML = data.main;
+    document.getElementById('modalSidebar').innerHTML = data.sidebar;
+    document.getElementById('modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+function closeInfo() { document.getElementById('modal').style.display = 'none'; document.body.style.overflow = 'auto'; }
+window.onclick = (e) => { if (e.target == document.getElementById('modal')) closeInfo(); }
+</script>
+
+</body>
+</html>

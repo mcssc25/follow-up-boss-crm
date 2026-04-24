@@ -78,3 +78,10 @@ package-lock.json
 /gunicorn.ctl
 /update_server.py
 /listings for *.csv
+
+# Claude Code local state and one-off deploy scripts (often contain secrets)
+/.claude/
+/scratch/
+# FTP credentials hardcoded — keep out of git history. Recreate locally if needed.
+/normal buyers/deploy_neighborhoods.cjs
+/normal buyers/deploy_info.cjs
