@@ -1,19 +1,21 @@
 document.getElementById('lead-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const form = e.target;
     const submitBtn = form.querySelector('.btn-submit');
     const originalBtnText = submitBtn.innerHTML;
-    
+    const successPanel = document.getElementById('form-success');
+
     // Disable button and show loading state
     submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Sending...';
-    
-    const firstName = form.querySelector('input[type="text"]').value;
-    const email = form.querySelector('input[type="email"]').value;
-    const timeline = form.querySelector('select').value;
-    
-    // Replace with your actual API Key from CRM Admin
+    submitBtn.innerHTML = 'Sending&hellip;';
+
+    // Read by name (robust to layout changes)
+    const firstName = form.querySelector('input[name="first_name"]').value.trim();
+    const email = form.querySelector('input[name="email"]').value.trim();
+    const timeline = form.querySelector('select[name="timeline"]').value;
+
+    // Replace with the real API Key from CRM Admin (/admin/api/apikey/) before deploying
     const API_KEY = 'your_api_key_here';
     if (API_KEY === 'your_api_key_here') {
         console.error('[relocation-guide] API_KEY placeholder not replaced — form submissions will fail. Set the real API key in api_connection.js before deploying.');
@@ -42,25 +44,29 @@ document.getElementById('lead-form').addEventListener('submit', async (e) => {
         });
 
         if (response.ok) {
-            // Success! 
-            submitBtn.innerHTML = 'Success! Check your Email';
-            submitBtn.style.background = '#2ecc71';
-            
-            // Redirect to the PDF or show success message after 2 seconds
+            // Hide the form, show the success panel, then redirect to subdivisions
+            form.hidden = true;
+            if (successPanel) {
+                successPanel.hidden = false;
+                if (window.lucide) lucide.createIcons();
+                successPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             setTimeout(() => {
-                window.location.href = 'relocation-guide-pdf.html'; 
-            }, 2000);
+                window.location.href = 'https://bigbeachal.com/gulfshoressubdivisions/?utm_source=relocation-guide&utm_medium=post-signup-redirect&utm_campaign=track1-relocation';
+            }, 2800);
         } else {
-            const error = await response.json();
-            console.error('API Error:', error);
-            alert('Something went wrong. Please try again.');
+            const error = await response.json().catch(() => ({}));
+            console.error('API Error:', response.status, error);
+            alert('Something went wrong submitting the form. Please try again or email us directly.');
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
+            if (window.lucide) lucide.createIcons();
         }
     } catch (err) {
         console.error('Network Error:', err);
-        alert('Could not connect to the CRM. Please check your internet.');
+        alert('Could not connect. Please check your internet and try again.');
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;
+        if (window.lucide) lucide.createIcons();
     }
 });

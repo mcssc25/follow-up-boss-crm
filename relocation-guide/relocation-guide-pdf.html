@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relocation Guide | Big Beach AL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+    <style>
+        @page { size: letter; margin: 0; }
+        :root {
+            --ocean-deep: #0B3D5B;
+            --ocean-light: #3DA5C9;
+            --sand: #F5E6D3;
+            --sand-light: #FFF8F0;
+            --sunset-gold: #E8A838;
+            --text: #333333;
+        }
+
+        body { font-family: 'Raleway', sans-serif; color: var(--text); background: #eee; line-height: 1.6; }
+
+        .page {
+            width: 8.5in;
+            height: 11in;
+            background: white;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            page-break-after: always;
+        }
+
+        /* Cover */
+        .cover {
+            background: var(--ocean-deep);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+        }
+
+        .cover-img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0.4;
+        }
+
+        .cover-content { position: relative; z-index: 1; padding: 60px; }
+        .cover h1 { font-family: 'Playfair Display', serif; font-size: 50px; margin: 20px 0; }
+        .cover h2 { font-weight: 300; letter-spacing: 4px; text-transform: uppercase; font-size: 14px; color: var(--sand); }
+        .accent-line { width: 80px; height: 2px; background: var(--sunset-gold); margin: 20px auto; }
+
+        /* Page Layout */
+        .content { padding: 0.8in 0.8in; }
+        h3 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--ocean-deep); margin-bottom: 20px; position: relative; }
+        h3::after { content: ''; position: absolute; bottom: -8px; left: 0; width: 40px; height: 3px; background: var(--sunset-gold); }
+
+        .accent-block {
+            background: var(--sand-light);
+            border-left: 4px solid var(--sunset-gold);
+            padding: 25px;
+            margin: 30px 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--ocean-deep);
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+        .box { padding: 20px; border-radius: 12px; border: 1px solid rgba(11, 61, 91, 0.1); }
+        .box h4 { font-family: 'Playfair Display', serif; color: var(--ocean-deep); margin-bottom: 10px; }
+
+        .footer {
+            position: absolute;
+            bottom: 40px; left: 0.8in; right: 0.8in;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            font-size: 11px;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .checklist li { margin-bottom: 10px; list-style: none; position: relative; padding-left: 25px; font-size: 14px; }
+        .checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--sunset-gold); font-weight: 800; }
+
+        @media print {
+            body { background: none; }
+            .page { margin: 0; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: COVER -->
+    <div class="page cover">
+        <img src="beach_hero.png" class="cover-img">
+        <div class="cover-content">
+            <h2>The "Big Beach" Method</h2>
+            <h1>Find Your Family's<br>Gathering Place</h1>
+            <div class="accent-line"></div>
+            <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic; color: var(--sand);">A smart lifestyle investment for your family’s wealth.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 2: THE STORY -->
+    <div class="page">
+        <div class="content">
+            <h3>We were exactly where you are.</h3>
+            <p style="font-size: 14px; margin-top: 20px;">For years, we lived in a busy area, tired of the constant traffic and soaring property taxes. We worked hard for our money, but we weren’t seeing it turn into the life we actually wanted. We wanted more than just a change of scenery—we wanted a dream beach home.</p>
+            
+            <div class="accent-block">
+                "The real problem wasn't that we needed a vacation. It was that taking a short trip wasn't enough anymore. We needed a permanent place for our family to grow."
+            </div>
+
+            <p style="font-size: 14px;">That first home changed everything. It became our safe place. We loved sneaking away for weekends so much that we eventually traded the city for life at the beach forever. Today, we use what we know to help other families do the same thing.</p>
+
+            <h3 style="margin-top: 40px;">The Financial Reality</h3>
+            <div class="grid">
+                <div class="box">
+                    <h4>Smart Wealth</h4>
+                    <p style="font-size: 13px;">Alabama has the 2nd lowest property taxes in the US. A $500k home here costs ~ $1,800/yr in taxes. Your money simply goes further here than in 30A or Florida.</p>
+                </div>
+                <div class="box">
+                    <h4>Gold Fortified</h4>
+                    <p style="font-size: 13px;">Buying a Gold Fortified home isn't just about safety; it's a financial move. It can reduce your insurance premiums by up to 50%.</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <span>Big Beach AL | Relocation Intelligence</span>
+            <span>Page 2</span>
+        </div>
+    </div>
+
+    <!-- PAGE 3: THE METHOD -->
+    <div class="page">
+        <div class="content">
+            <h3>Looking for your "Gathering Place"</h3>
+            <p style="font-size: 14px;">We focus on neighborhoods where families can actually gather. These aren't just subdivisions; they're the backdrop for your next decade of memories.</p>
+            
+            <div class="grid">
+                <div class="box" style="background: var(--sand-light);">
+                    <h4>Aventura</h4>
+                    <p style="font-size: 13px;">The crown jewel for new growth. Modern, Gold-Fortified homes just minutes from the new high school. It's safe, solar-ready, and family-first.</p>
+                </div>
+                <div class="box" style="background: var(--sand-light);">
+                    <h4>The Peninsula</h4>
+                    <p style="font-size: 13px;">Luxury, gated, and serene. If you want a private beach and a world-class golf course right outside your door, this is the destination.</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 40px;">Your 12-Month Roadmap</h3>
+            <ul class="checklist" style="margin-top: 20px;">
+                <li><strong>Months 12-9:</strong> Visit during the "off-season" to see the locals' life.</li>
+                <li><strong>Months 9-6:</strong> Identify your Top 3 neighborhoods (we'll help you tour them).</li>
+                <li><strong>Months 6-3:</strong> Secure your financing with a local lender who knows coastal rules.</li>
+                <li><strong>Months 3-0:</strong> Move in. Start making those memories.</li>
+            </ul>
+
+            <div class="box" style="margin-top: 40px; background: var(--ocean-deep); color: white;">
+                <h4 style="color: var(--sunset-gold);">Ready for the beach?</h4>
+                <p style="font-size: 14px;">If you're ready to find your family's gathering place, reach out and let's book a call. We've made the move ourselves, and we'd love to help you do it too.</p>
+            </div>
+        </div>
+        <div class="footer">
+            <span>Big Beach AL | Relocation Intelligence</span>
+            <span>Page 3</span>
+        </div>
+    </div>
+
+</body>
+</html>
