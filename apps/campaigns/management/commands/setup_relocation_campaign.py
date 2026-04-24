@@ -6,7 +6,7 @@ from apps.campaigns.models import Campaign, CampaignStep
 
 WELCOME_BODY = """<p>Hi {{first_name}},</p>
 <p>Thanks for requesting our 2026 Gulf Shores Relocation Guide! Moving to the coast is an exciting transition, but it comes with a lot of unique questions—from school zones to 'Gold Fortified' insurance.</p>
-<p><strong><a href="/relocation-guide/relocation-guide-pdf.html">Click here to download your guide</a></strong></p>
+<p><strong><a href="https://bigbeachal.com/relocation-guide/relocation-guide-pdf.html">Click here to download your guide</a></strong></p>
 <p>I've lived and worked here for years, and I'd love to know: what's the #1 thing driving your move?</p>
 <p>— {{agent_name}}</p>"""
 
