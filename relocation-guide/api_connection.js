@@ -14,9 +14,10 @@ document.getElementById('lead-form').addEventListener('submit', async (e) => {
     const timeline = form.querySelector('select').value;
     
     // Replace with your actual API Key from CRM Admin
-    const API_KEY = 'your_api_key_here'; 
-    // Replace with the ID of the campaign after running the setup command
-    const CAMPAIGN_ID = 'your_campaign_id_here'; 
+    const API_KEY = 'your_api_key_here';
+    if (API_KEY === 'your_api_key_here') {
+        console.error('[relocation-guide] API_KEY placeholder not replaced — form submissions will fail. Set the real API key in api_connection.js before deploying.');
+    }
 
     const payload = {
         first_name: firstName,
@@ -31,7 +32,7 @@ document.getElementById('lead-form').addEventListener('submit', async (e) => {
     };
 
     try {
-        const response = await fetch('/api/leads/', {
+        const response = await fetch('https://crm.bigbeachal.com/api/leads/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

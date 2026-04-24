@@ -1,4 +1,5 @@
 import json
+import logging
 import threading
 
 from django.http import JsonResponse
@@ -12,6 +13,8 @@ from apps.accounts.notifications import notify_new_lead, send_results_email
 
 from .lead_routing import round_robin_assign
 from .models import APIKey
+
+logger = logging.getLogger(__name__)
 
 
 def _cors_response(response):
@@ -187,7 +190,10 @@ def capture_lead(request):
                         next_send_at=timezone.now(),
                     )
         except Campaign.DoesNotExist:
-            pass
+            logger.warning(
+                'capture_lead: campaign not found for team=%s campaign_id=%s campaign_name=%r',
+                team.id, campaign_id, campaign_name,
+            )
 
     response = JsonResponse(
         {
