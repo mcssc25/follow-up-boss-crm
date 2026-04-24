@@ -419,7 +419,8 @@ LOGGING = {
 
 # Track-aware agent assignment for two-funnel lead routing.
 # Maps track name to a list of usernames. Lookup is case-sensitive.
+# Production usernames are email-based for Kelly/Kerri; Dave Davis is `admin`.
 TRACK_AGENTS = {
-    'track1': ['dave', 'kelly'],     # Relocation funnel
-    'track2': ['kelly', 'kerri'],    # Vacation/condo funnel
+    'track1': ['admin', 'kellykanedavis@gmail.com'],                    # Relocation: Dave Davis + Kelly
+    'track2': ['kellykanedavis@gmail.com', 'kerrinicketta@gmail.com'],  # Vacation/condo: Kelly + Kerri
 }
