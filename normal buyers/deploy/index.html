@@ -3,448 +3,553 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gulf Shores Subdivision Mapping | Deep Research | Big Beach AL</title>
+    <title>Gulf Shores Subdivisions | Neighborhood Deep Research | Big Beach AL</title>
     <meta name="description" content="In-depth research on every Gulf Shores, AL subdivision. Schools, beach drive times, age, home counts, and amenities for primary home buyers.">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root {
-            --primary: #0077b6;
-            --secondary: #00b4d8;
-            --accent: #caf0f8;
-            --dark: #001219;
-            --text: #333;
-            --text-light: #666;
-            --highlight: #e63946;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seafoam: { 50: '#f2faf7', 100: '#e0f5ed', 200: '#b8e8d5', 300: '#85d6b8', 400: '#52c09a', 500: '#30a57e', 600: '#228564', 700: '#1c6b51', 800: '#195542', 900: '#164637' },
+                        sky: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' },
+                        warm: { 50: '#fffbf5', 100: '#fff5e8', 200: '#ffe8c8', 300: '#ffd699', 400: '#ffc266', 500: '#f5a623', 600: '#d4891a', 700: '#b06e14', 800: '#8c5710', 900: '#73480d' },
+                    },
+                    fontFamily: {
+                        display: ['Cormorant Garamond', 'serif'],
+                        body: ['Nunito Sans', 'sans-serif'],
+                    }
+                }
+            }
         }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
-        body { background:#fbfbfb; color:var(--text); overflow:hidden; height:100vh; display:flex; flex-direction:column; }
-
-        header {
-            background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
-            color: white; padding: 20px 20px; text-align: center; flex-shrink: 0;
-            position: relative;
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .divider { width: 60px; height: 2px; background: #30a57e; }
+            .editorial-card { transition: all 0.5s ease; }
+            .editorial-card:hover { transform: translateY(-8px); box-shadow: 0 30px 60px rgba(0,0,0,0.1); }
         }
-        .header-inner { position:relative; z-index:1; }
-        h1 { font-size:1.6rem; letter-spacing:-0.5px; margin-bottom:4px; font-weight:800; }
-        header p { opacity:.85; margin-bottom:12px; font-size:.8rem; font-weight:500; }
-        .search-bar {
-            max-width:440px; margin:0 auto; background:rgba(255,255,255,.15);
-            backdrop-filter:blur(10px); border-radius:12px; padding:2px;
-            border:1px solid rgba(255,255,255,.2);
-        }
-        .search-bar input {
-            width:100%; background:transparent; border:none; padding:10px 18px;
-            color:white; font-size:.85rem; outline:none;
-        }
-        .search-bar input::placeholder { color:rgba(255,255,255,.5); }
-        .back-link {
-            position:absolute; top:12px; left:18px; z-index:2;
-            color:rgba(255,255,255,.6); text-decoration:none; font-size:.75rem; font-weight:600;
-        }
-
-        .container-split { display:flex; flex:1; overflow:hidden; }
-        .results-panel {
-            width:400px; overflow-y:auto; padding:12px; background:white;
-            border-right:1px solid #eee; scroll-behavior:smooth;
-        }
-        .map-panel { flex:1; position:relative; }
+        /* Leaflet overrides so map styling stays consistent */
         #neighborhood-map { width:100%; height:100%; }
-        .map-overlay {
-            position:absolute; top:12px; right:12px; z-index:1000; background:white;
-            padding:6px 14px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,.15);
-            font-weight:800; font-size:.65rem; color:var(--primary); text-transform:uppercase;
-        }
-
-        .neighborhood-card {
-            background:#fff; border-radius:12px; margin-bottom:12px;
-            border:1px solid #f0f0f0; transition:all .2s ease; cursor:pointer;
-            overflow:hidden; display:flex; flex-direction:column;
-        }
-        .neighborhood-card:hover { border-color:var(--secondary); transform:translateY(-2px); }
-        .neighborhood-card.active { border-color:var(--highlight); border-width:2px; background:#fffafa; }
-        
-        .card-img { height:110px; width:100%; object-fit:cover; }
-        .card-body { padding:12px; }
-        .card-meta { font-size:.6rem; color:#888; font-weight:800; text-transform:uppercase; }
-        .card-title { font-size:1rem; margin:2px 0; font-weight:750; color:var(--dark); }
-        .card-price { font-size:.75rem; font-weight:600; color:var(--primary); }
-        .card-tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
-        .tag { background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:.55rem; font-weight:700; color:#475569; }
-
-        .modal-bg {
-            display:none; position:fixed; z-index:2000; inset:0;
-            background:rgba(0,18,25,.6); backdrop-filter:blur(6px);
-        }
-        .modal-content {
-            background:white; margin:4vh auto; width:92%; max-width:750px;
-            border-radius:20px; max-height:92vh; overflow:hidden;
-            display:flex; flex-direction:column;
-        }
-        .modal-header {
-            padding:20px 24px; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center;
-            background:var(--dark); color:white;
-        }
-        .close-btn { background:rgba(255,255,255,.1); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; }
-        .modal-body { padding:0; overflow-y:auto; flex:1; }
-        
-        .modal-section { padding:24px; border-bottom:1px solid #f0f0f0; }
-        .modal-section:last-child { border-bottom:none; }
-        .section-title { color:var(--primary); font-size:.7rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:15px; font-weight:800; display:flex; align-items:center; gap:8px; }
-        
-        .specs-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:20px; }
-        .spec-item .label { font-size:.65rem; color:#888; font-weight:700; text-transform:uppercase; margin-bottom:2px; }
-        .spec-item .value { font-size:.95rem; font-weight:700; color:var(--dark); }
-
-        .feature-list { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-        .feature-item { display:flex; gap:10px; font-size:.85rem; line-height:1.4; }
-        .feature-icon { color:var(--secondary); font-weight:800; }
-
         .custom-label {
             background:white; padding:3px 8px; border-radius:4px; font-weight:800; font-size:10px;
-            border:1.5px solid var(--primary); color:var(--primary); white-space:nowrap;
+            border:1.5px solid #30a57e; color:#228564; white-space:nowrap;
+            font-family:'Nunito Sans',sans-serif;
         }
-        .custom-label.active { background:var(--highlight); border-color:var(--highlight); color:white; transform:scale(1.1); }
-
-        /* Lead capture CTA + form modal */
-        .lead-cta {
-            background: var(--highlight); color: white; border: none;
-            padding: 9px 18px; border-radius: 8px; font-weight: 700;
-            font-size: .82rem; cursor: pointer; margin-top: 10px;
-            transition: transform .15s, background .2s;
-            box-shadow: 0 2px 10px rgba(230, 57, 70, .35);
-            font-family: inherit;
+        .custom-label.active { background:#f5a623; border-color:#f5a623; color:white; transform:scale(1.1); }
+        .poi-label {
+            background:#f5a623; padding:3px 8px; border-radius:4px; font-weight:800; font-size:10px;
+            border:1.5px solid #b06e14; color:white; white-space:nowrap;
+            font-family:'Nunito Sans',sans-serif; box-shadow:0 2px 6px rgba(0,0,0,.12);
         }
-        .lead-cta:hover { background: #c12830; transform: translateY(-1px); }
-        .lead-modal-content { max-width: 520px; }
-        .lead-form { padding: 28px 24px 24px; }
-        .lead-form .form-intro {
-            font-size: .92rem; color: var(--text); line-height: 1.55; margin-bottom: 20px;
-        }
-        .lead-form input, .lead-form select, .lead-form textarea {
-            width: 100%; padding: 12px 14px; border: 1.5px solid #e5e7eb;
-            border-radius: 8px; font-family: inherit; font-size: .95rem;
-            margin-bottom: 12px; background: white; color: var(--text);
-            transition: border-color .2s;
-        }
-        .lead-form input:focus, .lead-form select:focus, .lead-form textarea:focus {
-            outline: none; border-color: var(--primary);
-        }
-        .lead-form textarea { min-height: 70px; resize: vertical; }
-        .lead-form .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .lead-form-submit {
-            width: 100%; background: var(--primary); color: white;
-            padding: 14px; border: none; border-radius: 8px;
-            font-weight: 700; font-size: 1rem; cursor: pointer;
-            margin-top: 6px; transition: background .2s, transform .15s;
-            font-family: inherit;
-        }
-        .lead-form-submit:hover:not(:disabled) { background: #005a8c; transform: translateY(-1px); }
-        .lead-form-submit:disabled { opacity: .6; cursor: wait; }
-        .lead-form-disclaimer {
-            text-align: center; font-size: .72rem; color: var(--text-light); margin-top: 10px;
-        }
-        .lead-form-success { padding: 40px 24px; text-align: center; }
-        .lead-form-success h3 { color: var(--primary); margin-bottom: 10px; font-size: 1.4rem; }
-        .lead-form-success p { color: var(--text); font-size: .95rem; line-height: 1.55; }
-        @media (max-width: 600px) {
-            .lead-form .row-2 { grid-template-columns: 1fr; }
+        .poi-popup .leaflet-popup-content { margin:10px 14px; font-family:'Nunito Sans',sans-serif; font-size:13px; font-weight:600; color:#1f2937; }
+        .poi-popup .leaflet-popup-content-wrapper { border-radius:10px; }
+        .neighborhood-card.active {
+            box-shadow: 0 0 0 2px #30a57e, 0 20px 40px rgba(48,165,126,.15) !important;
+            transform: translateY(-4px);
         }
     </style>
 </head>
-<body>
+<body class="bg-warm-50 font-body text-gray-700">
 
-<header>
-    <a href="/" class="back-link">← Gulf Shores Homes</a>
-    <div class="header-inner">
-        <h1>Neighborhood Deep Research</h1>
-        <p>Buyer's Guide to Gulf Shores Subdivisions & Schools</p>
-        <div class="search-bar"><input type="text" id="searchInput" placeholder="Search by name, schools, or style..."></div>
-        <button id="openLeadForm" class="lead-cta">📋 Get a Personalized Subdivision Match</button>
-    </div>
-</header>
-
-<div class="container-split">
-    <section class="results-panel" id="resultsPanel"><div id="neighborhoodGrid"></div></section>
-    <section class="map-panel"><div id="neighborhood-map"></div><div class="map-overlay" id="mapOverlay">Gulf Shores, AL</div></section>
-</div>
-
-<div class="modal-bg" id="modalBg">
-    <div class="modal-content">
-        <div class="modal-header"><h2 id="modalTitle"></h2><button class="close-btn" id="closeModal">&times;</button></div>
-        <div class="modal-body" id="modalBody"></div>
-    </div>
-</div>
-
-<div class="modal-bg" id="leadModalBg">
-    <div class="modal-content lead-modal-content">
-        <div class="modal-header">
-            <h2 style="font-size:1.15rem">Personalized Subdivision Match</h2>
-            <button class="close-btn" id="closeLeadModal">&times;</button>
+    <!-- NAVIGATION -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+            <a href="/" class="font-display text-3xl font-bold text-gray-800 tracking-wide">Big Beach <span class="text-seafoam-500">AL</span></a>
+            <div class="hidden md:flex items-center space-x-10 text-sm font-medium text-gray-500 tracking-wide">
+                <a href="/#team" class="hover:text-seafoam-600 transition">Team</a>
+                <a href="/gulfshoresinfo/" class="hover:text-seafoam-600 transition">Area Guide</a>
+                <a href="/condos/" class="hover:text-seafoam-600 transition">Home Search</a>
+                <a href="/gulfshoressubdivisions/" class="text-seafoam-600 font-bold">Subdivisions</a>
+                <a href="#" data-talk class="border-2 border-seafoam-500 text-seafoam-600 hover:bg-seafoam-500 hover:text-white px-6 py-2.5 rounded-full transition font-semibold">Let's Talk</a>
+            </div>
+            <a href="#" data-talk class="md:hidden border-2 border-seafoam-500 text-seafoam-600 hover:bg-seafoam-500 hover:text-white px-4 py-2 rounded-full transition font-semibold text-xs">Let's Talk</a>
         </div>
-        <div class="modal-body">
-            <form id="leadFormSubdivision" class="lead-form">
-                <p class="form-intro">Tell us what matters most. We'll send you a short list of subdivisions that actually fit, plus the 2026 Gulf Shores Relocation Guide (real numbers, no fluff).</p>
-                <div class="row-2">
-                    <input type="text" name="first_name" placeholder="First name" required>
-                    <input type="email" name="email" placeholder="Email address" required>
+    </nav>
+
+    <!-- HERO -->
+    <section class="pt-28 pb-10 text-center max-w-3xl mx-auto px-6">
+        <p class="text-seafoam-500 text-xs md:text-sm font-semibold tracking-[0.3em] uppercase mb-5">Neighborhood Deep Research</p>
+        <h1 class="font-display text-4xl md:text-6xl font-bold text-gray-800 leading-tight mb-5">
+            Gulf Shores Subdivisions
+        </h1>
+        <p class="text-gray-500 text-base md:text-lg leading-relaxed max-w-xl mx-auto mb-8">
+            Your buyer's guide to every neighborhood — from Fort Morgan to North Gulf Shores. Stats, schools, and drive times side-by-side.
+        </p>
+        <div class="max-w-md mx-auto relative mb-5">
+            <input type="text" id="searchInput" placeholder="Search by name, area, or style..."
+                class="w-full rounded-full border border-gray-200 bg-white shadow-sm px-6 py-3.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-seafoam-400 focus:ring-2 focus:ring-seafoam-100 transition">
+        </div>
+        <button id="openLeadForm" class="inline-flex items-center gap-2 bg-warm-500 hover:bg-warm-600 text-white px-7 py-3 rounded-full text-sm font-bold shadow-lg shadow-warm-200 transition">
+            📋 Get a Personalized Subdivision Match
+        </button>
+    </section>
+
+    <!-- MAP -->
+    <section class="max-w-6xl mx-auto px-6 mb-16">
+        <div class="w-full h-[380px] sm:h-[440px] bg-warm-100 rounded-[2.5rem] shadow-inner border border-warm-200 relative overflow-hidden z-10">
+            <div id="neighborhood-map" class="w-full h-full z-0"></div>
+            <div class="absolute top-6 left-6 z-[400] bg-white/95 backdrop-blur-sm px-6 py-2 border border-warm-50 rounded-full shadow-lg text-sm font-bold text-seafoam-600 uppercase tracking-widest pointer-events-none" id="mapOverlay">Map View</div>
+        </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="max-w-6xl mx-auto px-6 pb-24">
+        <div class="flex justify-between items-end mb-8 border-b border-warm-100 pb-4">
+            <div>
+                <div class="divider mb-4"></div>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-gray-800">Every Community</h2>
+            </div>
+            <span id="resultsCount" class="text-xs font-bold tracking-widest text-gray-400 uppercase"></span>
+        </div>
+        <div id="neighborhoodGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        <div id="noResults" class="hidden text-center py-24">
+            <h3 class="font-display text-3xl font-bold text-gray-800 mb-2">No matches.</h3>
+            <p class="text-gray-400">Try a different search or <a href="#" data-lead-form class="text-seafoam-500 font-semibold underline">ask us directly</a>.</p>
+        </div>
+    </section>
+
+    <!-- MORTGAGE SECTION -->
+    <section class="bg-white border-t border-warm-100 py-20">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-14">
+                <div class="divider mx-auto mb-6"></div>
+                <p class="text-seafoam-500 text-xs md:text-sm font-semibold tracking-[0.3em] uppercase mb-4">Financing Your Home</p>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-gray-800 mb-4">The Loan to Match the Neighborhood</h2>
+                <p class="text-gray-500 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                    Dave Davis is both your Realtor and a licensed Lending Specialist. Every subdivision above fits a different loan product — here's the quick map.
+                </p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="p-7 bg-warm-50 border border-warm-100 rounded-3xl">
+                    <div class="w-12 h-12 bg-seafoam-50 rounded-xl flex items-center justify-center mb-4">
+                        <span class="font-display text-xl font-bold text-seafoam-600">C</span>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-800 mb-2">Conventional</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">The default for primary residences and second homes. 3–20% down, strong terms for buyers with solid credit. Works for most subdivisions on this page.</p>
                 </div>
-                <select name="timeline" required>
-                    <option value="">When are you thinking of moving?</option>
-                    <option value="3months">Within 3 months</option>
-                    <option value="6months">3 to 6 months</option>
-                    <option value="1year">Next year (6&ndash;18 months)</option>
-                    <option value="researching">Just researching</option>
-                </select>
-                <select name="priority">
-                    <option value="">What matters most? (optional)</option>
-                    <option value="schools">Top-rated schools</option>
-                    <option value="newer">Newer construction</option>
-                    <option value="value">Best value / lower price</option>
-                    <option value="luxury">Luxury / golf / gated</option>
-                    <option value="beach-access">Beach access / waterfront</option>
-                    <option value="quiet">Quiet / acreage / privacy</option>
-                </select>
-                <textarea name="notes" placeholder="Anything specific we should know? (optional)"></textarea>
-                <button type="submit" class="lead-form-submit">Send My Personalized List</button>
-                <p class="lead-form-disclaimer">Privacy is our priority. We hate spam as much as you do.</p>
-            </form>
-            <div id="leadFormSuccess" class="lead-form-success" style="display:none;">
-                <h3>&#10003; On the way!</h3>
-                <p>Check your email &mdash; your Relocation Guide and personalized subdivision picks will land within a few minutes. Kelly will follow up personally within one business day.</p>
+                <div class="p-7 bg-warm-50 border border-warm-100 rounded-3xl">
+                    <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center mb-4">
+                        <span class="font-display text-xl font-bold text-sky-600">F</span>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-800 mb-2">FHA</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Low 3.5% down payment and more flexible credit requirements. A strong path to first-time homeownership in communities like Crimson Ridge, Gulf Pines, and Raley Farms.</p>
+                </div>
+                <div class="p-7 bg-warm-50 border border-warm-100 rounded-3xl">
+                    <div class="w-12 h-12 bg-warm-100 rounded-xl flex items-center justify-center mb-4">
+                        <span class="font-display text-xl font-bold text-warm-700">V</span>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-800 mb-2">VA</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">For active-duty, veterans, and qualifying spouses. 0% down, no PMI, and competitive rates. Gulf Shores has a large military community — we close VA loans constantly.</p>
+                </div>
+                <div class="p-7 bg-warm-50 border border-warm-100 rounded-3xl">
+                    <div class="w-12 h-12 bg-seafoam-50 rounded-xl flex items-center justify-center mb-4">
+                        <span class="font-display text-xl font-bold text-seafoam-600">U</span>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-800 mb-2">USDA</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">0% down financing in designated rural areas. Several North Gulf Shores and Bon Secour subdivisions still qualify — a hidden gem for eligible buyers.</p>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <a href="/mortgage/" class="inline-block bg-seafoam-500 hover:bg-seafoam-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition shadow-xl shadow-seafoam-200">
+                    Get Pre-Approved Today
+                </a>
+                <p class="text-sm text-gray-400 mt-4">Soft credit check &middot; Takes under 10 minutes &middot; No obligation</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-gray-400 py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-8 text-center md:text-left">
+                <div>
+                    <span class="font-display text-2xl font-bold text-white block mb-3">Big Beach <span class="text-seafoam-400">AL</span></span>
+                    <div class="flex flex-col gap-1 text-sm">
+                        <a href="tel:+12512891553" class="hover:text-white transition"><span class="text-seafoam-400 font-bold">Phone:</span> 251-289-1553</a>
+                        <a href="mailto:info@bigbeachal.com" class="hover:text-white transition"><span class="text-seafoam-400 font-bold">Email:</span> info@bigbeachal.com</a>
+                    </div>
+                </div>
+                <div class="flex gap-8 text-sm pt-2">
+                    <a href="/" class="hover:text-white transition">Home</a>
+                    <a href="/condos/" class="hover:text-white transition">Home Search</a>
+                    <a href="/gulfshoresinfo/" class="hover:text-white transition">Area Guide</a>
+                    <a href="/mortgage/" class="hover:text-white transition">Mortgage</a>
+                    <a href="/#contact" class="hover:text-white transition">Contact</a>
+                </div>
+                <div class="flex gap-5 items-center">
+                    <a href="https://www.facebook.com/kelly.goodworth.davis" target="_blank" rel="noopener noreferrer" class="hover:text-white transition" aria-label="Facebook">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/diy.davis/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition" aria-label="Instagram">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    </a>
+                    <a href="https://www.youtube.com/@GulfShoresAlabamaRealEstate" target="_blank" rel="noopener noreferrer" class="hover:text-white transition" aria-label="YouTube">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-800 text-center">
+                <p class="text-xs text-gray-500 max-w-xl mx-auto leading-relaxed">&copy; 2026 Big Beach AL &middot; Realtors with Dalton Wade Real Estate Group &middot; Gulf Shores / Orange Beach Area. While we strive for accuracy, subdivision details may change; please verify before making purchase decisions.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LET'S TALK POPOVER -->
+    <div id="talkModal" class="fixed inset-0 z-[2000] bg-gray-900/60 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 relative">
+            <button id="closeTalk" class="absolute top-4 right-4 w-9 h-9 text-gray-400 hover:text-red-500 rounded-full flex items-center justify-center transition" aria-label="Close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <p class="text-seafoam-500 text-xs font-bold tracking-[0.2em] uppercase mb-2">Get In Touch</p>
+            <h2 class="font-display text-3xl font-bold text-gray-800 mb-2 leading-tight">How can we help?</h2>
+            <p class="text-gray-500 mb-7 text-sm">Pick whichever is easiest — we respond fast.</p>
+            <div class="space-y-3">
+                <a href="tel:+12512891553" class="flex items-center gap-4 w-full bg-seafoam-500 hover:bg-seafoam-600 text-white px-5 py-4 rounded-2xl transition shadow-lg shadow-seafoam-200">
+                    <span class="w-11 h-11 flex-shrink-0 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                    </span>
+                    <span class="text-left flex-1 min-w-0">
+                        <span class="block text-xs uppercase tracking-widest opacity-80">Call Us</span>
+                        <span class="block text-lg font-bold leading-tight">251-289-1553</span>
+                    </span>
+                </a>
+                <a href="mailto:info@bigbeachal.com" class="flex items-center gap-4 w-full bg-white border-2 border-seafoam-500 text-seafoam-700 hover:bg-seafoam-50 px-5 py-4 rounded-2xl transition">
+                    <span class="w-11 h-11 flex-shrink-0 bg-seafoam-50 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </span>
+                    <span class="text-left flex-1 min-w-0">
+                        <span class="block text-xs uppercase tracking-widest opacity-60">Email</span>
+                        <span class="block text-base font-bold leading-tight truncate">info@bigbeachal.com</span>
+                    </span>
+                </a>
+                <button type="button" data-lead-form class="flex items-center gap-4 w-full bg-white border-2 border-gray-200 text-gray-700 hover:border-seafoam-400 hover:text-seafoam-700 px-5 py-4 rounded-2xl transition text-left">
+                    <span class="w-11 h-11 flex-shrink-0 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                    </span>
+                    <span class="text-left flex-1">
+                        <span class="block text-xs uppercase tracking-widest opacity-60">Or</span>
+                        <span class="block text-base font-bold leading-tight">Send a Message</span>
+                    </span>
+                </button>
+            </div>
+            <p class="text-xs text-gray-400 text-center mt-6">
+                Mon–Sun &middot; 8am–8pm CT &middot; <a href="mailto:info@bigbeachal.com" class="underline hover:text-seafoam-600">info@bigbeachal.com</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- SUBDIVISION DETAIL MODAL -->
+    <div id="modalBg" class="fixed inset-0 z-[1000] bg-gray-900/60 backdrop-blur-sm hidden flex-col items-center justify-center p-4 sm:p-6">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+            <div class="px-8 py-6 sm:px-10 sm:py-7 border-b border-warm-100 flex justify-between items-center bg-warm-50">
+                <div>
+                    <p class="text-seafoam-500 text-xs font-bold tracking-[0.2em] uppercase mb-1" id="modalArea"></p>
+                    <h2 id="modalTitle" class="font-display text-3xl sm:text-4xl font-bold text-gray-800">Subdivision Name</h2>
+                </div>
+                <button id="closeModal" class="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition shadow-sm border border-warm-100 flex-shrink-0 ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="modalBody" class="p-6 sm:p-10 overflow-y-auto flex-1 bg-white"></div>
+        </div>
+    </div>
+
+    <!-- LEAD CAPTURE FORM MODAL (Track 1) -->
+    <div id="leadFormModal" class="fixed inset-0 z-[2100] bg-gray-900/60 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative max-h-[92vh] overflow-y-auto">
+            <button id="closeLeadForm" class="absolute top-4 right-4 w-9 h-9 text-gray-400 hover:text-red-500 rounded-full flex items-center justify-center transition z-10" aria-label="Close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="p-8">
+                <p class="text-seafoam-500 text-xs font-bold tracking-[0.2em] uppercase mb-2">Personalized Match</p>
+                <h2 class="font-display text-3xl font-bold text-gray-800 mb-2 leading-tight">Find your subdivision.</h2>
+                <p class="text-gray-500 text-sm mb-6">Tell us what matters most. We'll send a short list of subdivisions that actually fit, plus the 2026 Gulf Shores Relocation Guide.</p>
+
+                <form id="leadFormSubdivision" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" name="first_name" placeholder="First name" required
+                            class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-seafoam-400 focus:ring-2 focus:ring-seafoam-100 transition">
+                        <input type="email" name="email" placeholder="Email address" required
+                            class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-seafoam-400 focus:ring-2 focus:ring-seafoam-100 transition">
+                    </div>
+                    <select name="timeline" required
+                        class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-seafoam-400 focus:ring-2 focus:ring-seafoam-100 transition">
+                        <option value="">When are you thinking of moving?</option>
+                        <option value="3months">Within 3 months</option>
+                        <option value="6months">3 to 6 months</option>
+                        <option value="1year">Next year (6&ndash;18 months)</option>
+                        <option value="researching">Just researching</option>
+                    </select>
+                    <select name="priority"
+                        class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-seafoam-400 focus:ring-2 focus:ring-seafoam-100 transition">
+                        <option value="">What matters most? (optional)</option>
+                        <option value="schools">Top-rated schools</option>
+                        <option value="newer">Newer construction</option>
+                        <option value="value">Best value / lower price</option>
+                        <option value="luxury">Luxury / golf / gated</option>
+                        <option value="beach-access">Beach access / waterfront</option>
+                        <option value="quiet">Quiet / acreage / privacy</option>
+                    </select>
+                    <textarea name="notes" placeholder="Anything specific we should know? (optional)"
+                        class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-seafoam-400 focus:ring-2 focus:ring-seafoam-100 transition resize-none"
+                        rows="3"></textarea>
+                    <button type="submit" class="w-full bg-seafoam-500 hover:bg-seafoam-600 text-white font-bold px-6 py-3.5 rounded-full transition shadow-lg shadow-seafoam-200 flex items-center justify-center gap-2">
+                        Send My Personalized List
+                    </button>
+                    <p class="text-xs text-gray-400 text-center pt-2">Privacy is our priority. We hate spam as much as you do.</p>
+                </form>
+
+                <div id="leadFormSuccess" class="hidden text-center py-6">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-seafoam-50 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-seafoam-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h3 class="font-display text-2xl font-bold text-gray-800 mb-2">On the way!</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Check your email — your Relocation Guide and personalized subdivision picks will land within a few minutes. Kelly will follow up personally within one business day.</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  DATA-DRIVEN NEIGHBORHOOD PROFILES
-// ═══════════════════════════════════════════════════════════════
 const neighborhoodData = [
-    {
-        id:1, name:"The Peninsula", area:"Fort Morgan Rd", price_range:"$406,000 - $1,595,000",
-        avg_year:2007, avg_size:2800, homes:350, beach_time:"15-20 mins", schools:"Gulf Shores City",
-        amenities:["27-hole Golf", "Tennis & Racquet", "Indoor/Outdoor Pools", "Fishing Pier", "Gym"],
-        hoa:"High (~$450+/mo)", age_group:"Established Upscale", style:"Craftsman / Mediterranean",
-        desc:"A premiere gated resort community offering true country club living on Mobile Bay.",
-        lat:30.2515, lng:-87.780,
-        boundary: [[30.250733, -87.78467], [30.261337, -87.76218], [30.256364, -87.756526], [30.250992, -87.779645]],
-        tags: ["Gated", "Golf", "Bayview"],
-        img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80"
-    },
-    {
-        id:2, name:"Craft Farms", area:"North Gulf Shores", price_range:"$355,000 - $1,550,000",
-        avg_year:2012, avg_size:2520, homes:500, beach_time:"12-15 mins", schools:"Gulf Shores City",
-        amenities:["Palmer Golf", "Clubhouse", "Resort Pool", "Shopping Proximity"],
-        hoa:"Moderate", age_group:"Established / Diverse", style:"Traditional",
-        desc:"A sprawling master-planned sanctuary known for manicured Palmer golf courses and diverse housing.",
-        lat:30.3150, lng:-87.6615,
-        boundary: [[30.29871, -87.662566], [30.299973, -87.666646], [30.320246, -87.666054], [30.320737, -87.666036], [30.324454, -87.662875]],
-        tags: ["Golf", "Luxury", "Central"],
-        img: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&q=80"
-    },
-    {
-        id:3, name:"Aventura", area:"West Gulf Shores", price_range:"$335,000 - $815,000",
-        avg_year:2022, avg_size:2424, homes:400, beach_time:"8-10 mins", schools:"Gulf Shores City",
-        amenities:["Zero-entry Pool", "Fire Pit", "Dog Park", "Playground", "Connecting Trails"],
-        hoa:"Low (~$100/mo)", age_group:"Brand New / Active", style:"Craftsman",
-        desc:"The community everyone identifies with family living. Modern construction with high-end shared spaces.",
-        lat:30.3050, lng:-87.6940,
-        boundary: [[30.301779, -87.691102], [30.303002, -87.698848], [30.306014, -87.702169], [30.307606, -87.691451], [30.306889, -87.690181]],
-        tags: ["Newer", "Family", "Pool"],
-        img: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80"
-    },
-    {
-        id:22, name:"Kiva Dunes", area:"Fort Morgan Rd", price_range:"$750,000 - $5M+",
-        avg_year:2009, avg_size:2974, homes:200, beach_time:"Direct Access", schools:"Gulf Shores City",
-        amenities:["Golf Resort", "Private Beach Club", "4 Pools", "Fitness Center", "Dining"],
-        hoa:"High", age_group:"Luxury Vacation/Primary", style:"Beach Cottage / Estate",
-        desc:"A world-famous resort destination that feels like a private oasis at the edge of the world.",
-        lat:30.235, lng:-87.900,
-        boundary: [[30.232065, -87.893536], [30.234306, -87.900133], [30.235035, -87.900901], [30.23644, -87.901049], [30.237271, -87.900672]],
-        tags: ["Beach Front", "Golf Resort"],
-        img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80"
-    },
-    {
-        id:9, name:"Raley Farms", area:"North Gulf Shores", price_range:"$341,900 - $510,825",
-        avg_year:2024, avg_size:1932, homes:400, beach_time:"15 mins", schools:"Near New HS Campus",
-        amenities:["Resort Pool", "Fishing Ponds", "Gazebo", "Sidewalks"],
-        hoa:"Low (~$80/mo)", age_group:"New Development", style:"Traditional",
-        desc:"Rapidly becoming the primary choice for families wanting new construction near the upcoming High School campus.",
-        lat:30.329, lng:-87.668,
-        boundary: [[30.328105, -87.6735], [30.330636, -87.669026], [30.330644, -87.667104], [30.329764, -87.6672], [30.328894, -87.667404]],
-        tags: ["New", "Value", "Pool"],
-        img: "https://images.unsplash.com/photo-1448630360428-65ff23195c65?w=600&q=80"
-    },
-    {
-        id:21, name:"Martyn Woods", area:"West Intracoastal", price_range:"$505,000 - $1,650,000",
-        avg_year:2012, avg_size:3148, homes:150, beach_time:"12 mins", schools:"Gulf Shores City",
-        amenities:["Gated Entry", "Tennis", "Wooded Privacy", "Large Lots (1+ Acre)"],
-        hoa:"Moderate", age_group:"Established Estates", style:"Traditional / Stately",
-        desc:"One of the few places in Gulf Shores where you can find large, wooded estate lots behind a gate.",
-        lat:30.297, lng:-87.712,
-        boundary: [[30.290854, -87.710783], [30.296172, -87.716028], [30.29932, -87.713284], [30.299535, -87.711172], [30.295674, -87.709342]],
-        tags: ["Gated", "Privacy", "Acreage"],
-        img: "https://images.unsplash.com/photo-1523217553878-cbb2f2acd3f2?w=600&q=80"
-    },
-    {
-        id:26, name:"Waterways", area:"Intracoastal Front", price_range:"$890,000 - $1,787,500",
-        avg_year:2024, avg_size:3006, homes:100, beach_time:"10 mins", schools:"Gulf Shores City",
-        amenities:["Marina / Docks", "Waterway Pool", "Gated Security", "Deep Water Access"],
-        hoa:"Moderate (~$150/mo)", age_group:"Brand New", style:"Contemporary / Coastal",
-        desc:"Exclusive boating community on the ICW where deep-water access meets brand new high-end design.",
-        lat:30.281, lng:-87.712,
-        boundary: [[30.28048, -87.712748], [30.28095, -87.713366], [30.281067, -87.713333], [30.282237, -87.711319]],
-        tags: ["Boating", "ICW", "Gated"],
-        img: "https://images.unsplash.com/photo-1544551763-47a0159c923d?w=600&q=80"
-    },
-    {
-        id:7, name:"Crimson Ridge", area:"West GS North", price_range:"$230,000 - $350,000",
-        avg_year:2012, avg_size:1719, homes:120, beach_time:"12 mins", schools:"Gulf Shores City",
-        amenities:["Pool", "Quiet Enclave", "Sidewalks"],
-        hoa:"Low", age_group:"Established Family", style:"Single Story Craftsman",
-        desc:"High-value entry point for the Gulf Shores market with solid amenities and near-city convenience.",
-        lat:30.323, lng:-87.671,
-        boundary: [[30.31935, -87.670695], [30.3198, -87.6725], [30.3255, -87.6715], [30.3245, -87.669]],
-        tags: ["Affordable", "Pool"],
-        img: "https://plus.unsplash.com/premium_photo-1661883964999-c1bcb57a7357?w=600&q=80"
-    },
-    {
-        id:10, name:"Ancient Oaks", area:"Central Gulf Shores", price_range:"$319,000 - $440,000",
-        avg_year:2006, avg_size:2002, homes:100, beach_time:"8 mins", schools:"Gulf Shores City",
-        amenities:["Grand Live Oaks", "Quiet Grid", "Near Downtown"],
-        hoa:"Low", age_group:"Established Character", style:"Traditional",
-        desc:"Known for its stunning mature oak canopy that provides a unique shade and style in Central Gulf Shores.",
-        lat:30.296, lng:-87.660,
-        boundary: [[30.294918, -87.658924], [30.296161, -87.660465], [30.296367, -87.660458], [30.296882, -87.659309]],
-        tags: ["Central", "Character"],
-        img: "https://images.unsplash.com/photo-1598228723793-52759bba239c?w=600&q=80"
-    }
+    { id:1, name:"The Peninsula", area:"Fort Morgan Rd", price_range:"$406,000 - $1,595,000", avg_year:2007, avg_size:2800, homes:350, beach_time:"15-20 mins", schools:"Gulf Shores City", amenities:["27-hole Golf","Tennis & Racquet","Indoor/Outdoor Pools","Fishing Pier","Gym"], hoa:"High (~$450+/mo)", age_group:"Established Upscale", style:"Craftsman / Mediterranean", desc:"A premiere gated resort community offering true country club living on Mobile Bay.", lat:30.2515, lng:-87.780, tags:["Gated","Golf","Bayview"], img:"https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80" },
+    { id:2, name:"Craft Farms", area:"North Gulf Shores", price_range:"$355,000 - $1,550,000", avg_year:2012, avg_size:2520, homes:500, beach_time:"12-15 mins", schools:"Gulf Shores City", amenities:["Palmer Golf","Clubhouse","Resort Pool","Shopping Proximity"], hoa:"Moderate", age_group:"Established / Diverse", style:"Traditional", desc:"A sprawling master-planned sanctuary known for manicured Palmer golf courses and diverse housing.", lat:30.3150, lng:-87.6615, tags:["Golf","Luxury","Central"], img:"https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&q=80" },
+    { id:3, name:"Aventura", area:"West Gulf Shores", price_range:"$335,000 - $815,000", avg_year:2022, avg_size:2424, homes:400, beach_time:"8-10 mins", schools:"Gulf Shores City", amenities:["Zero-entry Pool","Fire Pit","Dog Park","Playground","Connecting Trails"], hoa:"Low (~$100/mo)", age_group:"Brand New / Active", style:"Craftsman", desc:"The community everyone identifies with family living. Modern construction with high-end shared spaces.", lat:30.3050, lng:-87.6940, tags:["Newer","Family","Pool"], img:"https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80" },
+    { id:22, name:"Kiva Dunes", area:"Fort Morgan Rd", price_range:"$750,000 - $5M+", avg_year:2009, avg_size:2974, homes:200, beach_time:"Direct Access", schools:"Gulf Shores City", amenities:["Golf Resort","Private Beach Club","4 Pools","Fitness Center","Dining"], hoa:"High", age_group:"Luxury Vacation/Primary", style:"Beach Cottage / Estate", desc:"A world-famous resort destination that feels like a private oasis at the edge of the world.", lat:30.235, lng:-87.900, tags:["Beach Front","Golf Resort"], img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80" },
+    { id:9, name:"Raley Farms", area:"North Gulf Shores", price_range:"$341,900 - $510,825", avg_year:2024, avg_size:1932, homes:400, beach_time:"15 mins", schools:"Near New HS Campus", amenities:["Resort Pool","Fishing Ponds","Gazebo","Sidewalks"], hoa:"Low (~$80/mo)", age_group:"New Development", style:"Traditional", desc:"Rapidly becoming the primary choice for families wanting new construction near the upcoming High School campus.", lat:30.329, lng:-87.668, tags:["New","Value","Pool"], img:"https://images.unsplash.com/photo-1448630360428-65ff23195c65?w=600&q=80" },
+    { id:21, name:"Martyn Woods", area:"West Intracoastal", price_range:"$505,000 - $1,650,000", avg_year:2012, avg_size:3148, homes:150, beach_time:"12 mins", schools:"Gulf Shores City", amenities:["Gated Entry","Tennis","Wooded Privacy","Large Lots (1+ Acre)"], hoa:"Moderate", age_group:"Established Estates", style:"Traditional / Stately", desc:"One of the few places in Gulf Shores where you can find large, wooded estate lots behind a gate.", lat:30.297, lng:-87.712, tags:["Gated","Privacy","Acreage"], img:"https://images.unsplash.com/photo-1523217553878-cbb2f2acd3f2?w=600&q=80" },
+    { id:26, name:"Waterways", area:"Intracoastal Front", price_range:"$890,000 - $1,787,500", avg_year:2024, avg_size:3006, homes:100, beach_time:"10 mins", schools:"Gulf Shores City", amenities:["Marina / Docks","Waterway Pool","Gated Security","Deep Water Access"], hoa:"Moderate (~$150/mo)", age_group:"Brand New", style:"Contemporary / Coastal", desc:"Exclusive boating community on the ICW where deep-water access meets brand new high-end design.", lat:30.281, lng:-87.712, tags:["Boating","ICW","Gated"], img:"https://images.unsplash.com/photo-1544551763-47a0159c923d?w=600&q=80" },
+    { id:7, name:"Crimson Ridge", area:"West GS North", price_range:"$230,000 - $350,000", avg_year:2012, avg_size:1719, homes:120, beach_time:"12 mins", schools:"Gulf Shores City", amenities:["Pool","Quiet Enclave","Sidewalks"], hoa:"Low", age_group:"Established Family", style:"Single Story Craftsman", desc:"High-value entry point for the Gulf Shores market with solid amenities and near-city convenience.", lat:30.323, lng:-87.671, tags:["Affordable","Pool"], img:"https://plus.unsplash.com/premium_photo-1661883964999-c1bcb57a7357?w=600&q=80" },
+    { id:10, name:"Ancient Oaks", area:"Central Gulf Shores", price_range:"$319,000 - $440,000", avg_year:2006, avg_size:2002, homes:100, beach_time:"8 mins", schools:"Gulf Shores City", amenities:["Grand Live Oaks","Quiet Grid","Near Downtown"], hoa:"Low", age_group:"Established Character", style:"Traditional", desc:"Known for its stunning mature oak canopy that provides a unique shade and style in Central Gulf Shores.", lat:30.296, lng:-87.660, tags:["Central","Character"], img:"https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80" },
+    { id:11, name:"Osprey Landing", area:"North Gulf Shores", price_range:"$335,000 - $420,000", avg_year:2016, avg_size:1934, homes:80, beach_time:"12 mins", schools:"Near New HS Campus", amenities:["Pool","Sidewalks","Near New HS Campus"], hoa:"Low-Moderate", age_group:"Established Family", style:"Traditional", desc:"A well-established family enclave in North Gulf Shores with Traditional homes and easy access to the new high school campus.", lat:30.32209, lng:-87.67328, tags:["Family","Pool","Value"], img:"https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80" },
+    { id:12, name:"Summer Wood", area:"West Gulf Shores", price_range:"$350,000 - $579,000", avg_year:2004, avg_size:2875, homes:60, beach_time:"12 mins", schools:"Gulf Shores City", amenities:["Mature Trees","Quiet Streets","Larger Lots"], hoa:"Low", age_group:"Established Character", style:"Craftsman", desc:"Spacious Craftsman homes on shaded West Gulf Shores lots — less HOA and more character than newer builds.", lat:30.31542, lng:-87.70465, tags:["Established","Character","Spacious"], img:"https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80" },
+    { id:13, name:"Andhurst Walk", area:"West Gulf Shores", price_range:"$360,000 - $505,000", avg_year:2015, avg_size:2111, homes:120, beach_time:"10 mins", schools:"Gulf Shores City", amenities:["Pool","Sidewalks","Walkable Streets"], hoa:"Moderate", age_group:"Established Family", style:"Craftsman", desc:"A walkable West Gulf Shores community with newer Craftsman homes and a neighborhood pool near Aventura.", lat:30.31405, lng:-87.69506, tags:["Walkable","Pool","Family"], img:"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80" },
+    { id:14, name:"Island Wood", area:"South Gulf Shores", price_range:"$375,000 - $1,000,000", avg_year:2015, avg_size:2269, homes:120, beach_time:"5-8 mins", schools:"Gulf Shores City", amenities:["Pond","Close to Beach","Coastal Design"], hoa:"Moderate", age_group:"Coastal Family", style:"Craftsman", desc:"South Gulf Shores Craftsman community with a quick beach drive. Wide price range reflects lot size and upgrades.", lat:30.27019, lng:-87.70776, tags:["Near Beach","Coastal","Family"], img:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80" },
+    { id:15, name:"Savannah Point", area:"North Gulf Shores", price_range:"$395,000 - $539,000", avg_year:2023, avg_size:2274, homes:80, beach_time:"15 mins", schools:"Near New HS Campus", amenities:["New Construction","Sidewalks","Community Pool"], hoa:"Low", age_group:"Brand New", style:"Traditional", desc:"Brand-new Traditional homes in North Gulf Shores — attractive for families prioritizing the new high school.", lat:30.32761, lng:-87.67815, tags:["New","Family","Value"], img:"https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=80" },
+    { id:16, name:"Stonegate Estates", area:"North Gulf Shores", price_range:"$424,000 - $549,000", avg_year:2015, avg_size:2374, homes:70, beach_time:"12-15 mins", schools:"Gulf Shores City", amenities:["Larger Lots","Quiet Enclave","Near Craft Farms"], hoa:"Low-Moderate", age_group:"Established", style:"Traditional", desc:"Established estate-style homes next to Craft Farms — the appeal is space without the golf-course HOA.", lat:30.33046, lng:-87.66531, tags:["Estates","Quiet","Value"], img:"https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=600&q=80" },
+    { id:17, name:"Colony Parke Estates", area:"Fort Morgan Rd", price_range:"$455,000 - $520,000", avg_year:2024, avg_size:2281, homes:90, beach_time:"8-10 mins", schools:"Gulf Shores City", amenities:["New Construction","Contemporary Design","Quick Beach Access"], hoa:"Moderate", age_group:"Brand New", style:"Contemporary", desc:"New contemporary homes on Fort Morgan Road — quick beach access at a competitive price point.", lat:30.25535, lng:-87.74778, tags:["New","Contemporary","Near Beach"], img:"https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=600&q=80" },
+    { id:18, name:"Morgantown", area:"Fort Morgan West", price_range:"$540,000 - $2,999,900", avg_year:2009, avg_size:2067, homes:120, beach_time:"Direct / 5 mins", schools:"Gulf Shores City", amenities:["Beach Access","Raised Beach Homes","Quiet Setting"], hoa:"Varies", age_group:"Beach Vacation", style:"Raised Beach", desc:"Far-west Fort Morgan raised-beach homes — wide price range reflects direct gulf-front vs interior lots.", lat:30.23381, lng:-87.91609, tags:["Beach","Vacation","Remote"], img:"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=600&q=80" },
+    { id:19, name:"Laguna Key", area:"Fort Morgan Rd", price_range:"$851,500 - $3,350,000", avg_year:2010, avg_size:3406, homes:60, beach_time:"2 mins", schools:"Gulf Shores City", amenities:["Gulf Views","Raised Beach","Boat Access","Upscale Finishes"], hoa:"High", age_group:"Luxury Vacation", style:"Raised Beach", desc:"Upscale Fort Morgan community with large raised-beach homes and quick gulf access. Strong rental appeal.", lat:30.23245, lng:-87.79844, tags:["Luxury","Beach","Rental"], img:"https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80" },
+    { id:20, name:"Craft Farms North", area:"North Gulf Shores", price_range:"$359,900 - $975,000", avg_year:2015, avg_size:2540, homes:250, beach_time:"12-15 mins", schools:"Gulf Shores City", amenities:["Golf-Community Access","Newer Construction","Sidewalks"], hoa:"Moderate", age_group:"Established / Growing", style:"Craftsman", desc:"The newer extension of Craft Farms — larger Craftsman homes with modern build dates and golf-community convenience.", lat:30.32409, lng:-87.65903, tags:["Golf-Adjacent","Family","Newer"], img:"https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80" },
+    { id:37, name:"The Retreat At Bon Secour", area:"West Intracoastal", price_range:"$495,000 - $1,085,000", avg_year:2020, avg_size:2302, homes:100, beach_time:"12 mins", schools:"Gulf Shores City", amenities:["Cottage Design","Pool","Peaceful Setting"], hoa:"Moderate", age_group:"Newer Community", style:"Cottage", desc:"A newer cottage-style community tucked away near Bon Secour — peaceful retreat with modern coastal design.", lat:30.28127, lng:-87.70095, tags:["Cottage","Newer","Peaceful"], img:"https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80" },
+    { id:23, name:"The Village at Craft Farms", area:"North Gulf Shores", price_range:"$355,000 - $432,500", avg_year:2022, avg_size:1671, homes:100, beach_time:"12-15 mins", schools:"Gulf Shores City", amenities:["Low-Maintenance","Cottage Design","Craft Farms Access"], hoa:"Moderate", age_group:"Brand New", style:"Cottage", desc:"Compact cottage homes inside Craft Farms — low-maintenance living in a well-established golf community.", lat:30.32239, lng:-87.66528, tags:["Cottage","Low-Maintenance","Golf Access"], img:"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80" },
+    { id:24, name:"Gulf Pines", area:"Central Gulf Shores", price_range:"$215,000 - $450,000", avg_year:1987, avg_size:1509, homes:80, beach_time:"5-8 mins", schools:"Gulf Shores City", amenities:["Established Character","Near Beach","Mature Trees"], hoa:"Low", age_group:"Established Value", style:"Cottage", desc:"Established cottage community minutes from the beach — solid value for primary or second homes.", lat:30.27656, lng:-87.67144, tags:["Affordable","Near Beach","Character"], img:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80" },
+    { id:25, name:"Surfside Shores", area:"Fort Morgan West", price_range:"$305,000 - $2,200,000", avg_year:2001, avg_size:1911, homes:80, beach_time:"Direct Access", schools:"Gulf Shores City", amenities:["Beachfront Options","Raised Beach Homes","Wide Price Range"], hoa:"Varies", age_group:"Vacation / Primary Mix", style:"Raised Beach", desc:"Wide price range reflects direct beachfront vs interior lots in this established Fort Morgan community.", lat:30.23433, lng:-87.90346, tags:["Beachfront","Raised Beach","Vacation"], img:"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=600&q=80" },
+    { id:27, name:"Gulf Woods", area:"Fort Morgan East", price_range:"$525,000 - $1,650,000", avg_year:1997, avg_size:2485, homes:70, beach_time:"8-10 mins", schools:"Gulf Shores City", amenities:["Lagoon Proximity","Mature Landscaping","Raised Beach Homes"], hoa:"Low-Moderate", age_group:"Established", style:"Raised Beach", desc:"Established community along Fort Morgan Road with raised-beach homes near the lagoon.", lat:30.25663, lng:-87.69905, tags:["Lagoon","Established","Raised Beach"], img:"https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=600&q=80" },
+    { id:28, name:"Fort Morgan (Area)", area:"Far West Fort Morgan", price_range:"$383,500 - $2,000,000", avg_year:1991, avg_size:1780, homes:80, beach_time:"Direct / 5 mins", schools:"Gulf Shores City", amenities:["Beach Access","Quiet Setting","Variety of Home Ages"], hoa:"Varies", age_group:"Mixed / Vacation", style:"Raised Beach", desc:"Generic 'Fort Morgan' MLS designation covering homes along the far-west peninsula — many with beach or gulf access.", lat:30.23245, lng:-87.97577, tags:["Beach","Remote","Vacation"], img:"https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=600&q=80" },
+    { id:29, name:"Lagoon Mobile Home", area:"Fort Morgan East", price_range:"$130,000 - $240,000", avg_year:2014, avg_size:1120, homes:60, beach_time:"10 mins", schools:"Gulf Shores City", amenities:["Affordable Entry","Lagoon Area","Manufactured Homes"], hoa:"Low", age_group:"Value / Entry-Level", style:"Mobile Home", desc:"Affordable manufactured-housing community along the lagoon — a rare entry point to Gulf Coast ownership.", lat:30.25694, lng:-87.73933, tags:["Affordable","Mobile Home","Value"], img:"https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80" },
+    { id:30, name:"Gulf Shores Golf Club Estates", area:"Central Gulf Shores", price_range:"$350,000 - $775,000", avg_year:1980, avg_size:2423, homes:70, beach_time:"5-8 mins", schools:"Gulf Shores City", amenities:["Historic Golf Course","Mature Trees","Classic Ranch Homes"], hoa:"Low", age_group:"Established Classic", style:"Ranch", desc:"Established ranch-style homes on the historic Gulf Shores Golf Club course — mature canopy and classic character.", lat:30.26197, lng:-87.70572, tags:["Golf","Established","Ranch"], img:"https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80" },
+    { id:31, name:"The Beach Club Cottages", area:"Fort Morgan Rd", price_range:"$765,000 - $1,150,000", avg_year:2017, avg_size:2183, homes:60, beach_time:"Walking / 2 mins", schools:"Gulf Shores City", amenities:["Beach Club Resort Access","Pools","Fitness Center","Dining"], hoa:"High", age_group:"Resort Vacation", style:"Cottage", desc:"Upscale cottages at The Beach Club resort — walk-to-beach, full amenity access, and strong STR potential.", lat:30.23287, lng:-87.87502, tags:["Beach Club","Resort","Rental"], img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80" },
+    { id:32, name:"Carl T Martin", area:"West Gulf Shores", price_range:"$540,000 - $4,450,000", avg_year:2002, avg_size:2726, homes:50, beach_time:"5 mins", schools:"Gulf Shores City", amenities:["Bayside / Lagoon","Raised Beach Homes","Mature Area"], hoa:"Varies", age_group:"Established / Mixed", style:"Raised Beach", desc:"Historic subdivision near the lagoon with raised-beach homes. Wide price variance reflects lot location and upgrades.", lat:30.244, lng:-87.72585, tags:["Raised Beach","Bayside","Established"], img:"https://images.unsplash.com/photo-1448630360428-65ff23195c65?w=600&q=80" },
+    { id:33, name:"The Colony at Fort Morgan", area:"Fort Morgan Rd", price_range:"$507,000 - $670,000", avg_year:2020, avg_size:2033, homes:60, beach_time:"10 mins", schools:"Gulf Shores City", amenities:["Newer Cottages","Community Pool","Fort Morgan Access"], hoa:"Moderate", age_group:"Newer", style:"Cottage", desc:"Newer cottage community on eastern Fort Morgan Road — modern design with easy beach and lagoon access.", lat:30.25577, lng:-87.74415, tags:["Cottage","Newer","Fort Morgan"], img:"https://images.unsplash.com/photo-1523217553878-cbb2f2acd3f2?w=600&q=80" },
+    { id:34, name:"Ponce De Leon Court", area:"Far West Fort Morgan", price_range:"$680,000 - $2,875,000", avg_year:2004, avg_size:2695, homes:70, beach_time:"Direct Access", schools:"Gulf Shores City", amenities:["Beachfront Options","Large Homes","Raised Beach"], hoa:"Moderate", age_group:"Vacation / Luxury", style:"Raised Beach", desc:"Beach Boulevard community with large raised-beach homes. Premium pricing reflects direct-beach-access positions.", lat:30.23223, lng:-87.93408, tags:["Beachfront","Luxury","Vacation"], img:"https://images.unsplash.com/photo-1544551763-47a0159c923d?w=600&q=80" },
+    { id:35, name:"East Fifteen Cottages", area:"Central Gulf Shores", price_range:"$799,000 - $899,000", avg_year:2023, avg_size:1836, homes:50, beach_time:"5 mins", schools:"Gulf Shores City", amenities:["Brand New","Cottage Design","Near Downtown"], hoa:"Moderate", age_group:"Brand New", style:"Cottage", desc:"Brand-new cottage enclave just east of downtown Gulf Shores — walkable area with premium new construction.", lat:30.25012, lng:-87.67869, tags:["Brand New","Downtown","Cottage"], img:"https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=80" },
+    { id:36, name:"Cabana Beach", area:"Fort Morgan Rd", price_range:"$500,000 - $1,135,000", avg_year:2004, avg_size:1668, homes:50, beach_time:"Direct Access", schools:"Gulf Shores City", amenities:["Beach Access","Raised Beach","Quiet Setting"], hoa:"Low-Moderate", age_group:"Vacation / Mixed", style:"Raised Beach", desc:"Quiet Fort Morgan beach community with raised-beach homes offering direct or near-direct gulf access.", lat:30.23355, lng:-87.87266, tags:["Beach","Raised Beach","Quiet"], img:"https://images.unsplash.com/photo-1598228723793-52759bba239c?w=600&q=80" }
 ];
 
-// ═══════════════════════════════════════════════════════════════
-//  DYNAMIC RENDERER
-// ═══════════════════════════════════════════════════════════════
-let map, markers = {}, polys = {}, activeId = null;
+const poiData = [
+    { name:"🎓 New High School",  lat:30.32690, lng:-87.65386, note:"Coastal Gateway Blvd & Foley Beach Express &middot; opening soon" },
+    { name:"🏫 Middle School",    lat:30.26887, lng:-87.67953, note:"Gulf Shores Middle School &middot; 450 E 15th Ave" },
+    { name:"🏫 Elementary",       lat:30.26908, lng:-87.67975, note:"Gulf Shores Elementary &middot; 1600 E 3rd St" },
+    { name:"🚓 Police Dept",      lat:30.27126, lng:-87.68976, note:"Gulf Shores Police Department &middot; 220 Clubhouse Dr" },
+    { name:"🏖️ The Hangout",      lat:30.24812, lng:-87.68922, note:"Main Public Beach &middot; 101 E Beach Blvd" },
+    { name:"⚓ The Wharf",        lat:30.29262, lng:-87.62913, note:"Shopping, dining, marina &middot; 23101 Canal Rd, Orange Beach" },
+    { name:"🎢 OWA",              lat:30.37507, lng:-87.65875, note:"Amusement park &middot; Foley, AL" },
+    { name:"💦 Waterville USA",    lat:30.25833, lng:-87.68706, note:"Waterpark &middot; 906 Gulf Shores Pkwy" },
+    { name:"🛍️ Tanger Outlets",   lat:30.37633, lng:-87.68019, note:"Outlet shopping &middot; 2601 S McKenzie St, Foley" },
+];
+
+let map, markers = {}, activeId = null;
 
 function initApp() {
-    map = L.map('neighborhood-map', { center:[30.290, -87.715], zoom:12, zoomControl:false });
+    map = L.map('neighborhood-map', {
+        center:[30.290, -87.715], zoom:12,
+        zoomControl:true,
+        scrollWheelZoom:true
+    });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
     neighborhoodData.forEach(n => {
         const icon = L.divIcon({ className:'', html:`<div class="custom-label" id="label-${n.id}">${n.name}</div>`, iconSize:[0,0] });
         const marker = L.marker([n.lat, n.lng], {icon:icon}).addTo(map);
-        marker.on('click', () => { focusSub(n.id, true); showDetails(n); });
+        marker.on('click', () => { focusSub(n.id, false, false); showDetails(n); });
         markers[n.id] = marker;
+    });
 
-        if (n.boundary) {
-            const p = L.polygon(n.boundary, { color:'#0077b6', fillColor:'#0077b6', fillOpacity:0.1, weight:1.5 }).addTo(map);
-            p.on('click', () => { focusSub(n.id, true); showDetails(n); });
-            polys[n.id] = p;
-        }
+    poiData.forEach(p => {
+        const icon = L.divIcon({ className:'', html:`<div class="poi-label">${p.name}</div>`, iconSize:[0,0] });
+        const marker = L.marker([p.lat, p.lng], {icon:icon}).addTo(map);
+        marker.bindPopup(`<strong>${p.name}</strong><br><span style="font-weight:500;color:#6b7280">${p.note}</span>`, { className:'poi-popup', closeButton:false, offset:[0,-4] });
+        marker.on('click', () => marker.openPopup());
     });
 }
 
-function focusSub(id, scroll) {
+function focusSub(id, scrollCard, flyMap) {
     if (activeId === id) return;
     if (activeId) {
         document.getElementById('label-'+activeId)?.classList.remove('active');
         document.getElementById('card-'+activeId)?.classList.remove('active');
-        polys[activeId]?.setStyle({ fillOpacity:0.1, color:'#0077b6', weight:1.5 });
     }
     activeId = id;
     const n = neighborhoodData.find(x=>x.id===id);
     document.getElementById('label-'+id)?.classList.add('active');
-    polys[id]?.setStyle({ fillOpacity:0.4, color:'#e63946', weight:2.5 });
     document.getElementById('mapOverlay').innerText = n.name;
     const card = document.getElementById('card-'+id);
-    if (card) { card.classList.add('active'); if (scroll) card.scrollIntoView({behavior:'smooth', block:'center'}); }
-    map.flyTo([n.lat, n.lng], 14, {duration:0.8});
+    if (card) {
+        card.classList.add('active');
+        if (scrollCard) card.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    if (flyMap) map.flyTo([n.lat, n.lng], 14, {duration:0.8});
 }
 
 function renderCards(data) {
     const grid = document.getElementById('neighborhoodGrid');
+    const noResults = document.getElementById('noResults');
     grid.innerHTML = '';
+    if (data.length === 0) {
+        grid.classList.add('hidden');
+        noResults.classList.remove('hidden');
+    } else {
+        grid.classList.remove('hidden');
+        noResults.classList.add('hidden');
+    }
     data.forEach(n => {
         const c = document.createElement('div');
-        c.className = 'neighborhood-card'; c.id = 'card-'+n.id;
+        c.className = 'neighborhood-card editorial-card group bg-white rounded-3xl overflow-hidden border border-warm-100 shadow-sm cursor-pointer';
+        c.id = 'card-'+n.id;
         c.innerHTML = `
-            <img src="${n.img}" class="card-img">
-            <div class="card-body">
-                <span class="card-meta">${n.area}</span>
-                <h3 class="card-title">${n.name}</h3>
-                <p class="card-price">${n.price_range}</p>
-                <div class="card-tags">${n.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+            <div class="relative h-48 overflow-hidden">
+                <img src="${n.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+            </div>
+            <div class="p-6">
+                <p class="text-xs font-bold text-seafoam-500 uppercase tracking-widest mb-1">${n.area}</p>
+                <h3 class="font-display text-2xl font-bold text-gray-800 mb-1 leading-tight">${n.name}</h3>
+                <p class="text-sm text-gray-500 font-medium mb-4">${n.price_range}</p>
+                <div class="flex flex-wrap gap-2">
+                    ${n.tags.map(t=>`<span class="text-[0.65rem] font-bold px-3 py-1 rounded-full bg-seafoam-50 text-seafoam-700 uppercase tracking-wide">${t}</span>`).join('')}
+                </div>
             </div>`;
-        c.onclick = () => { focusSub(n.id, false); showDetails(n); };
+        c.onclick = () => { focusSub(n.id, false, true); showDetails(n); };
         grid.appendChild(c);
-        observer.observe(c);
     });
+    document.getElementById('resultsCount').innerText = data.length + ' communities';
 }
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) focusSub(parseInt(e.target.id.split('-')[1]), false); });
-}, { root: document.getElementById('resultsPanel'), threshold: 0.7 });
 
 function showDetails(n) {
-    modalTitle.innerText = n.name;
+    document.getElementById('modalTitle').innerText = n.name;
+    document.getElementById('modalArea').innerText = n.area;
     document.getElementById('modalBody').innerHTML = `
-        <div class="modal-section">
-            <div class="section-title">Community Overview</div>
-            <p style="font-size:1rem;line-height:1.6;color:#444">${n.desc}</p>
+        <div class="mb-8">
+            <div class="divider mb-4"></div>
+            <h3 class="font-display text-xl font-bold text-gray-800 mb-3">Community Overview</h3>
+            <p class="text-gray-600 leading-relaxed">${n.desc}</p>
         </div>
-        <div class="modal-section" style="background:#fcfcfc">
-            <div class="section-title">Historical & Market Specs</div>
-            <div class="specs-grid">
-                <div class="spec-item"><div class="label">Average Built</div><div class="value">${n.avg_year}</div></div>
-                <div class="spec-item"><div class="label">Avg Home SqFt</div><div class="value">${n.avg_size} sqft</div></div>
-                <div class="spec-item"><div class="label">Est. Homesites</div><div class="value">~${n.homes}</div></div>
-                <div class="spec-item"><div class="label">Beach Drive</div><div class="value">${n.beach_time}</div></div>
-                <div class="spec-item"><div class="label">Zoned Schools</div><div class="value">${n.schools}</div></div>
-                <div class="spec-item"><div class="label">HOA Vibe</div><div class="value">${n.hoa}</div></div>
+
+        <div class="mb-8 p-6 bg-warm-50 rounded-2xl border border-warm-100">
+            <p class="text-xs font-bold text-seafoam-600 uppercase tracking-widest mb-5">Historical & Market Specs</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-5">
+                <div><p class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider mb-1">Average Built</p><p class="font-display text-xl font-bold text-gray-800">${n.avg_year}</p></div>
+                <div><p class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider mb-1">Avg Home SqFt</p><p class="font-display text-xl font-bold text-gray-800">${n.avg_size.toLocaleString()}</p></div>
+                <div><p class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider mb-1">Est. Homesites</p><p class="font-display text-xl font-bold text-gray-800">~${n.homes}</p></div>
+                <div><p class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider mb-1">Beach Drive</p><p class="font-display text-xl font-bold text-gray-800">${n.beach_time}</p></div>
+                <div><p class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider mb-1">Zoned Schools</p><p class="font-display text-xl font-bold text-gray-800">${n.schools}</p></div>
+                <div><p class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider mb-1">HOA Vibe</p><p class="font-display text-xl font-bold text-gray-800">${n.hoa}</p></div>
             </div>
         </div>
-        <div class="modal-section">
-            <div class="section-title">Top Amenities</div>
-            <div class="feature-list">
-                ${n.amenities.map(a => `<div class="feature-item"><span class="feature-icon">✓</span><span>${a}</span></div>`).join('')}
+
+        <div class="mb-8">
+            <p class="text-xs font-bold text-seafoam-600 uppercase tracking-widest mb-4">Top Amenities</p>
+            <div class="grid sm:grid-cols-2 gap-3">
+                ${n.amenities.map(a => `<div class="flex items-start gap-3 text-gray-600"><span class="text-seafoam-500 font-bold mt-0.5">✓</span><span>${a}</span></div>`).join('')}
             </div>
         </div>
-        <div class="modal-section">
-            <div class="section-title">Living Atmosphere</div>
-            <p style="font-size:.9rem;color:#666">
-                Most homes in <strong>${n.name}</strong> are built in the <strong>${n.style}</strong> style. 
-                Residents typically choose this community because of its <strong>${n.age_group}</strong> feel 
-                and easy access to the ${n.area} area of Gulf Shores.
+
+        <div class="pt-6 border-t border-warm-100">
+            <p class="text-xs font-bold text-seafoam-600 uppercase tracking-widest mb-3">Living Atmosphere</p>
+            <p class="text-gray-600 leading-relaxed">
+                Most homes in <strong class="text-gray-800">${n.name}</strong> are built in the <strong class="text-gray-800">${n.style}</strong> style. Residents typically choose this community for its <strong class="text-gray-800">${n.age_group}</strong> feel and easy access to the ${n.area} area of Gulf Shores.
             </p>
         </div>
+
+        <div class="mt-8 pt-6 border-t border-warm-100 text-center">
+            <button type="button" data-lead-form class="inline-block bg-seafoam-500 hover:bg-seafoam-600 text-white px-8 py-3 rounded-full font-semibold transition shadow-lg shadow-seafoam-200">Ask us about ${n.name}</button>
+        </div>
     `;
-    modalBg.style.display = 'block';
+    const bg = document.getElementById('modalBg');
+    bg.classList.remove('hidden');
+    bg.classList.add('flex');
+    // Re-bind lead-form trigger on dynamically rendered button
+    bg.querySelectorAll('[data-lead-form]').forEach(el => el.addEventListener('click', openLeadForm));
 }
 
-document.getElementById('closeModal').onclick = () => modalBg.style.display='none';
-modalBg.onclick = (e) => { if(e.target===modalBg) modalBg.style.display='none'; };
-initApp(); renderCards(neighborhoodData);
+function closeModal() {
+    const bg = document.getElementById('modalBg');
+    bg.classList.remove('flex');
+    bg.classList.add('hidden');
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    if (!q) { renderCards(neighborhoodData); return; }
+    const filtered = neighborhoodData.filter(n =>
+        n.name.toLowerCase().includes(q) ||
+        n.area.toLowerCase().includes(q) ||
+        n.style.toLowerCase().includes(q) ||
+        n.tags.some(t => t.toLowerCase().includes(q))
+    );
+    renderCards(filtered);
+});
+
+document.getElementById('closeModal').onclick = closeModal;
+document.getElementById('modalBg').onclick = (e) => { if(e.target.id === 'modalBg') closeModal(); };
+
+// Let's Talk popover
+const talkModal = document.getElementById('talkModal');
+function openTalk(e) { if (e) e.preventDefault(); talkModal.classList.remove('hidden'); talkModal.classList.add('flex'); }
+function closeTalk() { talkModal.classList.remove('flex'); talkModal.classList.add('hidden'); }
+document.getElementById('closeTalk').onclick = closeTalk;
+talkModal.onclick = (e) => { if (e.target === talkModal) closeTalk(); };
+document.querySelectorAll('[data-talk]').forEach(el => el.addEventListener('click', openTalk));
 
 // ═══════════════════════════════════════════════════════════════
 //  LEAD CAPTURE FORM (Track 1: Relocation)
 // ═══════════════════════════════════════════════════════════════
-const leadModalBg = document.getElementById('leadModalBg');
-document.getElementById('openLeadForm').onclick = () => leadModalBg.style.display = 'block';
-document.getElementById('closeLeadModal').onclick = () => leadModalBg.style.display = 'none';
-leadModalBg.onclick = (e) => { if (e.target === leadModalBg) leadModalBg.style.display = 'none'; };
+const leadFormModal = document.getElementById('leadFormModal');
+const leadFormEl = document.getElementById('leadFormSubdivision');
+const leadFormSuccess = document.getElementById('leadFormSuccess');
 
-document.getElementById('leadFormSubdivision').addEventListener('submit', async (e) => {
+function openLeadForm(e) {
+    if (e) e.preventDefault();
+    closeTalk(); // in case opened from talk modal
+    leadFormModal.classList.remove('hidden');
+    leadFormModal.classList.add('flex');
+}
+function closeLeadForm() {
+    leadFormModal.classList.remove('flex');
+    leadFormModal.classList.add('hidden');
+}
+
+document.getElementById('openLeadForm').addEventListener('click', openLeadForm);
+document.getElementById('closeLeadForm').addEventListener('click', closeLeadForm);
+leadFormModal.addEventListener('click', (e) => { if (e.target === leadFormModal) closeLeadForm(); });
+document.querySelectorAll('[data-lead-form]').forEach(el => el.addEventListener('click', openLeadForm));
+
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeTalk(); closeModal(); closeLeadForm(); } });
+
+leadFormEl.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const form = e.target;
-    const submitBtn = form.querySelector('.lead-form-submit');
+    const submitBtn = leadFormEl.querySelector('button[type="submit"]');
     const original = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = 'Sending&hellip;';
 
-    const fd = new FormData(form);
+    const fd = new FormData(leadFormEl);
     const timeline = fd.get('timeline');
     const priority = fd.get('priority');
     const notes = fd.get('notes');
@@ -464,7 +569,7 @@ document.getElementById('leadFormSubdivision').addEventListener('submit', async 
         utm_content: 'subdivision-form'
     };
 
-    // Replace API_KEY_PLACEHOLDER with the real CRM API key before deploying
+    // Replace API_KEY_PLACEHOLDER with the real CRM API key before deploying.
     const API_KEY = 'API_KEY_PLACEHOLDER';
     if (API_KEY === 'API_KEY_PLACEHOLDER') {
         console.error('[subdivisions] API_KEY placeholder not replaced — form submissions will fail.');
@@ -477,8 +582,8 @@ document.getElementById('leadFormSubdivision').addEventListener('submit', async 
             body: JSON.stringify(payload)
         });
         if (response.ok) {
-            form.style.display = 'none';
-            document.getElementById('leadFormSuccess').style.display = 'block';
+            leadFormEl.classList.add('hidden');
+            leadFormSuccess.classList.remove('hidden');
         } else {
             const err = await response.json().catch(() => ({}));
             console.error('API Error:', response.status, err);
@@ -493,6 +598,9 @@ document.getElementById('leadFormSubdivision').addEventListener('submit', async 
         submitBtn.innerHTML = original;
     }
 });
+
+initApp();
+renderCards(neighborhoodData);
 </script>
 </body>
 </html>
