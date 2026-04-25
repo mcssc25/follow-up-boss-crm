@@ -71,27 +71,7 @@
                 Videos
             </a>
 
-            <!-- Social DM -->
-            <div class="mt-4 pt-4 border-t border-gray-800">
-                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Social DM</h3>
-                <div class="mt-2 space-y-1">
-                    <a href="{% url 'social:trigger_list' %}"
-                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 {% if request.resolver_match.app_name == 'social' and 'trigger' in request.resolver_match.url_name %}bg-gray-800 text-white{% else %}text-gray-300{% endif %}">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
-                        Keyword Triggers
-                    </a>
-                    <a href="{% url 'social:message_log' %}"
-                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 {% if request.resolver_match.app_name == 'social' and request.resolver_match.url_name == 'message_log' %}bg-gray-800 text-white{% else %}text-gray-300{% endif %}">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                        Message Log
-                    </a>
-                    <a href="{% url 'social:accounts' %}"
-                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 {% if request.resolver_match.app_name == 'social' and request.resolver_match.url_name == 'accounts' %}bg-gray-800 text-white{% else %}text-gray-300{% endif %}">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                        Connected Accounts
-                    </a>
-                </div>
-            </div>
+            {# Social DM nav hidden — feature still in build-out. Re-enable by restoring this block. #}
 
             <a href="/reports/"
                class="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 {% if '/reports/' in request.path %}bg-gray-800 text-white{% else %}text-gray-300{% endif %}">
